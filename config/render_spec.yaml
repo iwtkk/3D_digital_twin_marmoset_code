@@ -1,0 +1,123 @@
+version: 1
+
+render:
+  description: >
+    Dataset/Sessionから取り出したkp3d（temp3d）をBlenderのarmatureに適用するかどうかを指定する。
+    1-8方向を指定してからレンダリングして保存する。
+         保存形式は動画や画像を指定する。
+    
+
+  inputs:
+    base_blend:
+      # mdの「baseとなるblenderの情報が入っているといい」を仕様に
+      path: "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend"
+      require_blender_version: false
+      blender_version: ""  # 例: "4.1.0" など（固定したければ埋める）
+
+    temp3d: # kp3d.pickleのパスはdatasetから渡せるので消す
+      # 一旦保存→temp3d を仕様化
+      format: "npz"  # npz / json / pickle
+      path_template: "{PROJECT_ROOT}/tmp/temp3d/{session_id}/{frame:08d}.npz"
+      schema_ref: "kp3d_schema_v1"
+
+  csv:
+    init:
+      neck_tail: [1.50-0.340, 0.995-0.03, 0.780]
+      # rotate: [0, 0, 0]
+      # rotate_center_coords: [0, 0, 0]
+      # translate: [] # 肩の大きさで判断する
+    path_template: "{PROJECT_ROOT}/outputs/csv/{session_id}/{frame:08d}.csv"
+
+  armature:
+    object_name: "NF_Armature"
+    bone_mapping:
+      # kp3dの関節名 -> Blenderボーン名（※コメントと実データが逆だったので方向を統一）
+      "pts_base_": "Base"
+      "pts_r_wrist_": "Forearm_IK.R"
+      "pts_l_wrist_": "Forearm_IK.L"
+      "pts_r_ankle_": "Foot_IK.R"
+      "pts_l_ankle_": "Foot_IK.L"
+      "pts_nose_": "Head_IK"
+      "pts_shoulder_mid_": "Chest_IK"
+      "pts_l_elbow_": "Elbow_IK_L"
+      "pts_r_elbow_": "Elbow_IK_R"
+      "pts_l_knee_": "Knee_IK.L"
+      "pts_r_knee_": "Knee_IK.R"
+      "pts_backbone_peak_": "Chest_Control_IK"
+      "pts_tail_1_": "Tail0_IK"
+      "pts_tail_2_": "Tail_IK"
+    units:
+      # 3Dがmmなのかmなのか等、最終的にここで固定
+      length_unit: "meters"  # csvはmeterで保存済み
+      blender_unit: "meters" # Blender scene unit（通常 meters）
+      scale_factor: 1/1000    # kp3d(mm) -> Blender(m)
+
+  rendering:
+    # どのレンダリング構成を使うか（いずれか1つ）
+    profile: "env_camera"  # env_camera / marmo_eyes / marmo_an_eye
+    profiles:
+      env_camera:
+        engine: "CYCLES"
+        resolution:
+         source: "{PROJECT_ROOT}/config/marmo*/config.yaml"
+         field: "img_size"          # [W, H]
+        samples: 500
+        transparent_background: false
+        views:
+         count: 8                   # 固定のままでもOK（検証にも使える）
+         camera_pattern: "Camera.{camera_id}"
+         view_index:
+           source: "{PROJECT_ROOT}/config/marmo*/config.yaml"
+           field: "camera_id"       # 8台分のID配列
+           ordering: "config"       # configの並び順を採用
+      marmo_eyes:
+        engine: "CYCLES"   # CYCLES / EEVEE
+        resolution: [1080, 1080]
+        samples: 500
+        transparent_background: false
+        views:
+          # camera_l, camera_r（固定）
+          cameras: ["camera_l", "camera_r"]
+      marmo_an_eye:
+        engine: "CYCLES"   # CYCLES / EEVEE
+        resolution: [1920, 1080] # 両目で見てる想定で横長
+        samples: 500
+        transparent_background: false
+        views:
+          # camera_l, camera_r のどちらか（固定）
+          camera: "camera_l"
+
+    output:
+      video:
+        video_format: "mp4"
+        # 動画は通常「フレーム範囲 × ビュー」で1本（frame単位は不自然なので修正）
+        path_template: "{PROJECT_ROOT}/outputs/render/video/{animal}/{session_id}/{start_frame:08d}_{end_frame:08d}/view_{view_id}.mp4"
+        overwrite: true
+        #開始・終了フレームはその都度指定する
+      image:
+        image_format: "png"
+        path_template: "{PROJECT_ROOT}/outputs/render/image/{animal}/{session_id}/{frame:08d}/view_{view_index:02d}.png"
+        overwrite: true
+        # フレームは実行時に指定（複数可）
+  pipeline:
+    # 実行手順を仕様として固定（責務分離）
+    steps:
+      - "select_frames_or_range"  # Dataset側から対象フレーム（群）または範囲を決める
+      - "export_temp3d"           # kp3dをtemp3d形式に保存（frameごと）
+      - "blender_apply_pose"      # armatureに適用（必要ならOFF可：実行時フラグ）
+      - "render_views"            # profileに応じてレンダ（8方向/両目/単眼）
+      - "write_manifest"          # 何を出したか記録（再現性）
+      
+  manifests:
+    enabled: true
+    format: "json"
+    path_template: "{PROJECT_ROOT}/outputs/render/{animal}/{session_id}/manifest.json"
+    fields:
+      - animal
+      - session_id
+      - frames            # imageの場合: frame配列 / videoの場合: start/end
+      - render_profile    # env_camera / marmo_eyes / marmo_an_eye
+      - view_ids          # 例: ["Camera.0".."Camera.7"] or ["camera_l","camera_r"]
+      - kp3d_source_path
+      - status            # success / skipped / failed
+      - skip_reason       # 任意

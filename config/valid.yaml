@@ -1,0 +1,35 @@
+version: 1
+
+validation:
+  # データセット設定への参照
+  dataset_spec: "{PROJECT_ROOT}/config/dataset_spec.yaml"
+
+  # フレーム抽出設定
+  frame_extraction:
+    output_root: "{PROJECT_ROOT}/outputs/validation/consistency/frames"
+    output_path_template: "{output_root}/validation/{session_id}/Camera.{camera_id}/{frame_number:07d}.png"
+
+  # レンダリング画像設定
+  render:
+    root: "{PROJECT_ROOT}/outputs/validation/consistency/render"
+    path_template: "{render_root}/{session_id}/{hash}/image/Camera.{camera_id}/{frame_number:07d}.png"
+
+  # メトリクス設定
+  metrics:
+    methods: ["ssim", "psnr"]
+    output_path: "{PROJECT_ROOT}/outputs/validation/consistency/metrics.json"
+
+figure:
+  mapping_table:
+    23506226: 1
+    23511607: 2
+    23506214: 3
+    23506236: 4
+    23511614: 5
+    23506237: 6
+    23511613: 7
+    23506239: 8
+  animal_mapping:
+    cj611: "ID A"
+    cj425: "ID B"
+    cj357: "ID C"

@@ -1,0 +1,12 @@
+version: 1
+
+# 除外するセッションリスト
+# MarmoDatasetがこのファイルを読み込み、フレーム選択・レンダリング時に除外します
+ignored_sessions:
+  - dailylife_cj611_20230227_080000  # Rendering error at frame 652 (all cameras: PSNR ~8dB, SSIM ~0.004)
+  - cj611_20230227_080000  # Rendering error at frame 652 (all cameras: PSNR ~8dB, SSIM ~0.004)
+
+# メモ：
+# - random_frame_selector.pyはこのリストのセッションを除外してフレームを選択します
+# - render_from_selection.pyも同様に除外します
+# - セッションIDを追加することで、問題のあるセッションを除外できます

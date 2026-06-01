@@ -1,0 +1,59 @@
+# config/health_status.yaml
+meta:
+  date_format: "YYYYMMDD"
+  # 期間にヒットしない場合の扱い（運用に合わせて）
+  default_status: "healthy"   # healthy / diseased / unknown
+  # to を省略(null)した場合は「無期限」として扱う想定
+  open_ended_to: null
+
+animals:
+  # 期間でステータスが切り替わる個体
+  cj611:
+    periods:
+      - status: "healthy"
+        from: "20180528"
+        to: "20230314"
+        notes: null
+      - status: "diseased"
+        from: "20230315"
+        to: null
+        notes: "Injected right brain"
+    notes: "Female"
+
+  cj425:
+    periods:
+      - status: "healthy"
+        from: "20140411"
+        to: "20211109"
+        notes: null
+      - status: "diseased"
+        from: "20211110"
+        to: null
+        notes: "Injected left brain"
+    notes: "Male"
+
+  cj357:
+    periods:
+      - status: "healthy"
+        from: "20111121"
+        to: null
+        notes: null
+    notes: "Female"
+
+
+# PDモデルはこちら。
+
+# Cj425, Male DOB(day of birth): 2014/4/11
+
+# 2021/11/09, Left brain
+
+# Cj611, Female, DOB: 2018/5/28
+
+# 2023/03/14, Right brain
+# 注入日と注入したHemisphere（方半球）、注入法は論文にあります。
+
+# 他はWild typeの動物です。
+# 注入してから徐々に症状が進行します。
+
+#  357F   2011/11/21
+# この個体は、特に注入など行っておりません。

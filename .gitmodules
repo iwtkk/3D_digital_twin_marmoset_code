@@ -1,0 +1,9 @@
+[submodule "scripts/03_run_marmo3dpose/marmo3Dpose"]
+	path = scripts/03_run_marmo3dpose/marmo3Dpose
+	url = https://github.com/c7h2y/marmo3Dpose.git
+[submodule "scripts/02_train/mmdetection"]
+	path = scripts/02_train/mmdetection
+	url = https://github.com/open-mmlab/mmdetection.git
+[submodule "scripts/02_train/mmpose"]
+	path = scripts/02_train/mmpose
+	url = https://github.com/open-mmlab/mmpose.git
