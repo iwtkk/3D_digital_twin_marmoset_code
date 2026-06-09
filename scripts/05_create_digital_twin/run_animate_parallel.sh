@@ -6,6 +6,7 @@ BLEND_BASE="3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/3D_digit
 
 ARMATURE_NAME="NF_Armature"
 CSV_DIR="outputs/animate_temp/transformedcsv"
+OUTPUT_DIR="outputs/blender"
 COUNT=10
 ALL=0
 MAX_JOBS=4
@@ -20,6 +21,7 @@ Options:
   --blend <file>      ベースblendファイル（デフォルト: 3D_digital_twin_marmoset_data/...）
   --armature <name>   アーマチュア名（デフォルト: NF_Armature）
   --csv-dir <dir>     CSVディレクトリ（デフォルト: outputs/animate_temp/transformedcsv）
+  --output-dir <dir>  出力blendファイルの保存先（デフォルト: outputs/blender）
   --count <n>         処理するCSV数の上限（デフォルト: 10）
   --all               すべてのCSVを処理
   -h, --help          このヘルプを表示
@@ -28,6 +30,7 @@ EOF
     --blend)    BLEND_BASE="$2";    shift 2;;
     --armature) ARMATURE_NAME="$2"; shift 2;;
     --csv-dir)  CSV_DIR="$2";       shift 2;;
+    --output-dir) OUTPUT_DIR="$2";  shift 2;;
     --count)    COUNT="$2";         shift 2;;
     --all)      ALL=1;              shift;;
     *) echo "Unknown arg: $1"; exit 1;;
@@ -49,13 +52,13 @@ trap cleanup SIGINT SIGTERM
 
 processed=0
 
-mkdir -p outputs/blender
+mkdir -p "$OUTPUT_DIR"
 
 for csv in "$CSV_DIR"/*.csv; do
   name=$(basename "$csv" .csv)
-  blend_file="outputs/blender/work_${name}.blend"
+  blend_file="$OUTPUT_DIR/work_${name}.blend"
 
-  done_file="outputs/blender/work_${name}.done"
+  done_file="$OUTPUT_DIR/work_${name}.done"
 
   # .done マーカーがあれば処理完了済みとしてスキップ
   if [[ -e "$done_file" ]]; then
