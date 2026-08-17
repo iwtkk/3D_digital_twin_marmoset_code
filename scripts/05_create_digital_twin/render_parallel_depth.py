@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_parallel import (  # noqa: E402
     add_pool_args, add_worker_args, build_blender_cmd, run_one, worker_extra_args,
 )
-from render_worker import resolve_gpu_list, run_warm_pool  # noqa: E402
+from render_worker import auto_threads, resolve_gpu_list, run_warm_pool  # noqa: E402
 
 DEPTH_SCRIPT = "scripts/05_create_digital_twin/render_range_depth.py"
 
@@ -41,7 +41,8 @@ def main():
     parser.add_argument("--gpu", default=None,
                         help="使用するGPU ID（カンマ区切り）。未指定なら nvidia-smi で自動検出")
     parser.add_argument("--resolution", default=None, help="解像度 WxH（例: 1920x1080）")
-    add_worker_args(parser)   # --samples はここに含まれる（depth の既定は 1）
+    # depth は決定的なのでサンプル数の既定は 1（カラーの既定 32 とは別）
+    add_worker_args(parser, default_samples=1)
     add_pool_args(parser)
     parser.add_argument("--verbose", action="store_true",
                         help="Blender の詳細ログを表示する（デフォルトは抑制）")
@@ -52,8 +53,6 @@ def main():
         raise ValueError("entire_end は entire_start 以上にしてください")
     if args.workers_per_gpu < 1:
         raise ValueError("workers_per_gpu は 1 以上にしてください")
-    if args.samples is None:
-        args.samples = 1  # depth は決定的なので 1 サンプルで十分
 
     gpu_list = resolve_gpu_list(args.gpu)
     gpu_count = len(gpu_list)
@@ -66,9 +65,13 @@ def main():
         divisor = args.max_jobs * (1 if args.cold else 8)
         args.chunk_size = max(1, math.ceil(total_frames / divisor))
 
+    if args.threads is None:
+        args.threads = auto_threads(args.max_jobs)
+
     print(f"mode: {'cold' if args.cold else 'warm'}, GPU数: {gpu_count}, "
           f"workers_per_gpu: {args.workers_per_gpu}, "
-          f"max_jobs: {args.max_jobs}, chunk_size: {args.chunk_size}")
+          f"max_jobs: {args.max_jobs}, chunk_size: {args.chunk_size}, "
+          f"threads/worker: {args.threads or '無制限'}")
 
     chunks = []
     current_start = args.entire_start
@@ -84,7 +87,7 @@ def main():
             build_blender_cmd(
                 args.blend, args.camera, start, end, args.out, args.prefix,
                 args.resolution, args.backend, args.persistent_data,
-                DEPTH_SCRIPT, extra,
+                DEPTH_SCRIPT, extra, args.threads,
             )
             for (start, end) in chunks
         ]
@@ -132,6 +135,7 @@ def main():
         jobs, args.max_jobs, gpu_list, DEPTH_SCRIPT, extra, args.cuda_path,
         verbose=args.verbose, progress=args.progress, on_result=on_result,
         restart_every=args.restart_every, job_timeout=args.job_timeout,
+        threads=args.threads, pin_cpu=args.pin_cpu,
     )
     if failures:
         print(f"\n失敗したチャンク {len(failures)} 件:")

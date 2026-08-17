@@ -107,12 +107,11 @@ def render_depth_job(job, args):
 
 
 def main():
+    # depth は決定的なのでサンプル数の既定は 1（カラーの既定 32 とは別）
     parser = rr.build_arg_parser(
-        "Render Cycles Depth(Z) pass for a frame range (batch or warm/--serve)")
-    args = rr.parse_args(parser)
-    if args.samples is None:
-        args.samples = 1  # depth は 1 サンプルで十分
-    rr.run(args, render_depth_job, extra_setup=depth_setup)
+        "Render Cycles Depth(Z) pass for a frame range (batch or warm/--serve)",
+        default_samples=1)
+    rr.run(rr.parse_args(parser), render_depth_job, extra_setup=depth_setup)
 
 
 if __name__ == "__main__":

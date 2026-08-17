@@ -61,11 +61,14 @@ class WarmWorker:
     """.blend を読み込んだまま常駐する blender プロセス1本。"""
 
     def __init__(self, blend, script, extra_args=(), gpu=None,
-                 cuda_path=DEFAULT_CUDA_PATH, verbose=False, label="", progress=False):
+                 cuda_path=DEFAULT_CUDA_PATH, verbose=False, label="", progress=False,
+                 threads=None, cpu_set=None):
         self.blend = blend
         self.script = script
         self.extra_args = list(extra_args)
         self.gpu = gpu
+        self.threads = threads
+        self.cpu_set = cpu_set
         self.cuda_path = cuda_path
         self.verbose = verbose
         self.progress = progress
@@ -76,8 +79,16 @@ class WarmWorker:
         self._next_id = 0
 
     def cmd(self):
-        return ["blender", self.blend, "-b", "-P", self.script, "--", "--serve"] \
-            + self.extra_args
+        # -t は Blender 全体のタスクスケジューラのスレッド数。指定しないと
+        # 1プロセスが全コアぶんのスレッドプールを作り、ワーカーを並べたときに
+        # CPU が激しく取り合いになる（実測: 1プロセスで約17コア相当を消費）。
+        thr = ["-t", str(self.threads)] if self.threads else []
+        # taskset で使用コアを固定する。-t だけでは Blender は全コアぶんの
+        # スレッドプールを作り続け（実測 775 スレッド / 1フレームあたり 600 CPU秒、
+        # うち半分が sys = スピン待ち）、ワーカーを並べると CPU を食い潰す。
+        pin = ["taskset", "-c", self.cpu_set] if self.cpu_set else []
+        return pin + ["blender", self.blend, "-b"] + thr \
+            + ["-P", self.script, "--", "--serve"] + self.extra_args
 
     def start(self):
         self.proc = subprocess.Popen(
@@ -206,9 +217,23 @@ class BlendJobQueue:
                 self._active[current] = max(0, self._active[current] - 1)
 
 
+def auto_threads(slots):
+    """ワーカー1本あたりに割り当てる CPU スレッド数（コア数をスロットで山分け）。"""
+    return max(1, (os.cpu_count() or 8) // max(1, slots))
+
+
+def slot_cpu_set(slot, slots, cores_per_slot=None):
+    """スロット番号から taskset に渡すコア範囲文字列を作る（重ならないよう山分け）。"""
+    ncpu = os.cpu_count() or 8
+    k = cores_per_slot or max(1, ncpu // max(1, slots))
+    start = (slot * k) % ncpu
+    end = min(start + k, ncpu) - 1
+    return f"{start}-{end}" if end > start else str(start)
+
+
 def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAULT_CUDA_PATH,
                   verbose=False, progress=False, on_result=None, restart_every=0,
-                  job_timeout=None, retries=1):
+                  job_timeout=None, retries=1, threads=None, pin_cpu=False):
     """jobs を warm ワーカー slots 本で消化する。
 
     jobs: [{"blend": path, "label": str, "payload": {...ジョブJSON...}}, ...]
@@ -221,6 +246,7 @@ def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAUL
 
     def slot_loop(slot):
         gpu = gpu_list[slot % len(gpu_list)] if gpu_list else None
+        cpu_set = slot_cpu_set(slot, slots, threads) if pin_cpu else None
         worker = None
         current = None
         since_start = 0
@@ -242,7 +268,7 @@ def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAUL
                     try:
                         worker = WarmWorker(
                             job["blend"], script, extra_args, gpu, cuda_path,
-                            verbose, label, progress)
+                            verbose, label, progress, threads, cpu_set)
                         worker.start()
                     except Exception as e:
                         worker = None
@@ -282,10 +308,11 @@ def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAUL
             worker.stop()
         q.release(current)
 
-    threads = [threading.Thread(target=slot_loop, args=(i,)) for i in range(slots)]
-    for t in threads:
+    # 変数名を threads にすると引数の threads（1ワーカーのCPUスレッド数）を隠す
+    slot_threads = [threading.Thread(target=slot_loop, args=(i,)) for i in range(slots)]
+    for t in slot_threads:
         t.start()
-    for t in threads:
+    for t in slot_threads:
         t.join()
 
     # スロットが全滅した場合、未処理ジョブが残る

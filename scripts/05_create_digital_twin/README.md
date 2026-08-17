@@ -89,9 +89,10 @@ GPU スロット数だけ blender を立ち上げ、チャンクを stdin 経由
 | オプション | 内容 |
 |---|---|
 | `--optimize` | デノイザーOptiX・Simplify+テクスチャ上限・indirect clamp・adaptive threshold・ガラスの影オフをまとめて適用（**画が変わる**のでオプトイン） |
-| `--samples N` | Cycles サンプル数の上書き。値は `blender_render/tools/run_sample_sweep.sh` で決める |
+| `--samples N` | Cycles サンプル数の上書き。**カラーの既定は 32**（depth は 1）。`0` 以下で .blend の設定をそのまま使う。値は `blender_render/tools/run_sample_sweep.sh` で検証する |
 | `--denoiser {OPTIX,OPENIMAGEDENOISE,NONE}` | デノイザー指定 |
 | `--allow-cpu-fallback` | GPU を有効化できなくても CPU で続行（既定はエラー停止） |
+| `--threads N` | blender 1本あたりの CPU スレッド数（`blender -t`）。**既定はコア数÷スロット数の自動配分**。`0` で無制限 |
 | `--restart-every N` | ワーカーが N ジョブ処理したら blender を再起動（長時間運用の保険） |
 | `--job-timeout SEC` | チャンクが固まったらワーカーを作り直して再試行 |
 | `--progress` | フレーム単位の所要時間を表示 |

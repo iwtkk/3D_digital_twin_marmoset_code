@@ -34,7 +34,7 @@ from render_ipc import encode  # noqa: E402
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
-def build_arg_parser(description, default_prefix="frame_"):
+def build_arg_parser(description, default_prefix="frame_", default_samples=32):
     """warm/batch 共通のオプション定義。depth 版（render_range_depth.py）も使う。"""
     import argparse
     p = argparse.ArgumentParser(description=description)
@@ -66,8 +66,9 @@ def build_arg_parser(description, default_prefix="frame_"):
     p.add_argument("--optimize", action="store_true",
                    help="デノイザーOptiX・Simplify・indirect clamp・adaptive threshold・"
                         "ガラスの影オフをまとめて適用する（画が変わるのでオプトイン）")
-    p.add_argument("--samples", type=int, default=None,
-                   help="Cycles サンプル数を上書き（省略時は .blend の設定のまま）")
+    p.add_argument("--samples", type=int, default=default_samples,
+                   help=f"Cycles サンプル数を上書き（デフォルト: {default_samples}）。"
+                        f"0 以下を渡すと .blend の設定をそのまま使う")
     p.add_argument("--denoiser", default=None,
                    choices=["OPTIX", "OPENIMAGEDENOISE", "NONE"],
                    help="デノイザー（省略時は .blend の設定のまま、--optimize 時は OPTIX）")
@@ -321,6 +322,9 @@ def serve(args, render_job, ready_info=None):
 def run(args, render_job, extra_setup=None):
     """batch/warm 共通のエントリポイント。depth 版もこれを使う。"""
     scene = bpy.context.scene
+    if args.samples is not None and args.samples <= 0:
+        args.samples = None  # .blend の設定をそのまま使う
+
     devices = setup_gpu(args.backend, args.allow_cpu_fallback)
     log = apply_warm_settings(scene, args.persistent_data)
     log += apply_optimizations(scene, args)

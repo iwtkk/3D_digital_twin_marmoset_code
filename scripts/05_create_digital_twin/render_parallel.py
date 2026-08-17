@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_worker import (  # noqa: E402
-    DEFAULT_CUDA_PATH, make_env, resolve_gpu_list, run_warm_pool,
+    DEFAULT_CUDA_PATH, auto_threads, make_env, resolve_gpu_list, run_warm_pool,
 )
 
 RENDER_SCRIPT = "scripts/05_create_digital_twin/render_range.py"
@@ -25,10 +25,13 @@ RENDER_SCRIPT = "scripts/05_create_digital_twin/render_range.py"
 def build_blender_cmd(
     blend, camera, start, end, out, prefix, resolution=None,
     backend="CUDA", persistent_data=True, script=RENDER_SCRIPT, extra_args=(),
+    threads=None,
 ):
     """cold モード（1チャンク=1プロセス）用の blender コマンド。"""
     cmd = [
-        "blender", blend, "-b", "-P", script, "--",
+        "blender", blend, "-b",
+        *(["-t", str(threads)] if threads else []),
+        "-P", script, "--",
         "--camera", camera,
         "--start", str(start),
         "--end", str(end),
@@ -63,7 +66,7 @@ def run_one(cmd, gpu_id=None, verbose=False, cuda_path=None):
         raise subprocess.CalledProcessError(result.returncode, cmd)
 
 
-def add_worker_args(parser):
+def add_worker_args(parser, default_samples=32):
     """warm ワーカー（blender 側 render_range*.py）へ渡す共通オプション。"""
     parser.add_argument("--backend", default="CUDA", choices=["CUDA", "OPTIX"],
                         help="Cycles の GPU バックエンド（デフォルト: CUDA）")
@@ -77,8 +80,10 @@ def add_worker_args(parser):
                         help="デノイザーOptiX・Simplify・indirect clamp などの最適化を"
                              "レンダリング時に適用する（画が変わるのでオプトイン。"
                              "詳細は blender_render/tools/README.md）")
-    parser.add_argument("--samples", type=int, default=None,
-                        help="Cycles サンプル数を上書き（省略時は .blend の設定のまま）")
+    parser.add_argument("--samples", type=int, default=default_samples,
+                        help=f"Cycles サンプル数を上書き（デフォルト: {default_samples}）。"
+                             f"0 以下を渡すと .blend の設定をそのまま使う。"
+                             f"値は blender_render/tools/run_sample_sweep.sh で検証すること")
     parser.add_argument("--denoiser", default=None,
                         choices=["OPTIX", "OPENIMAGEDENOISE", "NONE"],
                         help="デノイザー（省略時は .blend の設定のまま）")
@@ -106,6 +111,16 @@ def worker_extra_args(args):
 
 def add_pool_args(parser):
     """warm プール（ディスパッチャ側）の共通オプション。"""
+    parser.add_argument("--threads", type=int, default=None,
+                        help="blender 1本あたりの CPU スレッド数（blender -t）。"
+                             "省略時は CPU コア数をスロット数で山分けする。0 で無制限"
+                             "（無制限だと1プロセスが約17コア相当を占有し、ワーカーを"
+                             "並べたときに CPU の取り合いで全体が遅くなる）")
+    parser.add_argument("--pin-cpu", action="store_true",
+                        help="taskset で各ワーカーを別々のコアに固定する。"
+                             "blender は -t を指定しても全コアぶんのスレッドプールを作り"
+                             "スピン待ちで CPU を食い潰すため、ワーカーを多数並べる場合は"
+                             "これを付けると全体のスループットが安定する")
     parser.add_argument("--cold", action="store_true",
                         help="warm を使わず、チャンクごとに blender を起動し直す（従来方式）")
     parser.add_argument("--restart-every", type=int, default=0,
@@ -168,9 +183,13 @@ def main():
         divisor = args.max_jobs * (1 if args.cold else 8)
         args.chunk_size = max(1, math.ceil(total_frames / divisor))
 
+    if args.threads is None:
+        args.threads = auto_threads(args.max_jobs)
+
     print(f"mode: {'cold' if args.cold else 'warm'}, GPU数: {gpu_count}, "
           f"workers_per_gpu: {args.workers_per_gpu}, "
-          f"max_jobs: {args.max_jobs}, chunk_size: {args.chunk_size}")
+          f"max_jobs: {args.max_jobs}, chunk_size: {args.chunk_size}, "
+          f"threads/worker: {args.threads or '無制限'}")
 
     # まず全ての (start, end) を作る
     chunks = []
@@ -187,7 +206,7 @@ def main():
             build_blender_cmd(
                 args.blend, args.camera, start, end, args.out, args.prefix,
                 args.resolution, args.backend, args.persistent_data,
-                RENDER_SCRIPT, extra,
+                RENDER_SCRIPT, extra, args.threads,
             )
             for (start, end) in chunks
         ]
@@ -236,6 +255,7 @@ def main():
         jobs, args.max_jobs, gpu_list, RENDER_SCRIPT, extra, args.cuda_path,
         verbose=args.verbose, progress=args.progress, on_result=on_result,
         restart_every=args.restart_every, job_timeout=args.job_timeout,
+        threads=args.threads, pin_cpu=args.pin_cpu,
     )
     if failures:
         print(f"\n失敗したチャンク {len(failures)} 件:")

@@ -35,7 +35,7 @@ from render_parallel import (  # noqa: E402
     RENDER_SCRIPT, add_pool_args, add_worker_args, build_blender_cmd, run_one,
     worker_extra_args,
 )
-from render_worker import resolve_gpu_list, run_warm_pool  # noqa: E402
+from render_worker import auto_threads, resolve_gpu_list, run_warm_pool  # noqa: E402
 
 
 def count_frames(csv_path):
@@ -175,10 +175,14 @@ def main():
     jobs = build_jobs(args, targets, cams, chunk_size)
     total_jobs = len(jobs)
 
+    if args.threads is None:
+        args.threads = auto_threads(slots)
+
     print(
         f"mode={'cold' if args.cold else 'warm'}, sessions={len(targets)}, "
         f"cameras={len(cams)}, GPUs={gpu_count}({','.join(gpu_list)}), "
-        f"workers_per_gpu={args.workers_per_gpu}, slots={slots}"
+        f"workers_per_gpu={args.workers_per_gpu}, slots={slots}, "
+        f"threads/worker={args.threads or '無制限'}"
     )
     print(f"chunk_size={chunk_size} frames, total_jobs={total_jobs}")
 
@@ -231,7 +235,7 @@ def main():
             cmd = build_blender_cmd(
                 job["blend"], job["payload"]["camera"], job["start"], job["end"],
                 job["out"], job["prefix"], args.resolution, args.backend,
-                args.persistent_data, RENDER_SCRIPT, extra,
+                args.persistent_data, RENDER_SCRIPT, extra, args.threads,
             )
             reply = {"status": "ok"}
             try:
@@ -252,6 +256,7 @@ def main():
             jobs, slots, gpu_list, RENDER_SCRIPT, extra, args.cuda_path,
             verbose=args.verbose, progress=args.progress, on_result=on_result,
             restart_every=args.restart_every, job_timeout=args.job_timeout,
+            threads=args.threads, pin_cpu=args.pin_cpu,
         )
 
     if state["failed"]:
