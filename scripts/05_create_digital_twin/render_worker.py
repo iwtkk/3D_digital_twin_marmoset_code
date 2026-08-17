@@ -218,8 +218,21 @@ class BlendJobQueue:
 
 
 def auto_threads(slots):
-    """ワーカー1本あたりに割り当てる CPU スレッド数（コア数をスロットで山分け）。"""
-    return max(1, (os.cpu_count() or 8) // max(1, slots))
+    """ワーカー1本あたりに渡す blender -t の値。
+
+    実測（A100 / 500x500 / samples=32 / 1ワーカー、1枚あたり）:
+        -t 無制限 : wall 15.9s, CPU 130.8 core-s (平均 8.2 コア占有)
+        -t 64     : wall 14.6s, CPU 145.7 core-s (平均 9.9 コア占有)
+        -t 16     : wall 17.4s, CPU  78.6 core-s (平均 4.5 コア占有)
+        -t 4      : wall 28.9s, CPU  69.4 core-s (平均 2.4 コア占有)
+    -t を絞ると CPU 消費が半分近くまで落ち、そのぶんワーカーを増やせるので
+    ノード全体のスループットは上がる。ただし小さすぎると1枚の wall が伸びる
+    （4 は 16 の1.7倍）ので 16 を上限とする。
+    実占有コアは -t の 1/3 程度なので、公平割り当ての2倍を目安に配る。
+    """
+    ncpu = os.cpu_count() or 8
+    fair = ncpu / max(1, slots)
+    return int(max(2, min(16, round(fair * 2))))
 
 
 def slot_cpu_set(slot, slots, cores_per_slot=None):
