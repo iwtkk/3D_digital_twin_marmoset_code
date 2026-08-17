@@ -46,6 +46,43 @@ def make_env(gpu_id=None, cuda_path=None):
     return env
 
 
+def _descendants(pid):
+    """pid とその子孫プロセスの集合。snap 版 blender はラッパー経由で起動するため、
+    実際に CUDA コンテキストを持つのは子プロセスになることがある。"""
+    pids = {int(pid)}
+    try:
+        r = subprocess.run(["pgrep", "-P", str(pid)], capture_output=True, text=True,
+                           timeout=10)
+        for child in r.stdout.split():
+            pids |= _descendants(child)
+    except (FileNotFoundError, subprocess.TimeoutExpired, ValueError):
+        pass
+    return pids
+
+
+def gpu_memory_of(pid):
+    """このプロセス（またはその子孫）が GPU を実際に使っているかを nvidia-smi で確認する。
+
+    戻り値: 使用中なら使用メモリ文字列、使っていなければ False、確認不能なら None。
+    Cycles は compute_device_type が未設定だと無言で CPU にフォールバックするため、
+    「GPUで回っているつもりで実は CPU」を検出するのに使う。
+    """
+    try:
+        r = subprocess.run(
+            ["nvidia-smi", "--query-compute-apps=pid,used_memory", "--format=csv,noheader"],
+            capture_output=True, text=True, timeout=20)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if r.returncode != 0:
+        return None
+    family = _descendants(pid)
+    for line in r.stdout.splitlines():
+        fields = [f.strip() for f in line.split(",")]
+        if fields and fields[0].isdigit() and int(fields[0]) in family:
+            return fields[1] if len(fields) > 1 else "?"
+    return False
+
+
 def resolve_gpu_list(gpu_arg=None):
     """--gpu の文字列、または nvidia-smi から GPU ID のリストを作る。"""
     if gpu_arg:
@@ -264,6 +301,7 @@ def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAUL
         current = None
         since_start = 0
         start_fails = 0
+        gpu_verified = False
         while True:
             job = q.take(current)
             if job is None:
@@ -292,6 +330,7 @@ def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAUL
                     current = job["blend"]
                     since_start = 0
                     need_restart = False
+                    gpu_verified = False
                 reply = worker.submit(job["payload"], timeout=job_timeout)
                 if reply.get("status") == "ok":
                     break
@@ -302,6 +341,18 @@ def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAUL
                 if reply.get("status") not in ("dead", "timeout") or attempt > retries:
                     break
                 need_restart = True
+
+            # 最初の1枚が終わった時点で、このプロセスが本当に GPU を使っているか確認する
+            # （CUDA コンテキストはレンダー開始時に作られるので起動直後には見えない）
+            if reply.get("status") == "ok" and not gpu_verified and worker is not None:
+                gpu_verified = True
+                mem = gpu_memory_of(worker.proc.pid)
+                if mem is False:
+                    print(f"[{worker.label}] 警告: このプロセスが GPU を使っている形跡が"
+                          f"ありません（nvidia-smi の compute-apps に不在）。"
+                          f"CPU レンダリングになっている可能性があります。", flush=True)
+                elif mem:
+                    print(f"[{worker.label}] GPU 使用を確認 (VRAM {mem})", flush=True)
 
             since_start += 1
             with lock:

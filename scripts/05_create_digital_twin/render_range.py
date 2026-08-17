@@ -130,24 +130,37 @@ def setup_gpu(backend, allow_cpu_fallback=False):
     prefs.compute_device_type = backend
     prefs.get_devices()
 
-    enabled = []
+    # prefs.devices には「過去にそのマシンで見えていたデバイス」が userpref に
+    # 残り続ける（GPU1枚しか見えない状況でも CUDA 5件 + OPTIX 5件が並ぶことを実測）。
+    # 実在するデバイスは get_devices_for_type() で取る。
+    try:
+        present = list(prefs.get_devices_for_type(backend))
+    except AttributeError:      # 古い Blender 向けフォールバック
+        present = list(prefs.devices)
+
     for device in prefs.devices:
         # GPU デバイスのみ有効化。CPU デバイスは無効にしてシーン同期に回す
         # （複数ワーカーを同一GPUに載せたときの CPU 競合を抑える）
-        use_dev = device.type == backend
-        device.use = use_dev
-        if use_dev:
-            enabled.append(device.name)
+        device.use = (device.type == backend)
 
-    if not enabled:
-        msg = (f"backend={backend} の GPU デバイスが1つも見つかりません "
+    enabled = [d.name for d in present if d.type == backend]
+
+    # has_active_device() が Cycles 側の最終判定（False なら実際には CPU で回る）
+    try:
+        gpu_active = bool(prefs.has_active_device())
+    except AttributeError:
+        gpu_active = bool(enabled)
+
+    if not enabled or not gpu_active:
+        msg = (f"backend={backend} の GPU デバイスが有効になっていません "
                f"（このまま実行すると CPU にフォールバックして数十倍遅くなります）。"
-               f"検出デバイス: {[(d.name, d.type) for d in prefs.devices]}")
+               f"実在デバイス: {[(d.name, d.type) for d in present]}, "
+               f"has_active_device={gpu_active}")
         if not allow_cpu_fallback:
             raise RuntimeError(msg)
         print("[WARN] " + msg, flush=True)
         scene.cycles.device = 'CPU'
-        return enabled
+        return []
 
     scene.cycles.device = 'GPU'
     return enabled
