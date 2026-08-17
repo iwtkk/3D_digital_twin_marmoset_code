@@ -114,8 +114,16 @@ Cycles は「GPU を選んだつもりで実は CPU」という状態になり�
    ワーカーPID（およびその子プロセス）が載っているかを確認し、
    `GPU 使用を確認 (VRAM 4272MiB)` か警告を出す。CUDA コンテキストはレンダー開始時に
    作られるので、起動直後では判定できない。
-3. **手動での確定診断**: サンプル数を振って所要時間の伸びを見る。GPU で回っていれば
-   サンプルを増やしても時間はほとんど増えない。実測（1000×1000・空きGPU・デノイズOFF）:
+3. **手動での確定診断**: `check_gpu_device.py` がサンプル数を振って所要時間の伸びを見る。
+   GPU で回っていればサンプルを増やしても時間はほとんど増えない。
+
+   ```bash
+   blender outputs/blender/work_{session}.blend -b \
+     -P scripts/05_create_digital_twin/check_gpu_device.py -- \
+     --camera Camera_C --res 1000x1000 --frame 3000 --samples 32,256
+   ```
+
+   実測（1000×1000・空きGPU・デノイズOFF）:
 
    | device | samples=32 | samples=256 | 追加224サンプル分 |
    |---|---|---|---|
@@ -215,6 +223,7 @@ bash scripts/05_create_digital_twin/run_animate_parallel.sh --blend custom.blend
 | `render_range_depth.py` | Blender 側ワーカー（Depth EXR）。`--serve` 対応 |
 | `render_worker.py` | warm ワーカーのプロセス管理・blend 単位のジョブスケジューラ（ディスパッチャ側） |
 | `render_ipc.py` | warm ワーカーとの行JSONプロトコル定義 |
+| `check_gpu_device.py` | Cycles が実際に GPU でレンダリングしているかを判定する診断（Blender スクリプト） |
 | `kp3d_to_blender_csv.py` | Convert kp3d pickle to Blender-ready CSV |
 | `run_all.sh` | Step 2 + Step 3 を逐次実行（1CSV ずつ順番に） |
 | `run_animate_parallel.sh` | Step 2 のみを並列実行（最大 `MAX_JOBS` 同時、処理済みはスキップ） |
