@@ -9,17 +9,17 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _DEFAULT_INPUT = str(_PROJECT_ROOT / "outputs" / "validation" / "reprojection_error" / "kp3d_err_all.pickle")
 _DEFAULT_OUTPUT = str(_PROJECT_ROOT / "outputs" / "validation" / "reprojection_error" / "kp3d_err_violin_stats.pickle")
 
-# プロット時の y 範囲。KDE 評価をこのレンジに絞ることで意味のない端点まで計算しない
+# y range for plotting. Restricting KDE evaluation to this range avoids computing meaningless tails
 YLIM = (0.0, 50.0)
-KDE_GRID_N = 256        # KDE の評価点数（プロット側のなめらかさ）
-SUBSAMPLE_MAX = 7790723  # KDE 用サブサンプル上限。この程度あれば形状はほぼ変わらない
+KDE_GRID_N = 256        # number of KDE evaluation points (smoothness of the plot)
+SUBSAMPLE_MAX = 7790723  # max subsample size for KDE; the shape barely changes beyond this
 RNG_SEED = 0
 
 
 def main():
-    parser = argparse.ArgumentParser(description='バイオリンプロット用のKDE統計量を計算する')
-    parser.add_argument('--input', default=_DEFAULT_INPUT, help='kp3d_err_all.pickleのパス')
-    parser.add_argument('--output', default=_DEFAULT_OUTPUT, help='出力pickleのパス')
+    parser = argparse.ArgumentParser(description='Compute KDE statistics for violin plots')
+    parser.add_argument('--input', default=_DEFAULT_INPUT, help='Path to kp3d_err_all.pickle')
+    parser.add_argument('--output', default=_DEFAULT_OUTPUT, help='Path to the output pickle')
     args = parser.parse_args()
 
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
@@ -43,7 +43,7 @@ def main():
             results.append(None)
             continue
 
-        # 統計量は「全データ」から計算する（サブサンプルではない）
+        # Statistics are computed from all data (not the subsample)
         stats = {
             'n':      int(x.size),
             'mean':   float(np.mean(x)),
@@ -55,7 +55,7 @@ def main():
             'std':    float(np.std(x)),
         }
 
-        # KDE のためだけにサブサンプル
+        # Subsample only for KDE
         if x.size > SUBSAMPLE_MAX:
             idx = rng.choice(x.size, SUBSAMPLE_MAX, replace=False)
             x_kde = x[idx]

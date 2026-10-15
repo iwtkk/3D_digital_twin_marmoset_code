@@ -2,20 +2,20 @@ version: 1
 
 render:
   description: >
-    Dataset/Sessionから取り出したkp3d（temp3d）をBlenderのarmatureに適用するかどうかを指定する。
-    1-8方向を指定してからレンダリングして保存する。
-         保存形式は動画や画像を指定する。
+    Specifies whether to apply kp3d (temp3d) taken from Dataset/Session to the Blender armature.
+    Renders from 1-8 specified directions and saves the result.
+         The output format can be video or images.
     
 
   inputs:
     base_blend:
-      # mdの「baseとなるblenderの情報が入っているといい」を仕様に
+      # Formalizes the md note "it would be good to include base blender info"
       path: "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend"
       require_blender_version: false
-      blender_version: ""  # 例: "4.1.0" など（固定したければ埋める）
+      blender_version: ""  # e.g. "4.1.0" (fill in to pin)
 
-    temp3d: # kp3d.pickleのパスはdatasetから渡せるので消す
-      # 一旦保存→temp3d を仕様化
+    temp3d: # kp3d.pickle path removed since it can be passed from the dataset
+      # Specify save-then-temp3d
       format: "npz"  # npz / json / pickle
       path_template: "{PROJECT_ROOT}/tmp/temp3d/{session_id}/{frame:08d}.npz"
       schema_ref: "kp3d_schema_v1"
@@ -25,13 +25,13 @@ render:
       neck_tail: [1.50-0.340, 0.995-0.03, 0.780]
       # rotate: [0, 0, 0]
       # rotate_center_coords: [0, 0, 0]
-      # translate: [] # 肩の大きさで判断する
+      # translate: [] # decide based on shoulder size
     path_template: "{PROJECT_ROOT}/outputs/csv/{session_id}/{frame:08d}.csv"
 
   armature:
     object_name: "NF_Armature"
     bone_mapping:
-      # kp3dの関節名 -> Blenderボーン名（※コメントと実データが逆だったので方向を統一）
+      # kp3d joint name -> Blender bone name (direction unified, since comments and data were reversed)
       "pts_base_": "Base"
       "pts_r_wrist_": "Forearm_IK.R"
       "pts_l_wrist_": "Forearm_IK.L"
@@ -47,13 +47,13 @@ render:
       "pts_tail_1_": "Tail0_IK"
       "pts_tail_2_": "Tail_IK"
     units:
-      # 3Dがmmなのかmなのか等、最終的にここで固定
-      length_unit: "meters"  # csvはmeterで保存済み
-      blender_unit: "meters" # Blender scene unit（通常 meters）
+      # Finally fix here whether 3D is in mm or m, etc.
+      length_unit: "meters"  # csv is already saved in meters
+      blender_unit: "meters" # Blender scene unit (usually meters)
       scale_factor: 1/1000    # kp3d(mm) -> Blender(m)
 
   rendering:
-    # どのレンダリング構成を使うか（いずれか1つ）
+    # Which rendering configuration to use (exactly one)
     profile: "env_camera"  # env_camera / marmo_eyes / marmo_an_eye
     profiles:
       env_camera:
@@ -64,49 +64,49 @@ render:
         samples: 500
         transparent_background: false
         views:
-         count: 8                   # 固定のままでもOK（検証にも使える）
+         count: 8                   # fine to keep fixed (also usable for validation)
          camera_pattern: "Camera.{camera_id}"
          view_index:
            source: "{PROJECT_ROOT}/config/marmo*/config.yaml"
-           field: "camera_id"       # 8台分のID配列
-           ordering: "config"       # configの並び順を採用
+           field: "camera_id"       # array of IDs for 8 cameras
+           ordering: "config"       # use the order in config
       marmo_eyes:
         engine: "CYCLES"   # CYCLES / EEVEE
         resolution: [1080, 1080]
         samples: 500
         transparent_background: false
         views:
-          # camera_l, camera_r（固定）
+          # camera_l, camera_r (fixed)
           cameras: ["camera_l", "camera_r"]
       marmo_an_eye:
         engine: "CYCLES"   # CYCLES / EEVEE
-        resolution: [1920, 1080] # 両目で見てる想定で横長
+        resolution: [1920, 1080] # wide aspect, assuming binocular view
         samples: 500
         transparent_background: false
         views:
-          # camera_l, camera_r のどちらか（固定）
+          # either camera_l or camera_r (fixed)
           camera: "camera_l"
 
     output:
       video:
         video_format: "mp4"
-        # 動画は通常「フレーム範囲 × ビュー」で1本（frame単位は不自然なので修正）
+        # A video is normally one file per (frame range x view) (per-frame was unnatural, so fixed)
         path_template: "{PROJECT_ROOT}/outputs/render/video/{animal}/{session_id}/{start_frame:08d}_{end_frame:08d}/view_{view_id}.mp4"
         overwrite: true
-        #開始・終了フレームはその都度指定する
+        #Start/end frames are specified each time
       image:
         image_format: "png"
         path_template: "{PROJECT_ROOT}/outputs/render/image/{animal}/{session_id}/{frame:08d}/view_{view_index:02d}.png"
         overwrite: true
-        # フレームは実行時に指定（複数可）
+        # Frames are specified at runtime (multiple allowed)
   pipeline:
-    # 実行手順を仕様として固定（責務分離）
+    # Fix the execution steps in the spec (separation of responsibilities)
     steps:
-      - "select_frames_or_range"  # Dataset側から対象フレーム（群）または範囲を決める
-      - "export_temp3d"           # kp3dをtemp3d形式に保存（frameごと）
-      - "blender_apply_pose"      # armatureに適用（必要ならOFF可：実行時フラグ）
-      - "render_views"            # profileに応じてレンダ（8方向/両目/単眼）
-      - "write_manifest"          # 何を出したか記録（再現性）
+      - "select_frames_or_range"  # Dataset side decides target frame(s) or range
+      - "export_temp3d"           # Save kp3d in temp3d format (per frame)
+      - "blender_apply_pose"      # Apply to armature (can be turned OFF via runtime flag)
+      - "render_views"            # Render according to profile (8 directions/binocular/monocular)
+      - "write_manifest"          # Record what was output (reproducibility)
       
   manifests:
     enabled: true
@@ -115,9 +115,9 @@ render:
     fields:
       - animal
       - session_id
-      - frames            # imageの場合: frame配列 / videoの場合: start/end
+      - frames            # image: frame array / video: start/end
       - render_profile    # env_camera / marmo_eyes / marmo_an_eye
-      - view_ids          # 例: ["Camera.0".."Camera.7"] or ["camera_l","camera_r"]
+      - view_ids          # e.g. ["Camera.0".."Camera.7"] or ["camera_l","camera_r"]
       - kp3d_source_path
       - status            # success / skipped / failed
-      - skip_reason       # 任意
+      - skip_reason       # optional

@@ -6,23 +6,23 @@ import json
 def element_search_from_data(arr):
     T, K = arr.shape
 
-    # その列に一つでも有効値(非NaN)があるか
+    # Whether the column has at least one valid (non-NaN) value
     valid_any = np.any(~np.isnan(arr), axis=0)
 
-    # デフォは -1（=有効値がない列の印）
+    # Default is -1 (marks columns with no valid values)
     idx_max = np.full(K, -1, dtype=int)
     idx_min = np.full(K, -1, dtype=int)
 
-    # 有効な列だけ nanargmax / nanargmin
+    # nanargmax / nanargmin only on valid columns
     if np.any(valid_any):
         idx_max[valid_any] = np.nanargmax(arr[:, valid_any], axis=0)
         idx_min[valid_any] = np.nanargmin(arr[:, valid_any], axis=0)
 
-    # 対応する値（-1 の列は NaN にしておく）
+    # Corresponding values (columns with -1 are set to NaN)
     max_val = np.where(idx_max >= 0, arr[idx_max, np.arange(K)], np.nan)
     min_val = np.where(idx_min >= 0, arr[idx_min, np.arange(K)], np.nan)
     
-    # 結果を表に
+    # Put results into a table
     result = pd.DataFrame({
         "joint_id": np.arange(K),
         "max_frame_idx": idx_max,
@@ -45,15 +45,15 @@ def data_to_element(file, key='kp3d_err'):
     kp3d_err = np.asarray(kp3d_err)
 
     
-    # 先頭の次元(=1)とフレーム次元をまとめて (N, 20) に整形
+    # Merge the leading dim (=1) and the frame dim into shape (N, 20)
     if kp3d_err.ndim == 3 and kp3d_err.shape[-1] == 20:
         arr = kp3d_err.reshape(-1, kp3d_err.shape[-1])  # (28755, 20)
     elif kp3d_err.ndim == 2 and kp3d_err.shape[-1] == 20:
         arr = kp3d_err
     else:
-        raise ValueError(f"予期しない形状: {kp3d_err.shape}")
+        raise ValueError(f"Unexpected shape: {kp3d_err.shape}")
 
-    # NaNを無視して列(=各要素/関節)ごとに統計量を計算
+    # Compute statistics per column (= each element/joint), ignoring NaN
     mean   = np.nanmean(arr, axis=0)
     median = np.nanmedian(arr, axis=0)
     max_   = np.nanmax(arr, axis=0)
@@ -66,7 +66,7 @@ def main():
     file = 'results/3d_v0p8_dark_fix_20/dailylife_cj611_20230226_110000/kp3d_fxdJointLen.pickle'
     arr, mean, median, max_, min_ = data_to_element(file)
     result = element_search_from_data(arr)
-    # 表にまとめる（0〜19を関節IDとしておく）
+    # Build a table (use 0-19 as joint IDs)
     df = pd.DataFrame({
         # "joint_id": np.arange(arr.shape[1]),
         "mean": mean,

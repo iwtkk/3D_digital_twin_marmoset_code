@@ -89,7 +89,7 @@ def draw_kps(img, kp, mrksize, clr=None):
             {'name':'17_11','color':cm(20),'bodypart':(17,11)}
             ]
 
-    # キーポイントの数に応じて色を動的に生成
+    # Generate colors dynamically based on the number of keypoints
     n_kp = len(kp)
     kp_clr = [cm(i % 36) for i in range(n_kp)]
 

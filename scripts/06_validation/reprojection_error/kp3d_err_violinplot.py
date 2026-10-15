@@ -13,21 +13,21 @@ _DEFAULT_OUTPUT = str(_PROJECT_ROOT / "outputs" / "validation" / "reprojection_e
 
 
 def main():
-    parser = argparse.ArgumentParser(description='kp3d_errのバイオリンプロットを表示する')
-    parser.add_argument('--input', default=_DEFAULT_INPUT, help='kp3d_err_all.pickleのパス')
-    parser.add_argument('--output', default=_DEFAULT_OUTPUT, help='出力PNGのパス')
-    parser.add_argument('--show', action='store_true', help='保存後にウィンドウ表示する')
+    parser = argparse.ArgumentParser(description='Show a violin plot of kp3d_err')
+    parser.add_argument('--input', default=_DEFAULT_INPUT, help='Path to kp3d_err_all.pickle')
+    parser.add_argument('--output', default=_DEFAULT_OUTPUT, help='Path to the output PNG')
+    parser.add_argument('--show', action='store_true', help='Show a window after saving')
     args = parser.parse_args()
 
     with open(args.input, 'rb') as f:
         obj = pickle.load(f)
 
-    kp = np.asarray(obj['kp3d_err'], dtype=float)  # 期待: (20, totalFrame)
+    kp = np.asarray(obj['kp3d_err'], dtype=float)  # expected: (20, totalFrame)
 
     if kp.ndim != 2 or kp.shape[0] != 20:
         raise ValueError(f'Unexpected shape: {kp.shape} (expected (20, totalFrame))')
 
-    # NaN を落として violin 用のリストにする（20個ぶん）
+    # Drop NaNs and build lists for the violin plot (one per keypoint, 20 total)
     data_list = [kp[i, ~np.isnan(kp[i])] for i in range(20)]
 
     plt.figure(figsize=(14, 5))

@@ -1,5 +1,5 @@
 """
-PSNR/SSIMの分布を可視化するスクリプト
+Visualize PSNR/SSIM distributions
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from typing import Dict, List, Any
 import matplotlib.pyplot as plt
 import numpy as np
 
-# パス設定 (consistency/ → 06_validation/ → scripts/ → project root)
+# Path setup (consistency/ → 06_validation/ → scripts/ → project root)
 _root = Path(__file__).resolve().parent.parent.parent.parent
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
@@ -25,12 +25,12 @@ from marmo3d.validation.utils import (
     get_project_root,
 )
 
-# プロジェクトルート
+# Project root
 project_root = get_project_root()
 
 
 def load_metrics(metrics_path: Path) -> Dict[str, Any]:
-    """メトリクスJSONを読み込み"""
+    """Load the metrics JSON"""
     with open(metrics_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -42,31 +42,31 @@ def plot_distributions(
     figsize: tuple = (14, 6),
 ):
     """
-    PSNR/SSIMの分布をプロット
+    Plot PSNR/SSIM distributions
 
     Args:
-        metrics_data: メトリクスデータ
-        output_path: 出力画像パス
-        bins: ヒストグラムのビン数
-        figsize: 図のサイズ
+        metrics_data: Metrics data
+        output_path: Output image path
+        bins: Number of histogram bins
+        figsize: Figure size
     """
     details = metrics_data.get("details", [])
 
     if not details:
-        print("エラー: メトリクスデータが空です")
+        print("Error: metrics data is empty")
         return
 
-    # データを抽出
+    # Extract data
     psnr_values = [d["psnr"] for d in details]
     ssim_values = [d["ssim"] for d in details]
 
-    # 統計情報
+    # Statistics
     summary = metrics_data.get("summary", {}).get("total", {})
 
-    # プロット作成
+    # Create plot
     fig, axes = plt.subplots(1, 2, figsize=figsize)
 
-    # PSNR分布
+    # PSNR distribution
     ax1 = axes[0]
     ax1.hist(psnr_values, bins=bins, color='skyblue',
              edgecolor='black', alpha=0.7)
@@ -84,13 +84,13 @@ def plot_distributions(
     ax1.legend(fontsize=10)
     ax1.grid(True, alpha=0.3)
 
-    # 統計情報をテキストで追加
+    # Add statistics as text
     stats_text = f'Min: {summary.get("psnr_min", 0):.2f}\nMax: {summary.get("psnr_max", 0):.2f}\nStd: {summary.get("psnr_std", 0):.2f}'
     ax1.text(0.02, 0.98, stats_text, transform=ax1.transAxes,
              verticalalignment='top', fontsize=10,
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
-    # SSIM分布
+    # SSIM distribution
     ax2 = axes[1]
     ax2.hist(ssim_values, bins=bins, color='lightgreen',
              edgecolor='black', alpha=0.7)
@@ -108,7 +108,7 @@ def plot_distributions(
     ax2.legend(fontsize=10)
     ax2.grid(True, alpha=0.3)
 
-    # 統計情報をテキストで追加
+    # Add statistics as text
     stats_text = f'Min: {summary.get("ssim_min", 0):.4f}\nMax: {summary.get("ssim_max", 0):.4f}\nStd: {summary.get("ssim_std", 0):.4f}'
     ax2.text(0.02, 0.98, stats_text, transform=ax2.transAxes,
              verticalalignment='top', fontsize=10,
@@ -116,10 +116,10 @@ def plot_distributions(
 
     plt.tight_layout()
 
-    # 保存
+    # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
-    print(f"分布図を保存しました: {output_path}")
+    print(f"Saved distribution plot: {output_path}")
 
     plt.close()
 
@@ -130,24 +130,24 @@ def plot_scatter(
     figsize: tuple = (8, 6),
 ):
     """
-    PSNR vs SSIM の散布図をプロット
+    Plot a PSNR vs SSIM scatter plot
 
     Args:
-        metrics_data: メトリクスデータ
-        output_path: 出力画像パス
-        figsize: 図のサイズ
+        metrics_data: Metrics data
+        output_path: Output image path
+        figsize: Figure size
     """
     details = metrics_data.get("details", [])
 
     if not details:
-        print("エラー: メトリクスデータが空です")
+        print("Error: metrics data is empty")
         return
 
-    # データを抽出
+    # Extract data
     psnr_values = [d["psnr"] for d in details]
     ssim_values = [d["ssim"] for d in details]
 
-    # プロット作成
+    # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
     scatter = ax.scatter(psnr_values, ssim_values, alpha=0.5, c=psnr_values,
@@ -158,16 +158,16 @@ def plot_scatter(
     ax.set_title(f'PSNR vs SSIM (n={len(psnr_values)})', fontsize=14, fontweight='bold')
     ax.grid(True, alpha=0.3)
 
-    # カラーバー
+    # Colorbar
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label('PSNR (dB)', fontsize=10)
 
     plt.tight_layout()
 
-    # 保存
+    # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
-    print(f"散布図を保存しました: {output_path}")
+    print(f"Saved scatter plot: {output_path}")
 
     plt.close()
 
@@ -179,21 +179,21 @@ def plot_by_camera(
     figsize: tuple = (14, 10),
 ):
     """
-    カメラごとのPSNR/SSIM分布をプロット
+    Plot PSNR/SSIM distributions per camera
 
     Args:
-        metrics_data: メトリクスデータ
-        output_path: 出力画像パス
-        camera_mapping: カメラIDから整数へのマッピング（例: {23506226: 1, ...}）
-        figsize: 図のサイズ
+        metrics_data: Metrics data
+        output_path: Output image path
+        camera_mapping: Mapping from camera ID to integer (e.g. {23506226: 1, ...})
+        figsize: Figure size
     """
     by_camera = metrics_data.get("summary", {}).get("by_camera", {})
 
     if not by_camera:
-        print("警告: カメラごとの統計が見つかりません")
+        print("Warning: per-camera statistics not found")
         return
 
-    # カメラIDをソート（マッピングがある場合はマッピング後の整数値でソート）
+    # Sort camera IDs (by mapped integer value if a mapping is given)
     if camera_mapping:
         camera_ids = sorted(by_camera.keys(), key=lambda cid: camera_mapping.get(int(cid), 999))
     else:
@@ -204,13 +204,13 @@ def plot_by_camera(
     ssim_means = [by_camera[cid]["ssim_mean"] for cid in camera_ids]
     ssim_stds = [by_camera[cid]["ssim_std"] for cid in camera_ids]
 
-    # カメラIDラベルを生成
+    # Build camera ID labels
     if camera_mapping:
         camera_labels = [f"Cam {camera_mapping.get(int(cid), cid)}" for cid in camera_ids]
     else:
         camera_labels = camera_ids
 
-    # プロット作成
+    # Create plot
     fig, axes = plt.subplots(2, 1, figsize=figsize)
 
     x = np.arange(len(camera_ids))
@@ -239,19 +239,19 @@ def plot_by_camera(
 
     plt.tight_layout()
 
-    # 保存
+    # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
-    print(f"カメラ別分布図を保存しました: {output_path}")
+    print(f"Saved per-camera distribution plot: {output_path}")
 
     plt.close()
 
 
 def extract_animal_from_session_id(session_id: str) -> str:
     """
-    session_idから個体IDを抽出
+    Extract the animal ID from a session_id
 
-    例: "cj425_20210426_141115" -> "cj425"
+    e.g.: "cj425_20210426_141115" -> "cj425"
         "dailylife_cj611_20230212_130000" -> "cj611"
     """
     parts = session_id.split('_')
@@ -268,20 +268,20 @@ def plot_by_animal(
     figsize: tuple = (16, 10),
 ):
     """
-    個体ごとのPSNR/SSIM分布をボックスプロットで表示
+    Show PSNR/SSIM distributions per animal as box plots
 
     Args:
-        metrics_data: メトリクスデータ
-        output_path: 出力画像パス
-        figsize: 図のサイズ
+        metrics_data: Metrics data
+        output_path: Output image path
+        figsize: Figure size
     """
     details = metrics_data.get("details", [])
 
     if not details:
-        print("エラー: メトリクスデータが空です")
+        print("Error: metrics data is empty")
         return
 
-    # 個体ごとにデータをグループ化
+    # Group data by animal
     from collections import defaultdict
     by_animal = defaultdict(lambda: {"psnr": [], "ssim": []})
 
@@ -293,22 +293,22 @@ def plot_by_animal(
     animals = sorted(by_animal.keys())
 
     if not animals:
-        print("警告: 個体情報が抽出できませんでした")
+        print("Warning: could not extract animal information")
         return
 
-    # 個体IDの表示名を生成
+    # Build display names for animal IDs
     animal_labels = [animal_mapping.get(animal, animal) if animal_mapping else animal for animal in animals]
 
-    # プロット作成
+    # Create plot
     fig, axes = plt.subplots(2, 1, figsize=figsize)
 
-    # PSNR ボックスプロット
+    # PSNR box plot
     ax1 = axes[0]
     psnr_data = [by_animal[animal]["psnr"] for animal in animals]
     bp1 = ax1.boxplot(psnr_data, labels=animal_labels, patch_artist=True,
                        showmeans=True, meanline=True)
 
-    # ボックスの色設定
+    # Set box colors
     for patch in bp1['boxes']:
         patch.set_facecolor('skyblue')
         patch.set_alpha(0.7)
@@ -318,7 +318,7 @@ def plot_by_animal(
     ax1.set_xlabel('Animal ID', fontsize=12)
     ax1.grid(True, alpha=0.3, axis='y')
 
-    # 統計情報を追加
+    # Add statistics
     for i, animal in enumerate(animals, 1):
         n = len(by_animal[animal]["psnr"])
         mean_val = np.mean(by_animal[animal]["psnr"])
@@ -326,13 +326,13 @@ def plot_by_animal(
                  ha='center', va='top', fontsize=9,
                  bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
 
-    # SSIM ボックスプロット
+    # SSIM box plot
     ax2 = axes[1]
     ssim_data = [by_animal[animal]["ssim"] for animal in animals]
     bp2 = ax2.boxplot(ssim_data, labels=animal_labels, patch_artist=True,
                        showmeans=True, meanline=True)
 
-    # ボックスの色設定
+    # Set box colors
     for patch in bp2['boxes']:
         patch.set_facecolor('lightgreen')
         patch.set_alpha(0.7)
@@ -342,7 +342,7 @@ def plot_by_animal(
     ax2.set_xlabel('Animal ID', fontsize=12)
     ax2.grid(True, alpha=0.3, axis='y')
 
-    # 統計情報を追加
+    # Add statistics
     for i, animal in enumerate(animals, 1):
         n = len(by_animal[animal]["ssim"])
         mean_val = np.mean(by_animal[animal]["ssim"])
@@ -352,19 +352,19 @@ def plot_by_animal(
 
     plt.tight_layout()
 
-    # 保存
+    # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
-    print(f"個体別分布図を保存しました: {output_path}")
+    print(f"Saved per-animal distribution plot: {output_path}")
 
-    # 統計サマリーをコンソールに出力
-    print(f"\n個体別統計:")
+    # Print statistics summary to console
+    print(f"\nPer-animal statistics:")
     for animal in animals:
         display_name = animal_mapping.get(animal, animal) if animal_mapping else animal
         psnr_vals = by_animal[animal]["psnr"]
         ssim_vals = by_animal[animal]["ssim"]
         print(f"  {display_name}:")
-        print(f"    サンプル数: {len(psnr_vals)}")
+        print(f"    Samples: {len(psnr_vals)}")
         print(f"    PSNR: {np.mean(psnr_vals):.2f} ± {np.std(psnr_vals):.2f} (range: {np.min(psnr_vals):.2f} - {np.max(psnr_vals):.2f})")
         print(f"    SSIM: {np.mean(ssim_vals):.4f} ± {np.std(ssim_vals):.4f} (range: {np.min(ssim_vals):.4f} - {np.max(ssim_vals):.4f})")
 
@@ -382,21 +382,21 @@ def plot_by_animal_and_camera(
     fontsize = 12
 ):
     """
-    個体ごとにカメラ別のPSNR/SSIM分布をプロット
+    Plot per-camera PSNR/SSIM distributions for each animal
 
     Args:
-        metrics_data: メトリクスデータ
-        output_path: 出力画像パス
-        camera_mapping: カメラIDから整数へのマッピング（例: {23506226: 1, ...}）
-        figsize_per_animal: 1個体あたりの図のサイズ
+        metrics_data: Metrics data
+        output_path: Output image path
+        camera_mapping: Mapping from camera ID to integer (e.g. {23506226: 1, ...})
+        figsize_per_animal: Figure size per animal
     """
     details = metrics_data.get("details", [])
 
     if not details:
-        print("エラー: メトリクスデータが空です")
+        print("Error: metrics data is empty")
         return
 
-    # 個体×カメラでデータをグループ化
+    # Group data by animal x camera
     from collections import defaultdict
     by_animal_camera = defaultdict(lambda: defaultdict(lambda: {"psnr": [], "ssim": []}))
 
@@ -409,10 +409,10 @@ def plot_by_animal_and_camera(
     animals = sorted(by_animal_camera.keys())
 
     if not animals:
-        print("警告: 個体情報が抽出できませんでした")
+        print("Warning: could not extract animal information")
         return
 
-    # 全個体・全カメラのデータからグローバルな値域を計算（縦軸スケール統一用）
+    # Compute the global value range over all animals and cameras (to share the y-axis scale)
     all_psnr = [v for a in animals for cam in by_animal_camera[a] for v in by_animal_camera[a][cam]["psnr"]]
     all_ssim = [v for a in animals for cam in by_animal_camera[a] for v in by_animal_camera[a][cam]["ssim"]]
     psnr_margin = 0.05 * (max(all_psnr) - min(all_psnr))
@@ -420,10 +420,10 @@ def plot_by_animal_and_camera(
     psnr_ylim = (min(all_psnr) - psnr_margin, max(all_psnr) + psnr_margin)
     ssim_ylim = (min(all_ssim) - ssim_margin, max(all_ssim) + ssim_margin)
 
-    # 個体ごとにプロット作成
+    # Create plots per animal
     for animal in animals:
         display_name = animal_mapping.get(animal, animal) if animal_mapping else animal
-        # カメラIDをソート（マッピングがある場合はマッピング後の整数値でソート）
+        # Sort camera IDs (by mapped integer value if a mapping is given)
         if camera_mapping:
             cameras = sorted(by_animal_camera[animal].keys(), key=lambda cid: camera_mapping.get(int(cid), 999))
         else:
@@ -432,7 +432,7 @@ def plot_by_animal_and_camera(
         if not cameras:
             continue
 
-        # カメラIDラベルを生成
+        # Build camera ID labels
         if camera_mapping:
             camera_labels = [f"Cam {camera_mapping.get(int(cam), cam)}" for cam in cameras]
         else:
@@ -441,13 +441,13 @@ def plot_by_animal_and_camera(
         fig, axes = plt.subplots(2, 1, figsize=figsize_per_animal)
         
         
-        # PSNR ボックスプロット
+        # PSNR box plot
         ax1 = axes[0]
         psnr_data = [by_animal_camera[animal][cam]["psnr"] for cam in cameras]
         bp1 = ax1.boxplot(psnr_data, labels=camera_labels, patch_artist=True,
                            showmeans=True, meanline=True, widths=width)
 
-        # ボックスの色設定
+        # Set box colors
         for patch in bp1['boxes']:
             patch.set_facecolor('skyblue')
             patch.set_alpha(0.7)
@@ -461,13 +461,13 @@ def plot_by_animal_and_camera(
         ax1.set_ylim(psnr_ylim)
         ax1.grid(True, alpha=0.3, axis='y')
 
-        # SSIM ボックスプロット
+        # SSIM box plot
         ax2 = axes[1]
         ssim_data = [by_animal_camera[animal][cam]["ssim"] for cam in cameras]
         bp2 = ax2.boxplot(ssim_data, labels=camera_labels, patch_artist=True,
                            showmeans=True, meanline=True, widths=width)
 
-        # ボックスの色設定
+        # Set box colors
         for patch in bp2['boxes']:
             patch.set_facecolor('lightgreen')
             patch.set_alpha(0.7)
@@ -483,14 +483,14 @@ def plot_by_animal_and_camera(
 
         plt.tight_layout()
 
-        # 保存（個体ごとに別ファイル）
+        # Save (one file per animal)
         animal_output_path = output_path.parent / f"by_camera_{display_name}.png"
         animal_output_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(animal_output_path, dpi=300, bbox_inches='tight')
-        print(f"個体別カメラ分布図を保存しました: {animal_output_path}")
+        print(f"Saved per-animal camera distribution plot: {animal_output_path}")
 
-        # 統計サマリーをコンソールに出力
-        print(f"\n  {display_name} - カメラ別統計:")
+        # Print statistics summary to console
+        print(f"\n  {display_name} - per-camera statistics:")
         for cam in cameras:
             psnr_vals = by_animal_camera[animal][cam]["psnr"]
             ssim_vals = by_animal_camera[animal][cam]["ssim"]
@@ -502,36 +502,36 @@ def plot_by_animal_and_camera(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="PSNR/SSIMの分布を可視化"
+        description="Visualize PSNR/SSIM distributions"
     )
     parser.add_argument(
         "--metrics",
         type=str,
         default=None,
-        help="メトリクスJSONファイルパス (デフォルト: valid/metrics.json)",
+        help="Metrics JSON file path (default: valid/metrics.json)",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
         default=None,
-        help="出力ディレクトリ (デフォルト: valid/figures)",
+        help="Output directory (default: valid/figures)",
     )
     parser.add_argument(
         "--valid-config",
         type=str,
         default=None,
-        help="consistency.yaml のパス (デフォルト: config/consistency.yaml)",
+        help="Path to consistency.yaml (default: config/consistency.yaml)",
     )
     parser.add_argument(
         "--bins",
         type=int,
         default=50,
-        help="ヒストグラムのビン数 (デフォルト: 50)",
+        help="Number of histogram bins (default: 50)",
     )
 
     args = parser.parse_args()
 
-    # consistency.yamlを読み込み
+    # Load consistency.yaml
     if args.valid_config:
         valid_config_path = Path(args.valid_config)
     else:
@@ -543,7 +543,7 @@ def main():
     else:
         validation_config = {}
 
-    # メトリクスファイルパス
+    # Metrics file path
     if args.metrics:
         metrics_path = Path(args.metrics)
     else:
@@ -553,72 +553,72 @@ def main():
         metrics_path = expand_path_template(metrics_template, project_root)
 
     if not metrics_path.exists():
-        print(f"エラー: メトリクスファイルが見つかりません: {metrics_path}")
+        print(f"Error: metrics file not found: {metrics_path}")
         sys.exit(1)
 
-    # 出力ディレクトリ
+    # Output directory
     if args.output_dir:
         output_dir = Path(args.output_dir)
     else:
         output_dir = project_root / "outputs" / "validation" / "figures"
 
-    print(f"メトリクスファイル: {metrics_path}")
-    print(f"出力ディレクトリ: {output_dir}")
+    print(f"Metrics file: {metrics_path}")
+    print(f"Output directory: {output_dir}")
 
-    # カメラIDマッピングを取得
+    # Get camera ID mapping
     camera_mapping = None
     animal_mapping = None
     if valid_config_path.exists():
         full_config = load_valid_config(valid_config_path)
         camera_mapping = full_config.get("figure", {}).get("mapping_table", None)
         if camera_mapping:
-            print(f"  カメラマッピング: {len(camera_mapping)} カメラ")
+            print(f"  Camera mapping: {len(camera_mapping)} cameras")
         animal_mapping = full_config.get("figure", {}).get("animal_mapping", None)
         if animal_mapping:
-            print(f"  個体マッピング: {animal_mapping}")
+            print(f"  Animal mapping: {animal_mapping}")
 
-    # メトリクスを読み込み
+    # Load metrics
     metrics_data = load_metrics(metrics_path)
 
-    print(f"\n可視化開始")
-    print(f"  総サンプル数: {metrics_data.get('successful_calculations', 0)}")
+    print(f"\nStarting visualization")
+    print(f"  Total samples: {metrics_data.get('successful_calculations', 0)}")
 
-    # 分布図を作成
+    # Create distribution plot
     plot_distributions(
         metrics_data,
         output_dir / "distribution.png",
         bins=args.bins,
     )
 
-    # 散布図を作成
+    # Create scatter plot
     plot_scatter(
         metrics_data,
         output_dir / "scatter.png",
     )
 
-    # カメラ別分布図を作成
+    # Create per-camera distribution plot
     plot_by_camera(
         metrics_data,
         output_dir / "by_camera.png",
         camera_mapping=camera_mapping,
     )
 
-    # 個体別分布図を作成
+    # Create per-animal distribution plot
     plot_by_animal(
         metrics_data,
         output_dir / "by_animal.png",
         animal_mapping=animal_mapping,
     )
 
-    # 個体ごとのカメラ別分布図を作成
+    # Create per-camera distribution plots for each animal
     plot_by_animal_and_camera(
         metrics_data,
-        output_dir / "by_animal_and_camera.png",  # ベースパス（実際は個体ごとに別ファイル）
+        output_dir / "by_animal_and_camera.png",  # Base path (actually one file per animal)
         camera_mapping=camera_mapping,
         animal_mapping=animal_mapping,
     )
 
-    print(f"\n完了")
+    print(f"\nDone")
 
 
 if __name__ == "__main__":

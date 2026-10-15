@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-セッション・フレーム単位で再構成誤差が大きい箇所を調べるスクリプト。
+Script that finds sessions/frames with large reconstruction errors.
 
-出力:
-  - セッションごとの統計 (mean / p95 / p99 / max)
-  - 全体の上位 TOP_N フレーム (session名 / フレームindex / 誤差)
-  - 各セッション内の上位 TOP_N_PER_SESSION フレーム
+Output:
+  - Per-session statistics (mean / p95 / p99 / max)
+  - Overall top TOP_N frames (session name / frame index / error)
+  - Top TOP_N_PER_SESSION frames within each session
 """
 
 import argparse
@@ -22,12 +22,12 @@ _DEFAULT_BASE = str(_PROJECT_ROOT / "3D_digital_twin_marmoset_data" / "marmoset_
 
 
 def main():
-    parser = argparse.ArgumentParser(description='再構成誤差が大きいフレームを調べる')
-    parser.add_argument('--base', default=_DEFAULT_BASE, help='3Dキーポイントデータのルートディレクトリ')
-    parser.add_argument('--top-n', type=int, default=30, help='全体ワースト上位件数')
-    parser.add_argument('--top-n-per-session', type=int, default=10, help='セッションごとのワースト上位件数')
-    parser.add_argument('--threshold', type=float, default=None, help='誤差閾値(px)。指定すると超えたフレーム数を表示')
-    parser.add_argument('--sessions', nargs='*', default=None, help='処理するセッション名。未指定なら全セッション')
+    parser = argparse.ArgumentParser(description='Find frames with large reconstruction errors')
+    parser.add_argument('--base', default=_DEFAULT_BASE, help='Root directory of the 3D keypoint data')
+    parser.add_argument('--top-n', type=int, default=30, help='Number of worst frames overall')
+    parser.add_argument('--top-n-per-session', type=int, default=10, help='Number of worst frames per session')
+    parser.add_argument('--threshold', type=float, default=None, help='Error threshold (px). If given, print the number of frames exceeding it')
+    parser.add_argument('--sessions', nargs='*', default=None, help='Session names to process. All sessions if omitted')
     args = parser.parse_args()
 
     result_path = args.base
@@ -37,7 +37,7 @@ def main():
 
     sessions = args.sessions or sorted(glob.glob('*', root_dir=result_path))
 
-    # (session, frame_idx, mean_err_of_frame) のリスト
+    # list of (session, frame_idx, mean_err_of_frame)
     all_records = []
 
     print("=" * 70)
@@ -60,7 +60,7 @@ def main():
 
         arr = kp3d_err[0]  # (nFrame, 20)
 
-        # フレームごとの平均誤差 (NaN は除外して平均)
+        # Mean error per frame (NaNs excluded from the mean)
         frame_mean_err = np.nanmean(arr, axis=1)  # (nFrame,)
 
         valid = frame_mean_err[np.isfinite(frame_mean_err)]
@@ -81,21 +81,21 @@ def main():
 
     print("=" * 70)
 
-    # ---- 全体 Top-N -------------------------------------------------- #
+    # ---- Overall Top-N ------------------------------------------------ #
     all_records_arr = sorted(all_records, key=lambda x: x[2], reverse=True)
 
-    print(f"\n[全体 ワースト {TOP_N} フレーム]")
+    print(f"\n[Overall worst {TOP_N} frames]")
     print(f"{'Rank':>5}  {'Session':<35} {'Frame':>8}  {'mean_err':>9}")
     print("-" * 65)
     for rank, (session, fi, err) in enumerate(all_records_arr[:TOP_N], 1):
         print(f"{rank:>5}  {session:<35} {fi:>8,}  {err:>9.3f}")
 
-    # ---- セッションごとの Top-N -------------------------------------- #
+    # ---- Per-session Top-N ------------------------------------------- #
     session_records = defaultdict(list)
     for session, fi, err in all_records:
         session_records[session].append((fi, err))
 
-    print(f"\n[セッション別 ワースト {TOP_N_PER_SESSION} フレーム]")
+    print(f"\n[Worst {TOP_N_PER_SESSION} frames per session]")
     for session in sorted(session_records.keys()):
         recs = sorted(session_records[session], key=lambda x: x[1], reverse=True)
         print(f"\n  {session}")
@@ -103,9 +103,9 @@ def main():
         for fi, err in recs[:TOP_N_PER_SESSION]:
             print(f"  {fi:>8,}  {err:>9.3f}")
 
-    # ---- 閾値超えフレーム数 ------------------------------------------ #
+    # ---- Frames exceeding threshold ---------------------------------- #
     if ERR_THRESHOLD is not None:
-        print(f"\n[閾値 {ERR_THRESHOLD} px 超のフレーム数]")
+        print(f"\n[Frames exceeding {ERR_THRESHOLD} px]")
         over_thresh = defaultdict(int)
         for session, fi, err in all_records:
             if err > ERR_THRESHOLD:

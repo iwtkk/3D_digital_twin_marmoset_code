@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""kp3dファイルのフレーム数を集計する。
+"""Count the number of frames in kp3d files.
 
-3D_temporal_keypoint_data/ 以下の全セッションを走査し、
-個体ごと・全体のフレーム数を表示する。
+Scans all sessions under 3D_temporal_keypoint_data/ and
+prints frame counts per animal and in total.
 
 Usage:
     python scripts/06_validation/count_kp3d_frames.py [DATA_DIR]
 
-    DATA_DIR: 3D_temporal_keypoint_data/ のパス（省略時はデフォルト使用）
+    DATA_DIR: path to 3D_temporal_keypoint_data/ (uses the default if omitted)
 """
 
 import argparse
@@ -20,7 +20,7 @@ from pathlib import Path
 DEFAULT_DATA_DIR = Path(__file__).parents[2] / "3D_digital_twin_marmoset_data" / \
     "marmoset_keypoint_data" / "3D_temporal_keypoint_data"
 KP3D_FILENAME = "kp3d_fxdJointLen.pickle"
-# セッション名末尾の _YYYYMMDD_HHMMSS を除いた部分を個体IDとして扱う
+# Treat the session name without the trailing _YYYYMMDD_HHMMSS as the animal ID
 SESSION_DATE_PATTERN = re.compile(r"_\d{8}_\d{6}$")
 
 
@@ -36,29 +36,29 @@ def extract_animal_id(session_name: str) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="kp3dフレーム数集計")
+    parser = argparse.ArgumentParser(description="Count kp3d frames")
     parser.add_argument("data_dir", nargs="?", type=Path, default=DEFAULT_DATA_DIR,
-                        help="3D_temporal_keypoint_data/ のパス")
+                        help="Path to 3D_temporal_keypoint_data/")
     args = parser.parse_args()
 
     data_dir: Path = args.data_dir
     if not data_dir.exists():
-        print(f"エラー: ディレクトリが見つかりません: {data_dir}", file=sys.stderr)
+        print(f"Error: directory not found: {data_dir}", file=sys.stderr)
         sys.exit(1)
 
     sessions = sorted(p for p in data_dir.iterdir()
                       if p.is_dir() and (p / KP3D_FILENAME).exists())
 
     if not sessions:
-        print(f"エラー: {KP3D_FILENAME} を含むセッションが見つかりません", file=sys.stderr)
+        print(f"Error: no sessions containing {KP3D_FILENAME} found", file=sys.stderr)
         sys.exit(1)
 
-    # 個体ID → {セッション名: フレーム数}
+    # animal ID -> {session name: frame count}
     animal_sessions: dict[str, dict[str, int]] = defaultdict(dict)
     missing = []
 
-    print(f"セッション数: {len(sessions)}")
-    print("集計中...\n")
+    print(f"Sessions: {len(sessions)}")
+    print("Counting...\n")
 
     for session_dir in sessions:
         pkl = session_dir / KP3D_FILENAME
@@ -70,9 +70,9 @@ def main():
         animal_id = extract_animal_id(session_dir.name)
         animal_sessions[animal_id][session_dir.name] = n_frames
 
-    # --- 個体別サマリー ---
+    # --- Per-animal summary ---
     print("=" * 60)
-    print("個体別フレーム数サマリー")
+    print("Frame count summary per animal")
     print("=" * 60)
 
     total_all = 0
@@ -81,25 +81,25 @@ def main():
         total = sum(sessions_map.values())
         total_all += total
         print(f"\n【{animal_id}】")
-        print(f"  セッション数 : {len(sessions_map)}")
-        print(f"  合計フレーム数: {total:,}")
-        print(f"  平均フレーム数: {total // len(sessions_map):,} / セッション")
+        print(f"  Sessions     : {len(sessions_map)}")
+        print(f"  Total frames : {total:,}")
+        print(f"  Mean frames  : {total // len(sessions_map):,} / session")
 
     print("\n" + "=" * 60)
-    print(f"全個体合計フレーム数: {total_all:,}")
-    print(f"全セッション数      : {sum(len(v) for v in animal_sessions.values())}")
+    print(f"Total frames (all animals): {total_all:,}")
+    print(f"Total sessions            : {sum(len(v) for v in animal_sessions.values())}")
     print("=" * 60)
 
-    # --- 個体別詳細 ---
-    print("\n詳細（個体別・セッション別）")
+    # --- Per-animal details ---
+    print("\nDetails (per animal, per session)")
     print("-" * 60)
     for animal_id in sorted(animal_sessions):
         print(f"\n{animal_id}")
         for session_name, n in sorted(animal_sessions[animal_id].items()):
-            print(f"  {session_name}: {n:,} フレーム")
+            print(f"  {session_name}: {n:,} frames")
 
     if missing:
-        print(f"\n警告: 読み込み失敗セッション ({len(missing)}件)")
+        print(f"\nWarning: sessions that failed to load ({len(missing)})")
         for name, err in missing:
             print(f"  {name}: {err}")
 

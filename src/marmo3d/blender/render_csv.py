@@ -384,14 +384,14 @@ def build_csv_results(
     request_all_frames: bool = False,
 ) -> CsvResultsDict:
     """
-    RenderPlanのitemsからCSV結果辞書を構築
+    Build the CSV result dict from RenderPlan items
 
     Args:
-        plan_items: RenderPlan.items（skip, frames, session, output_dir属性を持つ）
-        kp3d_finder: session から kp3d_path を取得する callable
-        render_spec_path: render_spec.yaml のパス
-        output_root: 出力ルートディレクトリ
-        request_all_frames: True の場合、全フレーム用CSVを1回だけ生成して共有
+        plan_items: RenderPlan.items (with skip, frames, session, output_dir attributes)
+        kp3d_finder: callable that returns kp3d_path for a session
+        render_spec_path: path to render_spec.yaml
+        output_root: output root directory
+        request_all_frames: if True, generate the all-frames CSV once and share it
 
     Returns:
         {(str(session), tuple(frames)): {"csv_path": Path, "all_frames": bool}, ...}
@@ -400,7 +400,7 @@ def build_csv_results(
     items_list = list(plan_items)
 
     if request_all_frames and items_list:
-        # 全フレーム最適化: 1回だけ export_csv を呼んで全 item で共有
+        # All-frames optimization: call export_csv once and share it across all items
         first_item = items_list[0]
         kp3d_path = kp3d_finder(first_item.session)
         if kp3d_path is None:
@@ -427,7 +427,7 @@ def build_csv_results(
                 "all_frames": set(item.frames) == full_set,
             }
     else:
-        # 通常: 各 item ごとに個別に export_csv を呼ぶ
+        # Normal: call export_csv separately for each item
         for item in items_list:
             if item.skip or not item.frames:
                 continue

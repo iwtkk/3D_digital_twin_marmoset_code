@@ -123,7 +123,7 @@ def configure_render_settings(profile_cfg: Dict[str, Any]) -> None:
     bpy.context.scene.render.engine = engine
     if engine == "CYCLES":
         bpy.context.scene.cycles.samples = int(profile_cfg.get("samples", 128))
-        # GPU (CUDA/OptiX) を優先して有効化
+        # Prefer and enable GPU (CUDA/OptiX)
         try:
             prefs = bpy.context.preferences.addons["cycles"].preferences
             for dtype in ("OPTIX", "CUDA"):

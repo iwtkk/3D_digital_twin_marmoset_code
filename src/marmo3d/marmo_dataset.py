@@ -13,7 +13,7 @@ import time as _time
 try:
     import yaml  # pip install pyyaml
 except ImportError as e:
-    raise ImportError("PyYAML が必要です: pip install pyyaml") from e
+    raise ImportError("PyYAML is required: pip install pyyaml") from e
 
 
 # -----------------------------
@@ -249,8 +249,8 @@ class Session:
     def health_status(self) -> str:
         if not self.health_db:
             return "unknown"
-        # health_status.yaml のキーは例で cj611 / cj425 なので、
-        # dataset の animal が "611" の場合 "cj611" に寄せる（仕様に合わせて調整可）
+        # health_status.yaml keys are e.g. cj611 / cj425, so
+        # map dataset animal "611" to "cj611" (adjust to the spec as needed)
         key = self.animal
         if not key.startswith("cj"):
             key = "cj" + key
@@ -426,11 +426,11 @@ class MarmoDataset:
 
         video_root = _first_existing(spec.roots_video)
         if not video_root:
-            raise FileNotFoundError(f"video_roots が見つかりません: {spec.roots_video}")
+            raise FileNotFoundError(f"video_roots not found: {spec.roots_video}")
 
         results_root = spec.roots_results
         if not results_root.exists():
-            raise FileNotFoundError(f"results_root が見つかりません: {results_root}")
+            raise FileNotFoundError(f"results_root not found: {results_root}")
 
         # choose results_subdir by priority
         found_subdir = None
@@ -441,7 +441,7 @@ class MarmoDataset:
                 break
         if not found_subdir:
             raise FileNotFoundError(
-                f"results_subdir が見つかりません: {[(results_root / s) for s in spec.results_subdirs_priority]}"
+                f"results_subdir not found: {[(results_root / s) for s in spec.results_subdirs_priority]}"
             )
 
         # health DB (optional)
@@ -472,7 +472,7 @@ class MarmoDataset:
     def parse_session_id(self, session_id: str) -> SessionIdParts:
         m = self.spec.session_id_re.match(session_id)
         if not m:
-            raise ValueError(f"session_id_regex にマッチしません: {session_id}")
+            raise ValueError(f"does not match session_id_regex: {session_id}")
         return SessionIdParts(
             prefix=m.group("prefix"),
             animal=m.group("animal"),
@@ -494,14 +494,14 @@ class MarmoDataset:
 
     # ---- Ignored sessions ----
     def is_session_ignored(self, session_id: str) -> bool:
-        """セッションがignore.yamlで除外されているかチェック"""
+        """Check whether the session is excluded by ignore.yaml"""
         return session_id in self.ignored_sessions
 
     # ---- Discovery ----
     def discover_session_ids(self) -> List[str]:
         """
-        基本は results 側から見つける（kp3d が必須なので）。
-        results_root/results_subdir/* のディレクトリ名を session_id とみなす。
+        Sessions are primarily discovered from the results side (since kp3d is required).
+        Directory names under results_root/results_subdir/* are treated as session_id.
         """
         base = self.results_root / self.results_subdir
         if not base.exists():
@@ -582,21 +582,21 @@ class SkipLogger:
 # Example usage
 # -----------------------------
 if __name__ == "__main__":
-    # 例: PROJECT_ROOT をこのファイルの親の親…などに合わせて調整
+    # e.g. adjust PROJECT_ROOT to this file's grandparent, etc.
     PROJECT_ROOT = Path(".").resolve()
 
     spec_path = Path("dataset_spec.yaml")
     ds = MarmoDataset.from_yaml(spec_path, project_root=PROJECT_ROOT)
 
-    # 全セッション（完全性OKのみ）
+    # All sessions (only those passing completeness checks)
     sessions = list(ds.iter_sessions(valid_only=True, log_skips=True))
     print("valid sessions:", len(sessions))
 
-    # 例: cj611 の diseased 期間だけ
+    # e.g. only the diseased period of cj611
     subset = ds.filter(sessions, animal="cj611", health="diseased")
     print("cj611 diseased sessions:", len(subset))
 
-    # 例: 1つ見て kp3d パス確認
+    # e.g. inspect one and check its kp3d path
     if subset:
         s0 = subset[0]
         print("session:", s0.session_id, "kp3d:", s0.kp3d_path())

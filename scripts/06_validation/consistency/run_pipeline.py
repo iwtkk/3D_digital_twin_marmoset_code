@@ -1,12 +1,12 @@
 """
-検証パイプライン実行スクリプト
+Run the validation pipeline
 
-1. random_frame_selector: ランダムフレーム選択
-2. render_from_selection: レンダリング実行
-3. extract_frames: 実画像フレーム抽出
-4. calculate_metrics: PSNR/SSIM計算
-5. visualize: 可視化
-6. outlier_detector: 外れ値検出
+1. random_frame_selector: random frame selection
+2. render_from_selection: rendering
+3. extract_frames: real image frame extraction
+4. calculate_metrics: PSNR/SSIM computation
+5. visualize: visualization
+6. outlier_detector: outlier detection
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-# パス設定
+# Path setup
 current_script = Path(__file__).resolve()
 validation_dir = current_script.parent
 # consistency/ → 06_validation/ → scripts/ → project root
@@ -28,39 +28,39 @@ marmo3d_dir = project_root / "src" / "marmo3d"
 
 @dataclass
 class PipelineConfig:
-    """パイプライン設定"""
-    # 基本設定
+    """Pipeline configuration"""
+    # Basic settings
     seed: int = 42
     frames_per_animal: int = 100
     animals: List[str] = field(default_factory=lambda: ["cj611", "cj357", "cj425"])
 
-    # レンダリング設定
+    # Rendering settings
     profile: str = "env_camera"
     split: int = 1
     workers: int = 1
     session_process: int = 1
 
-    # 外れ値検出設定
+    # Outlier detection settings
     psnr_multiplier: float = 1.5
     ssim_multiplier: float = 1.5
     max_outlier_images: int = 20
 
-    # パス設定
+    # Path settings
     output_dir: Optional[Path] = None
     valid_config: Optional[Path] = None
 
-    # 実行制御
+    # Execution control
     dry_run: bool = False
     skip_frame_selection: bool = False
     skip_render: bool = False
     skip_extract: bool = False
     skip_metrics: bool = False
-    render_hash: Optional[str] = None  # 既存のrender結果を使う場合
+    render_hash: Optional[str] = None  # when reusing existing render results
 
 
 @dataclass
 class PipelineStep:
-    """パイプラインステップ"""
+    """Pipeline step"""
     name: str
     command: List[str]
     description: str
@@ -68,7 +68,7 @@ class PipelineStep:
 
 
 def generate_render_hash(config: PipelineConfig) -> str:
-    """render_paths.compute_render_hash と同じロジックで hash を生成（.blendも含む）"""
+    """Generate the hash with the same logic as render_paths.compute_render_hash (including .blend)"""
     import yaml
     render_spec_path = project_root / "config" / "render_spec.yaml"
     with open(render_spec_path, encoding="utf-8") as f:
@@ -80,10 +80,10 @@ def generate_render_hash(config: PipelineConfig) -> str:
 
 def run_step(step: PipelineStep, verbose: bool = True) -> bool:
     """
-    1ステップを実行
+    Run a single step
 
     Returns:
-        成功したらTrue
+        True on success
     """
     if step.skip:
         print(f"\n{'='*60}")
@@ -107,20 +107,20 @@ def run_step(step: PipelineStep, verbose: bool = True) -> bool:
             cwd=project_root,
             check=True,
         )
-        print(f"\n[OK] {step.name} 完了")
+        print(f"\n[OK] {step.name} done")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"\n[ERROR] {step.name} 失敗: return code {e.returncode}")
+        print(f"\n[ERROR] {step.name} failed: return code {e.returncode}")
         return False
     except Exception as e:
-        print(f"\n[ERROR] {step.name} 失敗: {e}")
+        print(f"\n[ERROR] {step.name} failed: {e}")
         return False
 
 
 def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
-    """パイプラインを構築"""
+    """Build the pipeline"""
 
-    # 出力ディレクトリ
+    # Output directory
     if config.output_dir:
         output_dir = config.output_dir
     else:
@@ -129,7 +129,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
 
     output_dir = Path(output_dir)
 
-    # 各種パス
+    # Paths
     selection_json = output_dir / "selected_frames.json"
     frames_cache = output_dir / "frames_cache.json"
     render_output = project_root / "outputs" / "validation" / "consistency" / "render"
@@ -144,7 +144,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     else:
         render_hash = generate_render_hash(config)
 
-    # consistency.yaml パス
+    # consistency.yaml path
     valid_config_path = config.valid_config or (project_root / "config" / "consistency.yaml")
 
     steps = []
@@ -163,7 +163,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     steps.append(PipelineStep(
         name="1. Random Frame Selection",
         command=step1_cmd,
-        description=f"個体ごとに{config.frames_per_animal}フレームをランダム選択",
+        description=f"Randomly select {config.frames_per_animal} frames per animal",
         skip=config.skip_frame_selection,
     ))
 
@@ -184,7 +184,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     steps.append(PipelineStep(
         name="2. Render from Selection",
         command=step2_cmd,
-        description=f"選択フレームをBlenderでレンダリング (profile: {config.profile})",
+        description=f"Render selected frames with Blender (profile: {config.profile})",
         skip=config.skip_render,
     ))
 
@@ -200,7 +200,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     steps.append(PipelineStep(
         name="3. Extract Frames",
         command=step3_cmd,
-        description="viddataから実画像フレームを抽出",
+        description="Extract real image frames from viddata",
         skip=config.skip_extract,
     ))
 
@@ -218,7 +218,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     steps.append(PipelineStep(
         name="4. Calculate Metrics",
         command=step4_cmd,
-        description="PSNR/SSIMを計算",
+        description="Compute PSNR/SSIM",
         skip=config.skip_metrics,
     ))
 
@@ -233,7 +233,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     steps.append(PipelineStep(
         name="5. Visualize",
         command=step5_cmd,
-        description="分布図・散布図を生成",
+        description="Generate distribution and scatter plots",
     ))
 
     # Step 6: outlier_detector
@@ -253,7 +253,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     steps.append(PipelineStep(
         name="6. Outlier Detection",
         command=step6_cmd,
-        description="外れ値を検出・可視化",
+        description="Detect and visualize outliers",
     ))
 
     return steps
@@ -261,14 +261,14 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="検証パイプライン実行",
+        description="Run the validation pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-実行例:
-  # 基本実行（新規）
+Examples:
+  # Basic run (new)
   python run_pipeline.py
 
-  # Step 4-6 のみ実行（既存結果を使う）
+  # Run only Steps 4-6 (reuse existing results)
   python run_pipeline.py \\
     --skip-frame-selection \\
     --skip-render \\
@@ -276,7 +276,7 @@ def main():
     --render-hash 1228b6de \\
     --output-dir valid/run_20260108_144800
 
-  # Step 5-6 のみ実行（メトリクス計算済み）
+  # Run only Steps 5-6 (metrics already computed)
   python run_pipeline.py \\
     --skip-frame-selection \\
     --skip-render \\
@@ -285,138 +285,138 @@ def main():
     --render-hash 1228b6de \\
     --output-dir valid/run_20260108_144800
 
-  # フレーム数とシードを指定
+  # Specify frame count and seed
   python run_pipeline.py --frames-per-animal 50 --seed 123
 
-  # 特定の個体のみ
+  # Specific animals only
   python run_pipeline.py --animals cj611 cj357
 
-  # dry-run（レンダリングコマンドのみ表示）
+  # dry-run (only print render commands)
   python run_pipeline.py --dry-run
         """
     )
 
-    # 基本設定
+    # Basic settings
     parser.add_argument(
         "--seed",
         type=int,
         default=42,
-        help="乱数シード (デフォルト: 42)",
+        help="Random seed (default: 42)",
     )
     parser.add_argument(
         "--frames-per-animal",
         type=int,
         default=100,
-        help="各個体から選択するフレーム数 (デフォルト: 100)",
+        help="Number of frames to select per animal (default: 100)",
     )
     parser.add_argument(
         "--animals",
         nargs="+",
         default=["cj611", "cj357", "cj425"],
-        help="対象の個体ID (デフォルト: cj611 cj357 cj425)",
+        help="Target animal IDs (default: cj611 cj357 cj425)",
     )
 
-    # レンダリング設定
+    # Rendering settings
     parser.add_argument(
         "--profile",
         type=str,
         default="env_camera",
-        help="レンダリングプロファイル (デフォルト: env_camera)",
+        help="Render profile (default: env_camera)",
     )
     parser.add_argument(
         "--split",
         type=int,
         default=1,
-        help="分割数 (デフォルト: 1)",
+        help="Number of splits (default: 1)",
     )
     parser.add_argument(
         "--workers",
         type=int,
         default=1,
-        help="並列ワーカー数 (デフォルト: 1)",
+        help="Number of parallel workers (default: 1)",
     )
     parser.add_argument(
         "--session-process",
         type=int,
         default=1,
-        help="セッション並列数 (デフォルト: 1)",
+        help="Number of parallel sessions (default: 1)",
     )
 
-    # 外れ値検出設定
+    # Outlier detection settings
     parser.add_argument(
         "--psnr-multiplier",
         type=float,
         default=1.5,
-        help="PSNR用のIQR倍率 (デフォルト: 1.5)",
+        help="IQR multiplier for PSNR (default: 1.5)",
     )
     parser.add_argument(
         "--ssim-multiplier",
         type=float,
         default=1.5,
-        help="SSIM用のIQR倍率 (デフォルト: 1.5)",
+        help="IQR multiplier for SSIM (default: 1.5)",
     )
     parser.add_argument(
         "--max-outlier-images",
         type=int,
         default=20,
-        help="外れ値可視化の最大数 (デフォルト: 20)",
+        help="Maximum number of outliers to visualize (default: 20)",
     )
 
-    # パス設定
+    # Path settings
     parser.add_argument(
         "--output-dir",
         type=str,
         default=None,
-        help="出力ディレクトリ (デフォルト: valid/run_{timestamp})",
+        help="Output directory (default: valid/run_{timestamp})",
     )
     parser.add_argument(
         "--valid-config",
         type=str,
         default=None,
-        help="consistency.yaml のパス (デフォルト: config/consistency.yaml)",
+        help="Path to consistency.yaml (default: config/consistency.yaml)",
     )
 
-    # 実行制御
+    # Execution control
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="レンダリングを実行せずコマンドのみ表示",
+        help="Print commands without rendering",
     )
     parser.add_argument(
         "--skip-frame-selection",
         action="store_true",
-        help="フレーム選択をスキップ（既存結果を使用）",
+        help="Skip frame selection (use existing results)",
     )
     parser.add_argument(
         "--skip-render",
         action="store_true",
-        help="レンダリングをスキップ（既存結果を使用）",
+        help="Skip rendering (use existing results)",
     )
     parser.add_argument(
         "--skip-extract",
         action="store_true",
-        help="フレーム抽出をスキップ（既存結果を使用）",
+        help="Skip frame extraction (use existing results)",
     )
     parser.add_argument(
         "--skip-metrics",
         action="store_true",
-        help="メトリクス計算をスキップ（既存結果を使用）",
+        help="Skip metric computation (use existing results)",
     )
     parser.add_argument(
         "--render-hash",
         type=str,
         default=None,
-        help="既存のrender結果のhash（skip-render時に必要）",
+        help="Hash of existing render results (required with --skip-render)",
     )
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="詳細な進捗を表示",
+        help="Show detailed progress",
     )
 
     args = parser.parse_args()
 
-    # 設定を構築
+    # Build configuration
     config = PipelineConfig(
         seed=args.seed,
         frames_per_animal=args.frames_per_animal,
@@ -438,28 +438,28 @@ def main():
         render_hash=args.render_hash,
     )
 
-    # スキップオプション使用時は --output-dir が必須
+    # --output-dir is required when using skip options
     has_skip = config.skip_frame_selection or config.skip_render or config.skip_extract or config.skip_metrics
     if has_skip and not config.output_dir:
-        print("エラー: --skip-* オプションを使用する場合は --output-dir も必要です")
-        print("  既存の出力ディレクトリを指定してください（例: valid/run_20260108_144800）")
+        print("Error: --output-dir is required when using --skip-* options")
+        print("  Specify an existing output directory (e.g. valid/run_20260108_144800)")
         sys.exit(1)
 
-    # skip-renderの場合はrender-hashが必要
+    # --render-hash is required with --skip-render
     if config.skip_render and not config.render_hash:
-        print("エラー: --skip-render を指定する場合は --render-hash も必要です")
+        print("Error: --render-hash is required when using --skip-render")
         sys.exit(1)
 
-    # パイプライン構築
+    # Build pipeline
     steps = build_pipeline(config)
 
     print("=" * 60)
-    print("検証パイプライン")
+    print("Validation pipeline")
     print("=" * 60)
-    print(f"個体: {', '.join(config.animals)}")
-    print(f"フレーム数/個体: {config.frames_per_animal}")
-    print(f"シード: {config.seed}")
-    print(f"プロファイル: {config.profile}")
+    print(f"Animals: {', '.join(config.animals)}")
+    print(f"Frames per animal: {config.frames_per_animal}")
+    print(f"Seed: {config.seed}")
+    print(f"Profile: {config.profile}")
     if config.render_hash:
         print(f"render_hash: {config.render_hash}")
     print(f"dry-run: {config.dry_run}")
@@ -468,7 +468,7 @@ def main():
     print(f"skip-extract: {config.skip_extract}")
     print(f"skip-metrics: {config.skip_metrics}")
 
-    # パイプライン実行
+    # Run pipeline
     success_count = 0
     fail_count = 0
 
@@ -478,19 +478,19 @@ def main():
             success_count += 1
         else:
             fail_count += 1
-            print(f"\n[ABORT] パイプラインを中断します")
+            print(f"\n[ABORT] Aborting pipeline")
             break
 
-    # サマリー
+    # Summary
     print("\n" + "=" * 60)
-    print("パイプライン完了")
+    print("Pipeline finished")
     print("=" * 60)
-    print(f"成功: {success_count} / {len(steps)}")
+    print(f"Succeeded: {success_count} / {len(steps)}")
     if fail_count > 0:
-        print(f"失敗: {fail_count}")
+        print(f"Failed: {fail_count}")
         sys.exit(1)
 
-    print("\n完了")
+    print("\nDone")
 
 
 if __name__ == "__main__":

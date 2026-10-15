@@ -14,7 +14,7 @@ pip install mmcv-full==1.6.2 \
 
 pip install numpy==1.22.4
 pip install lap==0.4.0
-# 3. mmdetection / mmpose サブモジュール
+# 3. mmdetection / mmpose submodules
 echo ">>> [3/6] mmdetection"
 pip install -e scripts/02_train/mmdetection
 
@@ -25,11 +25,11 @@ pip install -e scripts/02_train/mmpose
 echo ">>> [5/6] requirements.txt"
 pip install -r requirements.txt
 
-# 5. marmo3Dpose の依存
+# 5. marmo3Dpose dependencies
 echo ">>> [6/6] marmo3Dpose requirements"
 # pip install -r scripts/03_run_marmo3dpose/marmo3Dpose/requirements.txt
 
-# 6. Blender 用 PyYAML (third_party/)
-echo ">>> [+] Blender 用 PyYAML → third_party/"
+# 6. PyYAML for Blender (third_party/)
+echo ">>> [+] PyYAML for Blender → third_party/"
 mkdir -p third_party
 pip install --target third_party PyYAML

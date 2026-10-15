@@ -22,7 +22,7 @@ def good_poor(res):
         f_num=f_num+1
     print(good_frame)
 
-# ========= カラーパレット =========
+# ========= Color palette =========
 def mid_tone_palette(n, s=0.55, v=0.75):
     import colorsys
     cols = []
@@ -32,7 +32,7 @@ def mid_tone_palette(n, s=0.55, v=0.75):
         cols.append((r, g, b))  # 0-1 RGB
     return cols
 
-# ========= スケルトン（marmo20 + back） =========
+# ========= Skeleton (marmo20 + back) =========
 SKELETON = [
     (0,2),(0,1),(2,4),(1,3),
     (6,8),(5,7),(8,10),(7,9),
@@ -42,12 +42,12 @@ SKELETON = [
 
 def extract_frame_ffmpeg(video_path, frame_idx, out_path):
     """
-    ffmpegで「n==frame_idx」のフレームだけ抽出してPNG保存。
-    - 0始まりのフレーム番号を想定
-    - 可変フレームレートでも 'select=eq(n,idx)' は動作します（入力のデコード順基準）
+    Extract only the frame with n==frame_idx via ffmpeg and save it as PNG.
+    - Assumes 0-based frame numbers
+    - 'select=eq(n,idx)' works even with variable frame rate (based on input decode order)
     """
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
-    # eq(n\,idx) のコンマエスケープに注意
+    # Note the escaped comma in eq(n\,idx)
     cmd = f'ffmpeg -y -i {shlex.quote(video_path)} -vf "select=eq(n\\,{frame_idx})" -vframes 1 {shlex.quote(out_path)}'
     proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0 or (not os.path.exists(out_path)):
@@ -55,7 +55,7 @@ def extract_frame_ffmpeg(video_path, frame_idx, out_path):
 
 def plot_frame_with_keypoints(img_path, points, skeleton=SKELETON, conf_thr=0.0):
     """
-    背景にフレーム画像、上にキーポイントとスケルトンを重ねる。
+    Overlay keypoints and skeleton on top of the frame image.
     points: (K,3) ndarray [x,y,conf]
     """
     import matplotlib.image as mpimg
@@ -67,20 +67,20 @@ def plot_frame_with_keypoints(img_path, points, skeleton=SKELETON, conf_thr=0.0)
     kp_colors = mid_tone_palette(K, s=0.55, v=0.75)
 
     fig, ax = plt.subplots(figsize=(min(10, W/100), min(10, H/100)))
-    # 背景画像
+    # Background image
     ax.imshow(img)
     ax.set_xlim([0, W])
-    ax.set_ylim([H, 0])  # 画像座標に合わせて上下反転
+    ax.set_ylim([H, 0])  # Flip vertically to match image coordinates
     ax.set_axis_off()
 
-    # 点
+    # Points
     for j in range(K):
         x, y, conf = points[j]
         if np.isnan(x) or np.isnan(y) or conf < conf_thr:
             continue
         ax.scatter(x, y, s=12, c=[kp_colors[j]], edgecolors='none', alpha=0.95, zorder=3)
 
-    # # 線
+    # # Lines
     # edges = list(skeleton)
     # if K > 19:
     #     edges.append((18,17))
@@ -101,25 +101,25 @@ def plot_frame_with_keypoints(img_path, points, skeleton=SKELETON, conf_thr=0.0)
     plt.show()
 
 def main(video_path, json_path, frame_number, save_dir="./frames"):
-    # 1) 指定フレームを画像として抽出
+    # 1) Extract the specified frame as an image
     out_png = os.path.join(save_dir, f"frame_{frame_number:06d}.png")
     extract_frame_ffmpeg(video_path, frame_number, out_png)
 
-    # 2) JSONから同フレームのキーポイントを取得（あなたのデータ構造に合わせる）
+    # 2) Get keypoints for the same frame from JSON (adapt to your data structure)
     with open(json_path, "rb") as f:
         res = json.load(f)
 
-    # res[frame_number] の先頭人物の kp を使う例（複数人ならループで回す）
+    # Example using kp of the first individual in res[frame_number] (loop for multiple)
     frame = res[frame_number]
-    det = frame[0]                     # 1人目
+    det = frame[0]                     # first individual
     points = np.array(det[5], float)   # (K,3) [x,y,conf]
 
-    # 3) 背景に抽出フレーム画像を置き、キーポイントを重畳
+    # 3) Use the extracted frame as background and overlay keypoints
     plot_frame_with_keypoints(out_png, points, conf_thr=0.0)
 
 if __name__ == "__main__":
-    # 使用例（値はあなたの環境に合わせて変更）
+    # Usage example (adjust values to your environment)
     video_path = "vid/dailylife_cj611_20230226_110000.23506214/000000.mp4"
     json_path  = "results/2d_v0p8_Dark_fix_20/dailylife_cj611_20230226_110000/dailylife_cj611_20230226_110000_23506214_000000.json"
-    frame_number = 65  # 0始まり
+    frame_number = 65  # 0-based
     main(video_path, json_path, frame_number)

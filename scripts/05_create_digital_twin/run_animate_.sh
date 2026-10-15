@@ -17,13 +17,13 @@ while [[ $# -gt 0 ]]; do
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  --blend <file>      ベースblendファイル（デフォルト: 3D_digital_twin_marmoset_data/...）
-  --armature <name>   アーマチュア名（デフォルト: NF_Armature）
-  --csv-dir <dir>     CSVディレクトリ（デフォルト: outputs/animate_temp/transformedcsv）
-  --output-dir <dir>  出力blendファイルの保存先（デフォルト: outputs/blenders）
-  --count <n>         処理するCSV数の上限（デフォルト: 1）
-  --all               すべてのCSVを処理
-  -h, --help          このヘルプを表示
+  --blend <file>      Base blend file (default: 3D_digital_twin_marmoset_data/...)
+  --armature <name>   Armature name (default: NF_Armature)
+  --csv-dir <dir>     CSV directory (default: outputs/animate_temp/transformedcsv)
+  --output-dir <dir>  Output directory for blend files (default: outputs/blenders)
+  --count <n>         Max number of CSVs to process (default: 1)
+  --all               Process all CSVs
+  -h, --help          Show this help
 EOF
       exit 0;;
     --blend)      BLEND_BASE="$2";   shift 2;;
@@ -42,7 +42,7 @@ for csv in "$CSV_DIR"/*.csv; do
   echo 'start' $csv
   ((cnt++))
   if [[ $ALL -eq 0 ]] && (( cnt > COUNT )); then
-    echo "CSV の処理上限 (${COUNT}) に達したので終了します"
+    echo "Reached CSV processing limit (${COUNT}); exiting"
     break
   fi
   echo $cnt

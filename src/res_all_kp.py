@@ -4,14 +4,14 @@ import os
 import subprocess
 from pathlib import Path
 
-# ==== 設定 ====
-GT_JSON = Path("data/mmpose0.29/data/tkmarmo/annotations/tkmarmoV0p42.json")  # gt を読み込む
-DATA_ROOT = Path("data/mmpose0.29mod/data/tkmarmo/images")    # file_name が相対パスならここに連結
+# ==== Settings ====
+GT_JSON = Path("data/mmpose0.29/data/tkmarmo/annotations/tkmarmoV0p42.json")  # load GT
+DATA_ROOT = Path("data/mmpose0.29mod/data/tkmarmo/images")    # prepended when file_name is a relative path
 CONF_THRESHOLD = 0.9
-NUM_KP = 20  # x,y,conf のセット数
+NUM_KP = 20  # number of x,y,conf triplets
 
 def is_valid_xy(x, y):
-    # 「全て出力」を (0,0) ではない & NaN ではない とみなす
+    # Treat "all output" as not (0,0) and not NaN
     if x is None or y is None:
         return False
     if isinstance(x, float) and math.isnan(x):
@@ -38,7 +38,7 @@ def collect_qualified_image_ids(det_json_path):
         vs = kps[2::3]
         K  = len(vs)
 
-        # すべて存在：v>0 かつ x,y が 0 でない
+        # All present: v>0 and x,y are not 0
         all_exist = all((v > 0) and (x != 0) and (y != 0) for x, y, v in zip(xs, ys, vs))
         if all_exist:
             image_ids.append(ann.get("image_id"))
@@ -57,7 +57,7 @@ def main():
     qualified = collect_qualified_image_ids(GT_JSON)
     id_to_fname = build_image_map(GT_JSON)
 
-    # 該当 file_name を列挙
+    # List matching file_names
     selected_paths = []
     print("Matched image_id (avg_conf):")
     for image_id in qualified:
@@ -72,16 +72,16 @@ def main():
             print(f"- {image_id} -> NOT FOUND: {path}")
 
     if not selected_paths:
-        print("条件に一致して表示できる画像が見つかりませんでした。")
+        print("No images matching the conditions were found.")
         return
 
-    # Shotwell で表示（まとめて開けます）
+    # Display in Shotwell (opens all at once)
     try:
         subprocess.run(["shotwell", *selected_paths], check=True)
     except FileNotFoundError:
-        print("Shotwell が見つかりませんでした。インストール後に再実行してください。")
+        print("Shotwell not found. Please install it and run again.")
     except subprocess.CalledProcessError as e:
-        print(f"Shotwell 実行に失敗しました: {e}")
+        print(f"Failed to run Shotwell: {e}")
 
 if __name__ == "__main__":
     main()

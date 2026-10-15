@@ -1,11 +1,11 @@
 """
-scripts/06_validation/consistency/ および src/marmo3d/validation/utils.py の
-ユニットテスト。
+Unit tests for scripts/06_validation/consistency/ and
+src/marmo3d/validation/utils.py.
 
-テスト対象:
-  - marmo3d.validation.utils の各ヘルパー関数
-  - config/consistency.yaml のパステンプレートが consistency/ を含むこと
-  - run_pipeline.py の build_pipeline が正しい出力パスを生成すること
+Covered:
+  - helper functions in marmo3d.validation.utils
+  - path templates in config/consistency.yaml contain consistency/
+  - build_pipeline in run_pipeline.py produces the correct output paths
 """
 import math
 import sys
@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-# プロジェクトルートを解決して src/ を sys.path に追加
+# Resolve the project root and add src/ to sys.path
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROJECT_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT / "src"))
@@ -42,7 +42,7 @@ class TestRodriguesToR(unittest.TestCase):
         np.testing.assert_allclose(R, np.eye(3), atol=1e-12)
 
     def test_90deg_rotation_around_z(self):
-        # Z 軸まわり 90 度 = [0, 0, π/2]
+        # 90 degrees about the Z axis = [0, 0, pi/2]
         rvec = np.array([0.0, 0.0, math.pi / 2])
         R = rodrigues_to_R(rvec)
         expected = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]], dtype=float)
@@ -51,7 +51,7 @@ class TestRodriguesToR(unittest.TestCase):
     def test_output_is_proper_rotation_matrix(self):
         rvec = np.array([0.3, -0.5, 0.8])
         R = rodrigues_to_R(rvec)
-        # R^T R = I かつ det(R) = 1
+        # R^T R = I and det(R) = 1
         np.testing.assert_allclose(R.T @ R, np.eye(3), atol=1e-12)
         self.assertAlmostEqual(float(np.linalg.det(R)), 1.0, places=12)
 
@@ -146,7 +146,7 @@ class TestLoadIdsFromYaml(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# consistency.yaml パステンプレートに consistency/ が含まれること
+# consistency.yaml path templates contain consistency/
 # ---------------------------------------------------------------------------
 
 class TestConsistencyYamlPaths(unittest.TestCase):
@@ -175,7 +175,7 @@ class TestConsistencyYamlPaths(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# run_pipeline.build_pipeline の出力パスに consistency/ が含まれること
+# run_pipeline.build_pipeline output paths contain consistency/
 # ---------------------------------------------------------------------------
 
 class TestRunPipelinePaths(unittest.TestCase):
@@ -186,7 +186,7 @@ class TestRunPipelinePaths(unittest.TestCase):
         )
         spec = importlib.util.spec_from_file_location("run_pipeline", script_path)
         mod = importlib.util.module_from_spec(spec)
-        # sys.modules に登録してから exec しないと dataclass の型解決が失敗する
+        # Must register in sys.modules before exec, or dataclass type resolution fails
         sys.modules["run_pipeline"] = mod
         spec.loader.exec_module(mod)
         return mod
@@ -195,7 +195,7 @@ class TestRunPipelinePaths(unittest.TestCase):
         mod = self._import_build_pipeline()
         config = mod.PipelineConfig()
         steps = mod.build_pipeline(config)
-        # Step 3（extract_frames）の --output-root 引数を確認
+        # Check the --output-root argument of Step 3 (extract_frames)
         extract_step = next(s for s in steps if "Extract" in s.name)
         cmd = " ".join(extract_step.command)
         self.assertIn("consistency", cmd, f"extract step should output to consistency/: {cmd}")
@@ -204,7 +204,7 @@ class TestRunPipelinePaths(unittest.TestCase):
         mod = self._import_build_pipeline()
         config = mod.PipelineConfig()
         steps = mod.build_pipeline(config)
-        # Step 2（render）の --output-root 引数を確認
+        # Check the --output-root argument of Step 2 (render)
         render_step = next(s for s in steps if "Render" in s.name)
         cmd = " ".join(render_step.command)
         self.assertIn("consistency", cmd, f"render step should output to consistency/: {cmd}")

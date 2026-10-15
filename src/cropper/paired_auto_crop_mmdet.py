@@ -6,22 +6,22 @@
 Paired Auto Crop with MMDetection (v2.x)
 =======================================
 
-A/B の対応画像ペアに対して、A画像を MMDetection で物体検出し、選んだ1つの矩形（または結合矩形）で
-A/B 両方をクロップします。
+For each corresponding A/B image pair, run MMDetection object detection on image A and crop
+both A and B with the selected box (or the union box).
 
-- MMDetection 2.26.0 を想定（`mmdet.apis.init_detector` / `inference_detector`）。
-- 既存のモデル（config と checkpoint）をそのまま読み込み。
-- 複数検出がある場合の選び方をオプションで指定：
-  - `--select highest`  : 最高スコア
-  - `--select largest`  : 面積最大
-  - `--select union`    : 全検出を結合した外接矩形（クラス/スコア条件を満たすもの）
-- `--classes` で対象クラスを番号指定（例: `0,2,5`）。未指定なら全クラス対象。
-- `--score-thr` でスコア閾値。
-- `--margin` でパーセント拡張（例: `0.1` なら幅高の10%ずつ拡大）。
-- B側には `--relative` で相対座標適用（サイズが違うペア向き）。
-- ペアの指定は CSV または `--dir-a/--dir-b`（同名ファイルペア）。
+- Assumes MMDetection 2.26.0 (`mmdet.apis.init_detector` / `inference_detector`).
+- Loads an existing model (config and checkpoint) as is.
+- How to choose among multiple detections is set by option:
+  - `--select highest`  : highest score
+  - `--select largest`  : largest area
+  - `--select union`    : bounding box enclosing all detections (that satisfy the class/score conditions)
+- `--classes` specifies target classes by index (e.g. `0,2,5`). If omitted, all classes are used.
+- `--score-thr` sets the score threshold.
+- `--margin` expands by a fraction (e.g. `0.1` enlarges width and height by 10% each).
+- For B, `--relative` applies relative coordinates (for pairs of different sizes).
+- Pairs are given by CSV or `--dir-a/--dir-b` (files with the same name are paired).
 
-使い方例:
+Usage examples:
   python paired_auto_crop_mmdet.py \
 
       --config path/to/config.py \
@@ -38,7 +38,7 @@ A/B 両方をクロップします。
 
       --map pairs.csv --out out_dir --select union --classes 0,2 --margin 0.08
 
-出力: out_dir/A/ と out_dir/B/ に PNG 保存（A側ファイル名ベース）。
+Output: PNGs saved to out_dir/A/ and out_dir/B/ (named after the A-side file).
 """
 
 import argparse
@@ -161,10 +161,10 @@ def from_relative(rx, ry, rw, rh, W, H):
 
 def pick_box_from_result(result, cls_filter: Optional[List[int]], score_thr: float, select: str):
     """
-    result は inference_detector(model, img) の戻り値。
-    - bbox 結果のみ：list[np.ndarray]（クラスごと、 shape=(N,5) で x1,y1,x2,y2,score）
-    - segm 結果が含まれる場合：(bbox_results, segm_results)
-    ここでは bbox を使う。
+    result is the return value of inference_detector(model, img).
+    - bbox results only: list[np.ndarray] (per class, shape=(N,5) as x1,y1,x2,y2,score)
+    - when segm results are included: (bbox_results, segm_results)
+    Only bbox is used here.
     """
     if isinstance(result, tuple):
         bbox_results = result[0]
@@ -243,7 +243,7 @@ def main():
         pairs = load_pairs_from_csv(Path(args.map))
     else:
         if not args.dir_a or not args.dir_b:
-            raise RuntimeError('--dir-a と --dir-b はセットで指定してください')
+            raise RuntimeError('--dir-a and --dir-b must be specified together')
         exts = [e.strip() for e in args.exts.split(',') if e.strip()] if args.exts else []
         pairs = load_pairs_from_dirs(Path(args.dir_a), Path(args.dir_b), exts)
 

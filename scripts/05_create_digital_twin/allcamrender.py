@@ -2,13 +2,13 @@ import bpy, pathlib
 
 scene = bpy.context.scene
 
-# 出力先
+# Output directory
 OUT_DIR = pathlib.Path(bpy.path.abspath("//renders_selected"))
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# ===== どのカメラを対象にするか（いずれか1つを使う）=====
+# ===== Which cameras to target (use one of the options) =====
 
-# A) 名前で明示指定（おすすめ：スクショの名前をコピペ）
+# A) Specify explicitly by name (recommended: copy-paste names from the screenshot)
 TARGET_CAM_NAMES = [
     "Camera.23506214",
     "Camera.23506226",
@@ -18,33 +18,33 @@ TARGET_CAM_NAMES = [
     'Camera.23511607',
     'Camera.23511613',
     'Camera.23511614'
-    # 必要なカメラ名だけ残す
+    # Keep only the camera names you need
 ]
 cams = [bpy.data.objects[name] for name in TARGET_CAM_NAMES if name in bpy.data.objects]
 
-# B) 現在選択中のカメラだけ
+# B) Only the currently selected cameras
 # cams = [o for o in bpy.context.selected_objects if o.type == 'CAMERA']
 
-# C) 特定コレクション配下のカメラだけ
-# TARGET_COLLECTION_NAME = "Camera"  # 例：左上アウトライナーのコレクション名
+# C) Only cameras under a specific collection
+# TARGET_COLLECTION_NAME = "Camera"  # e.g. collection name in the top-left Outliner
 # col = bpy.data.collections.get(TARGET_COLLECTION_NAME)
 # cams = [o for o in col.all_objects if o.type == 'CAMERA'] if col else []
 
-# ===== レンダーするフレーム指定 =====
-# 範囲＋ステップ
+# ===== Frames to render =====
+# Range + step
 FRAME_START, FRAME_END, FRAME_STEP =  162, 162, 5
 frames = list(range(FRAME_START, FRAME_END + 1, FRAME_STEP))
-# もしくはピンポイント指定
+# Or specific frames
 # frames = [1, 10, 25, 42]
 
-# ===== 形式など必要なら調整 =====
-scene.render.image_settings.file_format = 'PNG'  # 'PNG','JPEG','OPEN_EXR' など
+# ===== Adjust format etc. if needed =====
+scene.render.image_settings.file_format = 'PNG'  # 'PNG','JPEG','OPEN_EXR', etc.
 # scene.render.engine = 'CYCLES'
 # scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
 
-# ===== 実行 =====
+# ===== Run =====
 if not cams:
-    print("対象カメラが見つかりません。TARGET_CAM_NAMES/選択/コレクション名を確認してください。")
+    print("No target cameras found. Check TARGET_CAM_NAMES / selection / collection name.")
 
 for cam in cams:
     (OUT_DIR / cam.name).mkdir(parents=True, exist_ok=True)

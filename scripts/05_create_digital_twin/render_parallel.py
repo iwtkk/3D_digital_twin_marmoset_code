@@ -35,13 +35,13 @@ def run_one(cmd, gpu_id=None):
     if gpu_id is not None:
         env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
     print("Running:", " ".join(cmd), f"(GPU={gpu_id})" if gpu_id is not None else "")
-    # ここでブロックするのはOK。上はスレッドで並列に動く。
+    # Blocking here is fine; callers run in parallel threads.
     subprocess.run(cmd, check=True, env=env)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="entire_start / entire_end を分割して Blender を並列実行するスクリプト"
+        description="Split entire_start / entire_end into chunks and run Blender in parallel"
     )
 
     parser.add_argument("--blend", required=True)
@@ -50,24 +50,24 @@ def main():
     parser.add_argument("--entire_end", type=int, required=True)
     parser.add_argument("--out", default="./renders")
     parser.add_argument("--prefix", default="cam_")
-    parser.add_argument("--chunk_size", type=int, default=None, help="チャンクサイズ（省略時はGPU数で均等分割）")
+    parser.add_argument("--chunk_size", type=int, default=None, help="Chunk size (default: split evenly by GPU count)")
     parser.add_argument(
         "--max_jobs",
         type=int,
         default=None,
-        help="同時に立ち上げる blender プロセス数（省略時はGPU数に自動設定）",
+        help="Number of concurrent blender processes (default: GPU count)",
     )
     parser.add_argument(
         "--gpu",
         default=None,
-        help="使用するGPU ID（カンマ区切り、例: 0,1,2）。指定しない場合は nvidia-smi で自動検出",
+        help="GPU IDs to use (comma-separated, e.g. 0,1,2). Auto-detected via nvidia-smi if omitted",
     )
-    parser.add_argument("--resolution", default=None, help="解像度 WxH（例: 1920x1080）")
+    parser.add_argument("--resolution", default=None, help="Resolution WxH (e.g. 1920x1080)")
 
     args = parser.parse_args()
 
     if args.entire_end < args.entire_start:
-        raise ValueError("entire_end は entire_start 以上にしてください")
+        raise ValueError("entire_end must be >= entire_start")
 
     gpu_list = [g.strip() for g in args.gpu.split(",")] if args.gpu else []
 
@@ -84,9 +84,9 @@ def main():
     if args.chunk_size is None:
         args.chunk_size = math.ceil(total_frames / gpu_count)
 
-    print(f"GPU数: {gpu_count}, max_jobs: {args.max_jobs}, chunk_size: {args.chunk_size}")
+    print(f"GPU count: {gpu_count}, max_jobs: {args.max_jobs}, chunk_size: {args.chunk_size}")
 
-    # まず全ての (start, end) を作る
+    # First build all (start, end) pairs
     jobs = []
     current_start = args.entire_start
     while current_start <= args.entire_end:
@@ -94,7 +94,7 @@ def main():
         jobs.append((current_start, current_end))
         current_start = current_end + 1
 
-    # コマンドリストを作る
+    # Build the command list
     commands = [
         build_blender_cmd(
             args.blend,
@@ -108,14 +108,14 @@ def main():
         for (start, end) in jobs
     ]
 
-    # 並列実行（GPU指定があればジョブごとにラウンドロビンで割り当て）
+    # Run in parallel (assign GPUs round-robin per job if specified)
     with ThreadPoolExecutor(max_workers=args.max_jobs) as executor:
         futures = [
             executor.submit(run_one, cmd, gpu_list[i % len(gpu_list)] if gpu_list else None)
             for i, cmd in enumerate(commands)
         ]
         for f in as_completed(futures):
-            # エラーがあればここで raise される
+            # Errors are raised here
             f.result()
 
 

@@ -5,30 +5,30 @@
 # Paired Image Cropper
 # ====================
 
-# 機能:
-# - 1枚目の画像でドラッグして矩形を作ると、対応するもう1枚にも同じ範囲でクロップします
-# - 次の画像に移っても「直前のクロップサイズ（幅x高さ）」を保持します
-# - クロップサイズはセッションを越えて保存/復元されます（state.json）
-# - 画像サイズが異なるペアへも、相対スケールで同じ領域を切り出すオプションあり(--relative)
+# Features:
+# - Drag a rectangle on the first image to crop the same region from the paired image
+# - The previous crop size (width x height) is kept when moving to the next image
+# - The crop size is saved/restored across sessions (state.json)
+# - Option to crop the same region with relative scaling for pairs of different image sizes (--relative)
 
-# 操作:
-# - マウス左ドラッグ: 矩形を選択/更新
-# - 'n' または Enter: 現在のペアをクロップして保存し、次へ進む
-# - 'b': 前のペアに戻る（保存はしない）
-# - 'c': 矩形をクリア
-# - 'r': 直前のクロップ「サイズ」を中央に再配置（位置はリセット）
-# - 'q' または ESC: 終了
-# - 'h': ヘルプ表示/非表示
-# - 'f': 固定サイズモードのON/OFF（直前サイズで固定・クリック位置を左上にして配置）
+# Controls:
+# - Left mouse drag: select/update rectangle
+# - 'n' or Enter: crop and save the current pair, then go to the next
+# - 'b': go back to the previous pair (does not save)
+# - 'c': clear the rectangle
+# - 'r': re-place the previous crop size at the center (position is reset)
+# - 'q' or ESC: quit
+# - 'h': show/hide help
+# - 'f': toggle fixed-size mode (fixed to the previous size, placed with the click position as top-left)
 
-# 使い方の例:
+# Usage examples:
 #     python paired_cropper.py --dir-a path/to/A --dir-b path/to/B --out out_dir
 #     python paired_cropper.py --map pairs.csv --out out_dir --relative
 
-# ペア指定の方法:
-# - --map CSV: 1列目がA画像パス、2列目がB画像パス（ヘッダ無し）。
-# - または --dir-a と --dir-b を与える: 同名(拡張子除く)ファイル同士をペアにします。
-#   例) A/abc.jpg と B/abc.png が対応。
+# How to specify pairs:
+# - --map CSV: column 1 is the A image path, column 2 is the B image path (no header).
+# - Or give --dir-a and --dir-b: files with the same name (excluding extension) are paired.
+#   e.g. A/abc.jpg pairs with B/abc.png.
 
 import argparse
 import csv
@@ -157,7 +157,7 @@ class CropSession:
 
         if self.help_on:
             lines = [
-                "操作: ドラッグ=矩形作成/更新, n/Enter=保存して次へ, b=戻る, c=クリア, r=直前サイズを中央配置, f=固定サイズ切替, h=ヘルプ, q/ESC=終了",
+                "Controls: drag=create/update rect, n/Enter=save and next, b=back, c=clear, r=center previous size, f=toggle fixed size, h=help, q/ESC=quit",
             ]
             y = 60
             for line in lines:
@@ -177,13 +177,13 @@ class CropSession:
         if event == cv2.EVENT_LBUTTONDOWN:
             self.dragging = True
             if self.fixed_size_mode and self.last_size is not None:
-                # 固定サイズ: クリック位置を左上に
+                # Fixed size: click position becomes top-left
                 lw, lh = self.last_size
                 x2 = x + lw
                 y2 = y + lh
                 self.rect_start = clamp((x, y))
                 self.rect_end = clamp((x2, y2))
-                self.dragging = False  # そのまま確定
+                self.dragging = False  # confirm immediately
             else:
                 self.rect_start = clamp((x, y))
                 self.rect_end = clamp((x, y))
@@ -193,7 +193,7 @@ class CropSession:
                 return
             cur = clamp((x, y))
             if self.fixed_size_mode and self.last_size is not None:
-                # 固定サイズでドラッグする場合: ドラッグ点を左上としサイズ固定
+                # Dragging in fixed-size mode: drag point becomes top-left, size stays fixed
                 lw, lh = self.last_size
                 x2 = self.rect_start[0] + lw
                 y2 = self.rect_start[1] + lh
@@ -214,7 +214,7 @@ class CropSession:
             else:
                 self.rect_end = cur
 
-            # 更新されたサイズを記録
+            # Record the updated size
             x1, y1 = self.rect_start
             x2, y2 = self.rect_end
             self.last_size = (abs(x2 - x1), abs(y2 - y1))
@@ -299,7 +299,7 @@ def main():
         pairs = load_pairs_from_csv(Path(args.map))
     else:
         if not args.dir_a or not args.dir_b:
-            raise RuntimeError("--dir-a と --dir-b はセットで指定してください")
+            raise RuntimeError("--dir-a and --dir-b must be specified together")
         exts = [e.strip() for e in args.exts.split(",") if e.strip()] if args.exts else []
         pairs = load_pairs_from_dirs(Path(args.dir_a), Path(args.dir_b), exts)
 
@@ -363,7 +363,7 @@ def main():
             elif key in (ord('n'), 13):  # Enter
                 rect = win.current_rect_xywh()
                 if rect is None:
-                    print("[INFO] 矩形が未選択です。ドラッグで選択してください。")
+                    print("[INFO] No rectangle selected. Drag to select one.")
                     continue
 
                 # save last size to session & state

@@ -17,12 +17,12 @@ while [[ $# -gt 0 ]]; do
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  --blend <file>      ベースblendファイル（デフォルト: 3D_digital_twin_marmoset_data/...）
-  --armature <name>   アーマチュア名（デフォルト: NF_Armature）
-  --csv-dir <dir>     CSVディレクトリ（デフォルト: outputs/animate_temp/transformedcsv）
-  --count <n>         処理するCSV数の上限（デフォルト: 10）
-  --all               すべてのCSVを処理
-  -h, --help          このヘルプを表示
+  --blend <file>      Base blend file (default: 3D_digital_twin_marmoset_data/...)
+  --armature <name>   Armature name (default: NF_Armature)
+  --csv-dir <dir>     CSV directory (default: outputs/animate_temp/transformedcsv)
+  --count <n>         Max number of CSVs to process (default: 10)
+  --all               Process all CSVs
+  -h, --help          Show this help
 EOF
       exit 0;;
     --blend)    BLEND_BASE="$2";    shift 2;;
@@ -37,12 +37,12 @@ done
 pids=()
 
 cleanup() {
-  echo "中断シグナルを受信しました。実行中の blender ジョブを終了します..."
+  echo "Interrupt received. Terminating running blender jobs..."
   for pid in "${pids[@]}"; do
     kill "$pid" 2>/dev/null
   done
   wait
-  echo "すべてのジョブを終了しました"
+  echo "All jobs terminated"
   exit 1
 }
 trap cleanup SIGINT SIGTERM
@@ -57,7 +57,7 @@ for csv in "$CSV_DIR"/*.csv; do
 
   done_file="outputs/blender/work_${name}.done"
 
-  # .done マーカーがあれば処理完了済みとしてスキップ
+  # Skip if a .done marker exists (already processed)
   if [[ -e "$done_file" ]]; then
     echo "[SKIP] $csv (done: $done_file)"
     continue
@@ -65,7 +65,7 @@ for csv in "$CSV_DIR"/*.csv; do
 
   ((processed++))
   if [[ $ALL -eq 0 ]] && (( processed > COUNT )); then
-    echo "CSV の処理上限 (${COUNT}) に達したので終了します"
+    echo "Reached CSV processing limit (${COUNT}); exiting"
     break
   fi
 
@@ -73,7 +73,7 @@ for csv in "$CSV_DIR"/*.csv; do
   cp "$BLEND_BASE" "$blend_file"
   echo "[CP DONE] $blend_file"
 
-  # blender 完了後に .done を作成するサブシェル
+  # Subshell that creates .done after blender finishes
   ( blender "$blend_file" \
       -b -P scripts/05_create_digital_twin/blender_animation.py -- "$csv" --armature "$ARMATURE_NAME" \
     && touch "$done_file" ) &
@@ -82,7 +82,7 @@ for csv in "$CSV_DIR"/*.csv; do
 
   pids+=("$pid")
 
-  # 並列数が MAX_JOBS に達したら、どれか1つが終わるまで待つ
+  # When MAX_JOBS jobs are running, wait for one to finish
   if (( ${#pids[@]} >= MAX_JOBS )); then
     wait -n
     new_pids=()
@@ -97,4 +97,4 @@ for pid in "${pids[@]}"; do
   wait "$pid"
 done
 
-echo "すべてのジョブが終了しました"
+echo "All jobs finished"

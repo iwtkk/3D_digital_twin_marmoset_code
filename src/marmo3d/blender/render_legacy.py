@@ -127,7 +127,7 @@ class CsvConverter:
         return data
 
     def _get_init_hash(self) -> str:
-        """csv.init設定からハッシュ値を生成（ファイル名に使用）"""
+        """Generate a hash from the csv.init settings (used in file names)"""
         import hashlib
         init_conf = self.spec.get("render", {}).get("csv", {}).get("init", {})
         init_str = json.dumps(init_conf, sort_keys=True, default=str)
@@ -316,11 +316,11 @@ class CsvConverter:
         print(f"[INFO] CSV generated at {output_csv_path}")
 
     def process_single_frame(self, output_csv_path: str, frame_index: int):
-        """指定されたフレームのみをCSVに保存する（temp_kp3d.csv用）
+        """Save only the specified frame to CSV (for temp_kp3d.csv)
         
         Args:
-            output_csv_path: 出力CSVパス
-            frame_index: フレームインデックス（1-based、Blender形式）
+            output_csv_path: output CSV path
+            frame_index: frame index (1-based, Blender convention)
         """
         X = self.data["kp3d"]
         S = self.data["kp3d_score"]
@@ -430,15 +430,15 @@ class CsvConverter:
         print(f"[INFO] Single frame {frame_index} CSV generated at {output_csv_path}")
 
     def process_all_frames(self, output_csv_path: str) -> bool:
-        """全フレームをCSVに保存する（all_kp3d_{hash}.csv用）
+        """Save all frames to CSV (for all_kp3d_{hash}.csv)
         
-        既にファイルが存在する場合はスキップする。
+        Skips if the file already exists.
         
         Args:
-            output_csv_path: 出力CSVパス
+            output_csv_path: output CSV path
             
         Returns:
-            bool: 処理を実行した場合True、スキップした場合False
+            bool: True if processed, False if skipped
         """
         if Path(output_csv_path).exists():
             print(f"[INFO] CSV already exists, skipping: {output_csv_path}")
@@ -462,7 +462,7 @@ class BlenderRenderApp:
         
         self.load_config()
         self.manifest = {
-            "animal": "unknown", # TODO: get from where? maybe path
+            "animal": "unknown",
             "session_id": self.cmd_args.get("session_id"),
             "frames": [],
             "render_profile": self.cmd_args.get("profile"),
@@ -530,16 +530,15 @@ class BlenderRenderApp:
         converter.load_kp3d(self.cmd_args["kp3d_pkl"])
         
         if target_frames:
-            # フレーム指定あり → 単一フレーム処理
+            # Frame specified -> single-frame processing
             csv_path = self.cmd_args.get("csv_output_path")
             if not csv_path:
                 csv_path = os.path.join(self.cmd_args["output_dir"], "temp_kp3d.csv")
             
-            # 複数フレーム指定の場合は最初のフレームのみ処理
-            # TODO: 複数フレームサポートが必要な場合は拡張
+            # If multiple frames are specified, process only the first one
             converter.process_single_frame(csv_path, target_frames[0])
         else:
-            # フレーム指定なし → 全フレーム処理
+            # No frame specified -> process all frames
             init_hash = converter._get_init_hash()
             csv_path = self.cmd_args.get("csv_output_path")
             if not csv_path:

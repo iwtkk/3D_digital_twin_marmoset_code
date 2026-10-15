@@ -8,7 +8,7 @@ import sys
 import os
 from pathlib import Path
 
-# Blender Scriptから動かす想定
+# Intended to be run as a Blender script
 
 def set_object_world_loc_euler(obj, loc_xyz, euler_xyz):
     """
@@ -18,18 +18,18 @@ def set_object_world_loc_euler(obj, loc_xyz, euler_xyz):
     """
     loc = Vector(loc_xyz)
     rot = Euler(euler_xyz, 'XYZ')
-    # 既存のスケールを維持しつつ、ワールド行列を設定
+    # Set the world matrix while keeping the existing scale
     obj.matrix_world = Matrix.LocRotScale(loc, rot, obj.scale.copy())
 
 def get_obj_any(*names):
-    """候補名のどれかでオブジェクト取得"""
+    """Get an object by any of the candidate names"""
     for n in names:
         o = bpy.data.objects.get(n)
         if o is not None:
             return o
     raise KeyError(f"Not found: {names}")
 
-# 目が無い場合のフォールバック：両目の中点を使う
+# Fallback when an eye is missing: use the midpoint of both eyes
 def has_xyz(prefix):
     return all((prefix + a) in cols for a in ("x", "y", "z"))
 
@@ -54,47 +54,47 @@ def set_pose_location_local(amt, bone_name, location):
     pose_bone = amt.pose.bones[bone_name]
     pose_bone.location = location
 
-# （任意）ヘッド向き→カメラ向きの補正が必要なら、ここでオフセット
-# Blenderのカメラ前方は「ローカル -Z」。もしCSVのEulerが「+Z が前」
-# を表すなら、Y軸に 180° 追加で合わせます。
+# (Optional) Apply an offset here if head orientation -> camera orientation needs correction
+# Blender camera forward is local -Z. If the CSV Euler treats +Z as forward,
+# add 180° around the Y axis to match.
 CAM_EULER_OFFSET = (0.0, 0.0, 0.0)
-#CAM_EULER_OFFSET = (math.pi, math.pi, math.pi)  # 必要に応じて有効化
+#CAM_EULER_OFFSET = (math.pi, math.pi, math.pi)  # Enable if needed
 
-# --- 追加: CSV列プレフィックス（あなたのCSVに合わせて） ---
+# --- Added: CSV column prefixes (adjust to your CSV) ---
 cam_pts = {
-    "camera_l": "pts_l_cam_",  # 期待列: x,y,z,rx,ry,rz
+    "camera_l": "pts_l_cam_",  # Expected columns: x,y,z,rx,ry,rz
     "camera_r": "pts_r_cam_",
     "camera_c": "pts_center_eye_", 
 }
 
-# オブジェクト取得（名前は環境に合わせて）
+# Get objects (adjust names to your environment)
 cam_objs = {
     "camera_l": get_obj_any("camera_l", "Camera_L", "CameraLeft"),
     "camera_r": get_obj_any("camera_r", "Camera_R", "CameraRight"),
     "camera_c": get_obj_any("camera_c", "Camera_C", "CameraCenter"),
 }
 
-# 目の列プレフィックス
+# Eye column prefixes
 EYE_SRC = {
     "camera_l": "pts_l_eye_",
     "camera_r": "pts_r_eye_",
     "camera_c": "pts_center_eye_", 
 }
 
-# ここを書き換え（元の np.loadtxt(...) のところ）
+# Replaced here (originally np.loadtxt(...))
 
 def parse_blender_args():
     """
-    Blender 実行時:
+    When running Blender as:
       blender scene.blend -b -P blender_animation.py -- /path/to/file.csv [--armature NF_Armature]
-    のように呼ぶと、"--" の後ろが sys.argv にそのまま入る。
+    everything after "--" is passed through to sys.argv as is.
 
     Returns:
         csv_path (str), armature_name (str)
     """
     argv = sys.argv
     if "--" not in argv:
-        raise ValueError("CSVパスを -- <path> で渡してください（例: blender scene.blend -b -P blender_animation.py -- outputs/animate_temp/transformedcsv/session.csv）")
+        raise ValueError("Pass the CSV path as -- <path> (e.g. blender scene.blend -b -P blender_animation.py -- outputs/animate_temp/transformedcsv/session.csv)")
 
     idx = argv.index("--")
     rest = argv[idx + 1:]
@@ -115,7 +115,7 @@ def parse_blender_args():
             i += 1
 
     if csv_path is None:
-        raise ValueError("CSVパスが指定されていません。-- <path> の形式で渡してください。")
+        raise ValueError("CSV path not specified. Pass it as -- <path>.")
 
     return csv_path, armature_name
 
@@ -165,11 +165,11 @@ face_map = {
 
 names = ["Base", "L.eye", "R.eye", "L.ear", "R.ear", "L.hand", "R.hand", "L.leg", "R.leg"]
 
-# ── 2) 空の辞書を用意
+# ── 2) Prepare an empty dict
 objs = {}
 objs_locs = {}
 
-# ── 3) ループで bpy.data.objects から取り出し
+# ── 3) Fetch from bpy.data.objects in a loop
 for name in names:
     if name in bpy.data.objects:
         obj = bpy.data.objects[name]
@@ -180,7 +180,7 @@ for name in names:
         
 bone_names = list(bone_pts.keys())
 
-# Armature オブジェクトを取得
+# Get the Armature object
 amt = bpy.data.objects[ARMATURE_NAME]
 
 total_frames = pts.shape[0]
@@ -190,12 +190,12 @@ for f in range(pts.shape[0]):
     frame = f + 1
     bpy.context.scene.frame_current = frame
 
-        # 進捗表示（毎50フレームごと＋最初と最後）
+        # Progress output (every 50 frames + first and last)
     if frame == 1 or frame == total_frames or frame % 1000 == 0:
         print(f"[INFO] Processing frame {frame}/{total_frames}")
         sys.stdout.flush()
     
-    # --- ボーンの位置セット ---
+    # --- Set bone positions ---
     bone_locs = []
     for bone in bone_names:
         pts_name = bone_pts[bone]
@@ -205,36 +205,36 @@ for f in range(pts.shape[0]):
             xyz_vals.append(pts[f, cols[col]])
         bone_locs.append(xyz_vals)
 
-    # 計算した座標を PoseBone に反映
+    # Apply computed coordinates to PoseBones
     for i, bone_name in enumerate(bone_names):
         set_pose_location_global(amt, bone_name, bone_locs[i])
 
-    # ★ ここで各 PoseBone に直接 keyframe_insert を打つ ★
+    # ★ Call keyframe_insert directly on each PoseBone here ★
     for bone_name in bone_names:
         pbone = amt.pose.bones[bone_name]
         pbone.keyframe_insert(data_path="location", frame=frame)
 
-    # （この下にカメラや顔パーツの処理が続くならそのままで OK）
+    # (Camera / face part processing below can stay as is)
 
 
     for cam_key, cam_prefix in cam_pts.items():
-        # 位置は目から取得（左カメラ=左目、右カメラ=右目）
+        # Position comes from the eyes (left camera = left eye, right camera = right eye)
         eye_prefix = EYE_SRC[cam_key]
         if has_xyz(eye_prefix):
             loc = read_xyz(f, eye_prefix)
         elif has_xyz("pts_l_eye_") and has_xyz("pts_r_eye_"):
-            # 片方無ければ両目中点
+            # If one is missing, use the midpoint of both eyes
             le = np.array(read_xyz(f, "pts_l_eye_"))
             re = np.array(read_xyz(f, "pts_r_eye_"))
             loc = tuple((le + re) * 0.5)
         elif has_xyz(cam_prefix):
-            # 最終フォールバック：旧 cam_* の位置列があれば使う
+            # Final fallback: use legacy cam_* position columns if present
             loc = read_xyz(f, cam_prefix)
         else:
-            # 位置が取れなければスキップ
+            # Skip if no position is available
             continue
 
-        # 回転（CSVに rx/ry/rz があれば使用、無ければ0）
+        # Rotation (use rx/ry/rz from CSV if present, else 0)
         if all((cam_prefix + ax) in cols for ax in ("rx", "ry", "rz")):
             rx = pts[f, cols[cam_prefix + "rx"]]
             ry = pts[f, cols[cam_prefix + "ry"]]
@@ -251,7 +251,7 @@ for f in range(pts.shape[0]):
         cam_obj.keyframe_insert(data_path="location")
         cam_obj.keyframe_insert(data_path="rotation_euler")
         
-        # ── (1) 座標読み出し
+        # ── (1) Read coordinates
     face_locs = {}
     for part_name, prefix in face_map.items():
         x = pts[f, cols[f"{prefix}x"]]
@@ -260,7 +260,7 @@ for f in range(pts.shape[0]):
         face_locs[part_name] = mathutils.Vector((x, y, z))
     #        print(f"Frame {frame} — {part_name}: {face_locs[part_name]}")
 
-    # ── (2) ベクトル計算
+    # ── (2) Vector computation
     for name in names:
         if name not in objs:
             continue
@@ -270,7 +270,7 @@ for f in range(pts.shape[0]):
         objs[name].keyframe_insert(data_path="location", frame=frame)
         
 elapsed = time.time() - start_time
-print(f"[INFO] 全フレーム処理時間: {elapsed:.2f} 秒")
+print(f"[INFO] Total processing time for all frames: {elapsed:.2f} s")
 
 blend_stem = Path(bpy.data.filepath).stem
 out_dir = Path(os.getcwd()) / "outputs" / "blender"

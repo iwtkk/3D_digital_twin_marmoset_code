@@ -1,8 +1,8 @@
 """
-全セッションのkp3d_errをmat/pickle形式に変換する
+Convert kp3d_err of all sessions to mat/pickle format
 
-kp3d_err_tomat.py と kp3d_err_topickle.py を統合したスクリプト。
---format で出力形式を切り替える。
+Merges kp3d_err_tomat.py and kp3d_err_topickle.py into one script.
+Use --format to choose the output format.
 """
 import argparse
 import glob
@@ -18,12 +18,12 @@ _DEFAULT_OUTPUT_DIR = str(_PROJECT_ROOT / "outputs" / "validation" / "reprojecti
 
 
 def main():
-    parser = argparse.ArgumentParser(description='全セッションのkp3d_errをmat/pickleに変換する')
-    parser.add_argument('--base', default=_DEFAULT_BASE, help='3Dキーポイントデータのルートディレクトリ')
-    parser.add_argument('--output-dir', default=_DEFAULT_OUTPUT_DIR, help='出力ディレクトリ')
-    parser.add_argument('--sessions', nargs='*', default=None, help='処理するセッション名。未指定なら全セッション')
+    parser = argparse.ArgumentParser(description='Convert kp3d_err of all sessions to mat/pickle')
+    parser.add_argument('--base', default=_DEFAULT_BASE, help='Root directory of the 3D keypoint data')
+    parser.add_argument('--output-dir', default=_DEFAULT_OUTPUT_DIR, help='Output directory')
+    parser.add_argument('--sessions', nargs='*', default=None, help='Session names to process. All sessions if omitted')
     parser.add_argument('--format', choices=['mat', 'pickle', 'both'], default='both',
-                        help='出力形式 (デフォルト: both)')
+                        help='Output format (default: both)')
     args = parser.parse_args()
 
     result_path = args.base
@@ -44,7 +44,7 @@ def main():
         with open(picklefile, 'rb') as f:
             data = pickle.load(f)
 
-        # 形状: (nAnimal=1, nFrame, nKeypoints=20) を想定
+        # Expected shape: (nAnimal=1, nFrame, nKeypoints=20)
         kp3d_err = np.array(data['kp3d_err'], dtype=float)
         print(session, 'kp3d_err.shape =', kp3d_err.shape)
 
@@ -57,7 +57,7 @@ def main():
     if len(kp3d_err_list) == 0:
         raise RuntimeError('No kp3d_err data loaded. Check result_path or file names.')
 
-    # フレーム方向に結合: (totalFrame, 20) → 転置して (20, totalFrame)
+    # Concatenate along frames: (totalFrame, 20) -> transpose to (20, totalFrame)
     kp3d_err_all = np.concatenate(kp3d_err_list, axis=0)
     kp3d_err_all_T = kp3d_err_all.T
     print('kp3d_err_all_T (20, totalFrame) =', kp3d_err_all_T.shape)

@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-# multicam_toolbox はローカルモジュールとして scripts/03_run_marmo3dpose/marmo3Dpose/ に存在する
+# multicam_toolbox exists as a local module in scripts/03_run_marmo3dpose/marmo3Dpose/
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "03_run_marmo3dpose" / "marmo3Dpose"))
 
 import os
@@ -91,7 +91,7 @@ def draw_kps(img, kp, mrksize, clr=None):
             {'name':'17_11','color':cm(20),'bodypart':(17,11)}
             ]
 
-    # キーポイントの数に応じて色を動的に生成
+    # Generate colors dynamically according to the number of keypoints
     n_kp = len(kp)
     kp_clr = [cm(i % 36) for i in range(n_kp)]
 

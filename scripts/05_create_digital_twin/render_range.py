@@ -4,7 +4,7 @@ import os
 
 
 def parse_args():
-    # Blender の引数は "--" 以降がユーザー用
+    # Blender arguments after "--" are for the user script
     argv = sys.argv
     if "--" in argv:
         argv = argv[argv.index("--") + 1:]
@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument("--end", type=int, required=True, help="End frame (inclusive)")
     parser.add_argument("--out", required=True, help="Output directory")
     parser.add_argument("--prefix", default="frame_", help="Output filename prefix (default: frame_)")
-    parser.add_argument("--resolution", default=None, help="解像度 WxH（例: 1920x1080）")
+    parser.add_argument("--resolution", default=None, help="Resolution WxH (e.g. 1920x1080)")
 
     args = parser.parse_args(argv)
     return args
@@ -30,7 +30,7 @@ def main():
 
     scene = bpy.context.scene
 
-    # GPU (CUDA) レンダリングを有効化
+    # Enable GPU (CUDA) rendering
     scene.render.engine = 'CYCLES'
     prefs = bpy.context.preferences.addons['cycles'].preferences
     prefs.compute_device_type = 'CUDA'
@@ -39,33 +39,33 @@ def main():
         device.use = True
     scene.cycles.device = 'GPU'
 
-    # カメラを設定
+    # Set camera
     if args.camera not in bpy.data.objects:
         raise ValueError(f"Camera '{args.camera}' not found")
     cam = bpy.data.objects[args.camera]
     scene.camera = cam
 
-    # 解像度
+    # Resolution
     if args.resolution:
         w, h = args.resolution.split("x")
         scene.render.resolution_x = int(w)
         scene.render.resolution_y = int(h)
         scene.render.resolution_percentage = 100
 
-    # レンダリング設定：PNG
+    # Render settings: PNG
     scene.render.image_settings.file_format = 'PNG'
-    # 必要なら RGBA に
+    # Switch to RGBA if needed
     # scene.render.image_settings.color_mode = 'RGBA'
 
-    # 出力フォルダ
-    out_dir = bpy.path.abspath(args.out)  # //relative の場合にも対応
+    # Output folder
+    out_dir = bpy.path.abspath(args.out)  # Also handles //relative paths
     os.makedirs(out_dir, exist_ok=True)
 
-    # フレームレンジ設定（任意。Timeline 上も変えたい場合）
+    # Set frame range (optional; if you also want to change the Timeline)
     scene.frame_start = args.start
     scene.frame_end = args.end
 
-    # フレームごとにレンダリング
+    # Render frame by frame
     for frame in range(args.start, args.end + 1):
         filepath = os.path.join(out_dir, f"{args.prefix}{frame:05d}.png")
         if os.path.exists(filepath):

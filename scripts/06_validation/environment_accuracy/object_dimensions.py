@@ -20,4 +20,4 @@ with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
         max_z = max(v.z for v in bb_world_corners)
 
         writer.writerow([obj.name, max_z*1000, min_z*1000])
-print(f"CSV 出力完了: {csv_filepath}")
+print(f"CSV export complete: {csv_filepath}")

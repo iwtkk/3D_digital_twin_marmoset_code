@@ -2,33 +2,33 @@ import bpy
 import bmesh
 import mathutils
 
-# アクティブオブジェクトを取得
+# Get the active object
 obj = bpy.context.active_object
 
-# オブジェクトが MESH かつ Edit モードであることを確認
+# Check that the object is a MESH and in Edit mode
 if obj and obj.type == 'MESH' and obj.mode == 'EDIT':
-    # メッシュデータの bmesh を取得
+    # Get the bmesh of the mesh data
     me = obj.data
     bm = bmesh.from_edit_mesh(me)
 
-    # 選択されているエッジを走査
+    # Iterate over the selected edges
     for e in bm.edges:
         if e.select:
-            # ローカル座標系（オブジェクト内部）の辺の長さ
+            # Edge length in local coordinates (object space)
             length_local = e.calc_length()
 
-            # ワールド座標系での辺の長さ
+            # Edge length in world coordinates
             v1_world = obj.matrix_world @ e.verts[0].co
             v2_world = obj.matrix_world @ e.verts[1].co
             length_world = (v2_world - v1_world).length
 
             print(f"Edge index:{e.index}")
-            print(f"  ローカル座標系の長さ: {length_local}")
-            print(f"  ワールド座標系の長さ: {length_world}")
+            print(f"  Length (local coordinates): {length_local}")
+            print(f"  Length (world coordinates): {length_world}")
             print("----------")
 
-    # bmesh を更新（編集モードのメッシュに反映）
+    # Update the bmesh (apply to the Edit mode mesh)
     bmesh.update_edit_mesh(me)
 
 else:
-    print("アクティブオブジェクトが MESH ではないか、Edit モードではありません。")
+    print("The active object is not a MESH or is not in Edit mode.")

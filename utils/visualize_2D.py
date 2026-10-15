@@ -120,7 +120,7 @@ def procSingleVideo(path_vid, path_json, path_output, n_frame_to_Save,
     if (n_frame < n_frame_to_Save) or (n_frame_to_Save < 1):
         n_frame_to_Save = n_frame
 
-    # 単色指定：未指定なら青(0,0,1)
+    # Single color: blue (0,0,1) if not specified
     if color_hex is None or color_hex == "":
         clr_override = (0.0, 0.0, 1.0)   # blue
     else:
@@ -131,7 +131,7 @@ def procSingleVideo(path_vid, path_json, path_output, n_frame_to_Save,
             clr_override = (0.0, 0.0, 1.0)
 
     cap = cv2.VideoCapture(path_vid)
-    # 出力サイズは入力動画に合わせる（固定値だと崩れる可能性）
+    # Match output size to the input video (fixed values may break the layout)
     ok, probe_img = cap.read()
     if not ok:
         raise RuntimeError(f"Failed to read video: {path_vid}")
@@ -159,14 +159,14 @@ def procSingleVideo(path_vid, path_json, path_output, n_frame_to_Save,
             clean_kp(kp)
             add_neckkp(kp)
 
-            # 単色で描画（キー点＆骨格）
+            # Draw in a single color (keypoints & skeleton)
             draw_kps(img, kp, mrksize, clr=clr_override)
 
-            # バウンディングボックスも同色（cv2はBGR）
+            # Bounding box in the same color (cv2 uses BGR)
             bgr = (int(clr_override[2]*255), int(clr_override[1]*255), int(clr_override[0]*255))
             img = cv2.rectangle(img, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), bgr, thickness=3)
 
-            # フレーム番号
+            # Frame number
             cv2.putText(img, str(i_frame), (10, 150),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=2.0,
@@ -174,7 +174,7 @@ def procSingleVideo(path_vid, path_json, path_output, n_frame_to_Save,
                         thickness=5,
                         lineType=cv2.LINE_4)
 
-            # クラス表示（しきい値）
+            # Class label (threshold)
             if clrinfo[1] > 0.9 and int(clrinfo[0]) != 4:
                 cv2.putText(img, f"{int(clrinfo[0])}:{int(clrinfo[1]*100)}",
                             (int(bb[0]), int(bb[1])),

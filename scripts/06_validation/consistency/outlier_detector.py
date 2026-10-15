@@ -1,7 +1,7 @@
 """
-外れ値検出・可視化スクリプト
+Outlier detection and visualization
 
-統計的手法（IQR法）で外れ値を検出し、CSV出力と画像可視化を行う
+Detect outliers with a statistical method (IQR), write them to CSV, and visualize the images
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-# パス設定 (consistency/ → 06_validation/ → scripts/ → project root)
+# Path setup (consistency/ → 06_validation/ → scripts/ → project root)
 _root = Path(__file__).resolve().parent.parent.parent.parent
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
@@ -29,12 +29,12 @@ from marmo3d.validation.utils import (
     get_project_root,
 )
 
-# プロジェクトルート
+# Project root
 project_root = get_project_root()
 
 
 def load_metrics(metrics_path: Path) -> Dict[str, Any]:
-    """メトリクスJSONを読み込み"""
+    """Load the metrics JSON"""
     with open(metrics_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -44,11 +44,11 @@ def detect_outliers_iqr(
     multiplier: float = 1.5,
 ) -> Tuple[float, float, List[int]]:
     """
-    IQR法で外れ値を検出
+    Detect outliers with the IQR method
 
     Args:
-        data: データ配列
-        multiplier: IQR倍率（1.5が一般的、3.0で極端な外れ値のみ）
+        data: Data array
+        multiplier: IQR multiplier (1.5 is typical; 3.0 for extreme outliers only)
 
     Returns:
         (lower_bound, upper_bound, outlier_indices)
@@ -78,26 +78,26 @@ def detect_all_outliers(
     ssim_multiplier: float = 1.5,
 ) -> List[Dict[str, Any]]:
     """
-    全メトリクスから外れ値を検出
+    Detect outliers across all metrics
 
     Args:
-        metrics_data: メトリクスデータ
-        psnr_multiplier: PSNR用のIQR倍率
-        ssim_multiplier: SSIM用のIQR倍率
+        metrics_data: Metrics data
+        psnr_multiplier: IQR multiplier for PSNR
+        ssim_multiplier: IQR multiplier for SSIM
 
     Returns:
-        外れ値のリスト
+        List of outliers
     """
     details = metrics_data.get("details", [])
 
     if not details:
         return []
 
-    # データを抽出
+    # Extract data
     psnr_values = [d["psnr"] for d in details]
     ssim_values = [d["ssim"] for d in details]
 
-    # IQR法で外れ値を検出
+    # Detect outliers with the IQR method
     psnr_lower, psnr_upper, psnr_outlier_indices = detect_outliers_iqr(
         psnr_values, psnr_multiplier
     )
@@ -105,13 +105,13 @@ def detect_all_outliers(
         ssim_values, ssim_multiplier
     )
 
-    print(f"PSNR 外れ値範囲: < {psnr_lower:.2f} または > {psnr_upper:.2f}")
-    print(f"SSIM 外れ値範囲: < {ssim_lower:.4f} または > {ssim_upper:.4f}")
+    print(f"PSNR outlier range: < {psnr_lower:.2f} or > {psnr_upper:.2f}")
+    print(f"SSIM outlier range: < {ssim_lower:.4f} or > {ssim_upper:.4f}")
 
-    # 外れ値のインデックスを統合（PSNR or SSIM）
+    # Merge outlier indices (PSNR or SSIM)
     outlier_indices = set(psnr_outlier_indices) | set(ssim_outlier_indices)
 
-    # 外れ値データを収集
+    # Collect outlier data
     outliers = []
     for idx in outlier_indices:
         detail = details[idx]
@@ -130,7 +130,7 @@ def detect_all_outliers(
             "ssim_upper": ssim_upper,
         })
 
-    # PSNRの低い順にソート
+    # Sort by ascending PSNR
     outliers.sort(key=lambda x: x["psnr"])
 
     return outliers
@@ -138,14 +138,14 @@ def detect_all_outliers(
 
 def save_outliers_csv(outliers: List[Dict[str, Any]], output_path: Path):
     """
-    外れ値をCSVに保存
+    Save outliers to CSV
 
     Args:
-        outliers: 外れ値リスト
-        output_path: 出力CSVパス
+        outliers: List of outliers
+        output_path: Output CSV path
     """
     if not outliers:
-        print("外れ値が見つかりませんでした")
+        print("No outliers found")
         return
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -168,17 +168,17 @@ def save_outliers_csv(outliers: List[Dict[str, Any]], output_path: Path):
         writer.writeheader()
         writer.writerows(outliers)
 
-    print(f"外れ値CSVを保存しました: {output_path}")
+    print(f"Saved outlier CSV: {output_path}")
 
 
 def load_image(image_path: Path) -> np.ndarray:
-    """画像を読み込み（RGB）"""
+    """Load an image (RGB)"""
     if not image_path.exists():
-        raise FileNotFoundError(f"画像が見つかりません: {image_path}")
+        raise FileNotFoundError(f"Image not found: {image_path}")
 
     img = cv2.imread(str(image_path))
     if img is None:
-        raise ValueError(f"画像の読み込みに失敗: {image_path}")
+        raise ValueError(f"Failed to load image: {image_path}")
 
     # BGR to RGB
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -195,19 +195,19 @@ def visualize_outlier_pairs(
     render_root_override: Optional[Path] = None,
 ):
     """
-    外れ値の画像ペアを可視化
+    Visualize image pairs for outliers
 
     Args:
-        outliers: 外れ値リスト
-        validation_config: consistency.yamlの設定
-        render_hash: レンダリングハッシュ
-        output_dir: 出力ディレクトリ
-        max_pairs: 最大表示数
-        frames_root: 実画像フレームのルート（指定時はconsistency.yamlより優先）
-        render_root_override: レンダリング画像のルート（指定時はconsistency.yamlより優先）
+        outliers: List of outliers
+        validation_config: Settings from consistency.yaml
+        render_hash: Render hash
+        output_dir: Output directory
+        max_pairs: Maximum number to display
+        frames_root: Root of real image frames (overrides consistency.yaml if given)
+        render_root_override: Root of rendered images (overrides consistency.yaml if given)
     """
     if not outliers:
-        print("外れ値が見つかりませんでした")
+        print("No outliers found")
         return
 
     if render_root_override is not None:
@@ -231,7 +231,7 @@ def visualize_outlier_pairs(
     render_dir_base_template = str(Path(render_path_template).parent)
     valid_dir_base_template = str(Path(valid_path_template).parent)
 
-    # 最大件数まで処理
+    # Process up to the maximum count
     for i, outlier in enumerate(outliers[:max_pairs], 1):
         session_id = outlier["session_id"]
         camera_id = outlier["camera_id"]
@@ -240,7 +240,7 @@ def visualize_outlier_pairs(
         ssim = outlier["ssim"]
         outlier_type = outlier["outlier_type"]
 
-        # 画像パスをテンプレートから構築
+        # Build image paths from templates
         render_dir = expand_path_template(
             render_dir_base_template,
             project_root,
@@ -261,33 +261,33 @@ def visualize_outlier_pairs(
         valid_path = valid_dir / f"{frame:07d}.png"
 
         try:
-            # 画像を読み込み
+            # Load images
             render_img = load_image(render_path)
             valid_img = load_image(valid_path)
 
-            # 差分画像を計算
+            # Compute difference image
             diff_img = np.abs(render_img.astype(float) - valid_img.astype(float))
             diff_img = (diff_img / diff_img.max() * 255).astype(np.uint8) if diff_img.max() > 0 else diff_img.astype(np.uint8)
 
-            # プロット作成
+            # Create plot
             fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
-            # 実画像
+            # Real image
             axes[0].imshow(valid_img)
             axes[0].set_title("Real Image", fontsize=14, fontweight='bold')
             axes[0].axis('off')
 
-            # レンダリング画像
+            # Rendered image
             axes[1].imshow(render_img)
             axes[1].set_title("Rendered Image", fontsize=14, fontweight='bold')
             axes[1].axis('off')
 
-            # 差分画像
+            # Difference image
             axes[2].imshow(diff_img)
             axes[2].set_title("Difference", fontsize=14, fontweight='bold')
             axes[2].axis('off')
 
-            # タイトル
+            # Title
             fig.suptitle(
                 f"Outlier #{i}: {session_id} - Camera {camera_id} - Frame {frame}\n"
                 f"PSNR: {psnr:.2f} dB, SSIM: {ssim:.4f} (Type: {outlier_type})",
@@ -297,81 +297,81 @@ def visualize_outlier_pairs(
 
             plt.tight_layout()
 
-            # 保存
+            # Save
             output_path = output_dir / f"outlier_{i:03d}_{session_id}_cam{camera_id}_frame{frame}.png"
             output_path.parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(output_path, dpi=150, bbox_inches='tight')
-            print(f"外れ値画像を保存: {output_path.name}")
+            print(f"Saved outlier image: {output_path.name}")
 
             plt.close()
 
         except Exception as e:
-            print(f"外れ値 #{i} の可視化に失敗: {e}")
+            print(f"Failed to visualize outlier #{i}: {e}")
             continue
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="外れ値検出・可視化"
+        description="Outlier detection and visualization"
     )
     parser.add_argument(
         "--metrics",
         type=str,
         default=None,
-        help="メトリクスJSONファイルパス (デフォルト: valid/metrics.json)",
+        help="Metrics JSON file path (default: valid/metrics.json)",
     )
     parser.add_argument(
         "--render-hash",
         type=str,
         required=True,
-        help="レンダリング結果のhash（例: 1228b6de）",
+        help="Render result hash (e.g. 1228b6de)",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
         default=None,
-        help="出力ディレクトリ (デフォルト: valid/outliers)",
+        help="Output directory (default: valid/outliers)",
     )
     parser.add_argument(
         "--valid-config",
         type=str,
         default=None,
-        help="consistency.yaml のパス (デフォルト: config/consistency.yaml)",
+        help="Path to consistency.yaml (default: config/consistency.yaml)",
     )
     parser.add_argument(
         "--psnr-multiplier",
         type=float,
         default=1.5,
-        help="PSNR用のIQR倍率 (デフォルト: 1.5)",
+        help="IQR multiplier for PSNR (default: 1.5)",
     )
     parser.add_argument(
         "--ssim-multiplier",
         type=float,
         default=1.5,
-        help="SSIM用のIQR倍率 (デフォルト: 1.5)",
+        help="IQR multiplier for SSIM (default: 1.5)",
     )
     parser.add_argument(
         "--max-images",
         type=int,
         default=20,
-        help="可視化する最大外れ値数 (デフォルト: 20)",
+        help="Maximum number of outliers to visualize (default: 20)",
     )
     parser.add_argument(
         "--frames-root",
         type=str,
         default=None,
-        help="実画像フレームのルートディレクトリ (consistency.yamlより優先)",
+        help="Root directory of real image frames (overrides consistency.yaml)",
     )
     parser.add_argument(
         "--render-root",
         type=str,
         default=None,
-        help="レンダリング画像のルートディレクトリ (consistency.yamlより優先)",
+        help="Root directory of rendered images (overrides consistency.yaml)",
     )
 
     args = parser.parse_args()
 
-    # consistency.yamlを読み込み
+    # Load consistency.yaml
     if args.valid_config:
         valid_config_path = Path(args.valid_config)
     else:
@@ -383,7 +383,7 @@ def main():
     else:
         validation_config = {}
 
-    # メトリクスファイルパス
+    # Metrics file path
     if args.metrics:
         metrics_path = Path(args.metrics)
     else:
@@ -393,51 +393,51 @@ def main():
         metrics_path = expand_path_template(metrics_template, project_root)
 
     if not metrics_path.exists():
-        print(f"エラー: メトリクスファイルが見つかりません: {metrics_path}")
+        print(f"Error: metrics file not found: {metrics_path}")
         sys.exit(1)
 
-    # 出力ディレクトリ
+    # Output directory
     if args.output_dir:
         output_dir = Path(args.output_dir)
     else:
         output_dir = project_root / "outputs" / "validation" / "outliers"
 
-    print(f"外れ値検出開始")
-    print(f"  メトリクスファイル: {metrics_path}")
-    print(f"  出力ディレクトリ: {output_dir}")
-    print(f"  PSNR IQR倍率: {args.psnr_multiplier}")
-    print(f"  SSIM IQR倍率: {args.ssim_multiplier}")
+    print(f"Starting outlier detection")
+    print(f"  Metrics file: {metrics_path}")
+    print(f"  Output directory: {output_dir}")
+    print(f"  PSNR IQR multiplier: {args.psnr_multiplier}")
+    print(f"  SSIM IQR multiplier: {args.ssim_multiplier}")
 
-    # メトリクスを読み込み
+    # Load metrics
     metrics_data = load_metrics(metrics_path)
 
-    # 外れ値を検出
-    print(f"\n外れ値検出中...")
+    # Detect outliers
+    print(f"\nDetecting outliers...")
     outliers = detect_all_outliers(
         metrics_data,
         psnr_multiplier=args.psnr_multiplier,
         ssim_multiplier=args.ssim_multiplier,
     )
 
-    print(f"\n検出された外れ値数: {len(outliers)}")
+    print(f"\nOutliers detected: {len(outliers)}")
 
     if not outliers:
-        print("外れ値が見つかりませんでした")
+        print("No outliers found")
         return
 
-    # CSVに保存
+    # Save to CSV
     csv_path = output_dir / "outliers.csv"
     save_outliers_csv(outliers, csv_path)
 
-    # 外れ値の統計を表示
-    print(f"\n外れ値の統計:")
-    print(f"  最小PSNR: {min(o['psnr'] for o in outliers):.2f} dB")
-    print(f"  最大PSNR: {max(o['psnr'] for o in outliers):.2f} dB")
-    print(f"  最小SSIM: {min(o['ssim'] for o in outliers):.4f}")
-    print(f"  最大SSIM: {max(o['ssim'] for o in outliers):.4f}")
+    # Show outlier statistics
+    print(f"\nOutlier statistics:")
+    print(f"  Min PSNR: {min(o['psnr'] for o in outliers):.2f} dB")
+    print(f"  Max PSNR: {max(o['psnr'] for o in outliers):.2f} dB")
+    print(f"  Min SSIM: {min(o['ssim'] for o in outliers):.4f}")
+    print(f"  Max SSIM: {max(o['ssim'] for o in outliers):.4f}")
 
-    # 画像ペアを可視化
-    print(f"\n外れ値画像ペアを可視化中（最大{args.max_images}件）...")
+    # Visualize image pairs
+    print(f"\nVisualizing outlier image pairs (up to {args.max_images})...")
     visualize_outlier_pairs(
         outliers,
         validation_config,
@@ -448,7 +448,7 @@ def main():
         render_root_override=Path(args.render_root) if args.render_root else None,
     )
 
-    print(f"\n完了")
+    print(f"\nDone")
 
 
 if __name__ == "__main__":

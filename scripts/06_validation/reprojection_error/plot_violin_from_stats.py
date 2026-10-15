@@ -20,10 +20,10 @@ KP_NAMES = [
 
 
 def main():
-    parser = argparse.ArgumentParser(description='事前計算済み統計量からバイオリンプロットを表示する')
-    parser.add_argument('--input', default=_DEFAULT_INPUT, help='kp3d_err_violin_stats.pickleのパス')
-    parser.add_argument('--output', default=_DEFAULT_OUTPUT, help='出力PNGのパス')
-    parser.add_argument('--show', action='store_true', help='保存後にウィンドウ表示する')
+    parser = argparse.ArgumentParser(description='Show violin plots from precomputed statistics')
+    parser.add_argument('--input', default=_DEFAULT_INPUT, help='Path to kp3d_err_violin_stats.pickle')
+    parser.add_argument('--output', default=_DEFAULT_OUTPUT, help='Path to the output PNG')
+    parser.add_argument('--show', action='store_true', help='Show a window after saving')
     args = parser.parse_args()
 
     with open(args.input, 'rb') as f:
@@ -31,11 +31,11 @@ def main():
     results = payload['results']
     ylim = payload['meta']['ylim']
 
-    WIDTH = 0.4  # 各 violin の最大半幅
+    WIDTH = 0.4  # max half-width of each violin
 
     fig, ax = plt.subplots(figsize=(14, 5))
 
-    # 全 violin をローカルに正規化（=各キーポイント内で最大密度を WIDTH に合わせる）
+    # Normalize each violin locally (= scale the max density within each keypoint to WIDTH)
     for i, r in enumerate(results):
         if r is None:
             continue

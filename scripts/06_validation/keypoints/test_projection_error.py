@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-calibration.toml + kp2d_f.pickle を使い、aniposelib の CameraGroup で
-三角測量と投影誤差を再計算するワンフレーム検証スクリプト
+Single-frame validation script that uses calibration.toml + kp2d_f.pickle
+to recompute triangulation and reprojection error with aniposelib's CameraGroup
 
-使い方例:
+Example usage:
   python scripts/06_validation/keypoints/test_projection_error.py \
     --base ../marmo3Dpose/results/3d_v0p8_dark_fix_20/dailylife_cj611_20230226_110000 \
     --config_yaml ./config/marmo_cj425m/config.yaml \
@@ -31,9 +31,9 @@ from marmo3d.validation.utils import load_ids_from_yaml, load_kp2d_f, build_poin
 def base_main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True,
-                    help="結果フォルダ（例: ../marmo3Dpose/results/3d_v0p8_dark_fix_20/dailylife_...）")
+                    help="Results folder (e.g. ../marmo3Dpose/results/3d_v0p8_dark_fix_20/dailylife_...)")
     ap.add_argument("--config_yaml", required=True,
-                    help="カメラID順序を読む YAML（例: ./config/marmo_cj425m/config.yaml）")
+                    help="YAML that defines the camera ID order (e.g. ./config/marmo_cj425m/config.yaml)")
     ap.add_argument("--frame", type=int, default=70)
     ap.add_argument("--animal", type=int, default=0)
     ap.add_argument("--score-threshold", type=float, default=0.3)
@@ -45,14 +45,14 @@ def base_main():
     if not os.path.isfile(calib_toml):
         raise FileNotFoundError(f"not found: {calib_toml}")
 
-    # CameraGroup を calibration.toml からロード（内参スケール済み・外参最適化済み）
+    # Load CameraGroup from calibration.toml (intrinsics scaled, extrinsics optimized)
     cgroup = CameraGroup.load(calib_toml)
 
-    # カメラ順序を reconst と同じに固定
+    # Fix the camera order to match reconst
     ids = load_ids_from_yaml(args.config_yaml)
     cgroup = cgroup.subset_cameras_names(ids)
 
-    # 2D（Viterbiフィルタ後）をロード
+    # Load 2D keypoints (after Viterbi filtering)
     kp2d_f = load_kp2d_f(base)
     p2d, scores = build_points2d_for_frame(
         kp2d_f, frame=args.frame, animal=args.animal, score_thresh=args.score_threshold
@@ -63,17 +63,17 @@ def base_main():
     print(f"n_cam={n_cam}, n_kp={n_kp}")
     print("camera order:", ids)
 
-    # 形を aniposelib に合わせる (n_cam, N, 2)
+    # Reshape to match aniposelib (n_cam, N, 2)
     p2d_flat = p2d.reshape(n_cam, -1, 2)
 
-    # 三角測量（最適化なし）→ 投影誤差
+    # Triangulation (no optimization) -> reprojection error
     pts3d = cgroup.triangulate(p2d_flat, progress=False)        # shape: (N,3)
     err_mean = cgroup.reprojection_error(pts3d, p2d_flat, mean=True)  # (N,)
 
     print("\n[recomputed mean reprojection error per keypoint (px)]")
     print(err_mean)
 
-    # 比較用: 保存済みの kp3d_err（“正解”）も表示
+    # For comparison: also show the saved kp3d_err ("ground truth")
     kp3d_pkl = os.path.join(base, "kp3d_fxdJointLen.pickle")
     if os.path.isfile(kp3d_pkl):
         with open(kp3d_pkl, "rb") as f:

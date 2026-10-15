@@ -1,9 +1,9 @@
 import bpy, sys, csv, os
 
-# ==== 設定 ====
+# ==== Settings ====
 OBJ_NAME = "Body.001"
 MOD_NAME = "GeometryNodes"
-OUTPUTS  = ['Head','Body','tail begin mid','tail mid end','shoulder L','shoulder R','elbow L','elbow R','hand L',"hand R",'pelvis L','pelvis R','leg L','leg R','foot L','foot R',]  # Group Output に表示されている出力名（複数OK）
+OUTPUTS  = ['Head','Body','tail begin mid','tail mid end','shoulder L','shoulder R','elbow L','elbow R','hand L',"hand R",'pelvis L','pelvis R','leg L','leg R','foot L','foot R',]  # Output names shown in Group Output (multiple allowed)
 CSV_PATH = bpy.path.abspath("//gn_outputs_cli.csv")
 FRAME_START = bpy.context.scene.frame_start
 FRAME_END   = bpy.context.scene.frame_end
@@ -13,26 +13,26 @@ def map_name_to_identifier(mod):
     m = {}
     for it in mod.node_group.interface.items_tree:
         if getattr(it, "in_out", None) == "OUTPUT" and getattr(it, "item_type", None) == "SOCKET":
-            m[it.name] = it.identifier  # 例: 'minDist_Hand_R' -> 'Socket_3'
+            m[it.name] = it.identifier  # e.g. 'minDist_Hand_R' -> 'Socket_3'
     return m
 
 def read_output_value(eval_obj, eval_mod, base_mod, ui_name, ident):
     """
-    1) 値ソケット: eval_mod['Socket_n'] から読む
-    2) 属性出力: base_mod['Socket_n_attribute_name'] で属性名を取り、eval_obj.data.attributes[...] から読む
+    1) Value socket: read from eval_mod['Socket_n']
+    2) Attribute output: get the attribute name from base_mod['Socket_n_attribute_name'], then read from eval_obj.data.attributes[...]
     """
-    # まず値ソケットとしてトライ
+    # First, try as a value socket
     try:
         if ident in eval_mod.keys():
             return float(eval_mod[ident])
     except Exception:
         pass
 
-    # 属性出力として読む
+    # Read as an attribute output
     attr_key = ident + "_attribute_name"
     attr_name = base_mod.get(attr_key)
-    if not attr_name:  # 空文字/None → 属性名未設定
-        # ここで None を返すと呼び出し側で NaN に置き換える
+    if not attr_name:  # Empty string / None -> attribute name not set
+        # Returning None here makes the caller substitute NaN
         return None
 
     mesh = eval_obj.data
@@ -40,7 +40,7 @@ def read_output_value(eval_obj, eval_mod, base_mod, ui_name, ident):
     if not attr or len(attr.data) == 0:
         return None
 
-    # スカラー属性想定。ベクトル/カラーなら適宜取り方を調整
+    # Assumes a scalar attribute. Adjust retrieval for vector/color attributes
     elem0 = attr.data[0]
     val = getattr(elem0, "value", None)
     if val is None and hasattr(elem0, "vector"):
@@ -49,7 +49,7 @@ def read_output_value(eval_obj, eval_mod, base_mod, ui_name, ident):
         val = elem0.color[0]
     return float(val) if val is not None else None
 
-# 対象取得
+# Get target objects
 obj = bpy.data.objects.get(OBJ_NAME)
 if not obj:
     raise RuntimeError(f"Object '{OBJ_NAME}' not found.")

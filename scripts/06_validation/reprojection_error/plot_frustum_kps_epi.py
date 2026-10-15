@@ -42,10 +42,10 @@ def load_intrinsics(h5_path):
         for cam_id in f.keys():
             if isinstance(f[cam_id], h5py.Group):
                 g = f[cam_id]
-                # 理想内パラ
+                # Ideal intrinsics
                 K = np.array(g["K"]) if "K" in g else np.array(g["mtx"])
                 size = tuple(map(int, np.array(g["size"]).tolist())) if "size" in g else None
-                # 歪みパラ（omni対応）
+                # Distortion parameters (omni supported)
                 D = np.array(g["D"]).ravel() if "D" in g else (np.array(g["dist"]).ravel() if "dist" in g else None)
                 xi = float(np.array(g["xi"]).ravel()[0]) if "xi" in g else None
                 out[str(cam_id)] = (K, size, D, xi)
@@ -64,34 +64,34 @@ def load_ui_from_json_any(kp2d_dir, scene, ref_cam, frame, kp_index):
     with open(path, "r") as f:
         j = json.load(f)
 
-    # --- Case A: 配列ベース [[[id,cx,cy,w,h, [[x,y,s],...]]], ...] の形 ---
+    # --- Case A: array-based format [[[id,cx,cy,w,h, [[x,y,s],...]]], ...] ---
     if isinstance(j, list):
-        # フレーム順に list が並んでいる場合（1フレーム=1要素 or 複数検出）
-        #   - local_idx 番目が「そのフレームの検出群」パターン
-        #   - もしくは「全要素が検出」でフレーム概念が無いパターン
-        # 両方をカバーするため、まず local_idx を優先して安全に拾い、
-        # それが「検出ひとつ」ならそのまま、配列の配列なら候補群として扱う。
+        # When the list is ordered by frame (1 frame = 1 element, or multiple detections)
+        #   - pattern where element local_idx is "the detections for that frame"
+        #   - or pattern where "every element is a detection" with no notion of frames
+        # To cover both, first safely pick element local_idx;
+        # if it is a single detection use it as is, if it is an array of arrays treat it as candidates.
         elt = None
         if 0 <= local_idx < len(j):
             elt = j[local_idx]
         else:
-            # フレーム概念が無ければ全体を候補群とみなす
+            # If there is no notion of frames, treat the whole list as candidates
             elt = j
 
-        # 候補をリスト化
+        # Build the candidate list
         cand = elt if (isinstance(elt, list) and len(elt) > 0 and isinstance(elt[0], list)) else [elt]
 
-        # スコア最大の検出を選ぶ
+        # Pick the detection with the highest score
         best = None
         best_score = -1.0
         for det in cand:
-            # det 例: [id, cx, cy, w, h, [[x,y,score],...]]
+            # det example: [id, cx, cy, w, h, [[x,y,score],...]]
             if not (isinstance(det, list) and len(det) >= 6 and isinstance(det[5], list)):
                 continue
             kps = det[5]
             if not (0 <= kp_index < len(kps)):
                 continue
-            # 平均scoreで良い個体を選ぶ
+            # Pick the best animal by mean score
             scores = [float(p[2]) for p in kps if isinstance(p, list) and len(p) >= 3]
             mean_s = sum(scores) / max(1, len(scores)) if scores else 0.0
             if mean_s > best_score:
@@ -109,13 +109,13 @@ def load_ui_from_json_any(kp2d_dir, scene, ref_cam, frame, kp_index):
 
 def fundamental_from_pose(Ki, Kj, Ri, ti, Rj, tj):
     """
-    F_j_i: 点(カメラi) -> 線(カメラj)
+    F_j_i: point (camera i) -> line (camera j)
     OpenCV: x_i = R_i X + t_i, x_j = R_j X + t_j
 
-    相対姿勢（i→j）:
+    Relative pose (i->j):
       R_ji = R_j R_i^T
       t_ji = t_j - R_j R_i^T t_i
-    （※ ここが重要。t = tj - Rj @ ti ではダメ）
+    (Note: this is important. t = tj - Rj @ ti is wrong)
     E = [t_ji]_x R_ji
     F = K_j^{-T} E K_i^{-1}
     """
@@ -131,10 +131,10 @@ def fundamental_from_pose(Ki, Kj, Ri, ti, Rj, tj):
 def backproject_ray_world(K, R, t, u, v):
     """
     OpenCV: x_c = R X + t
-    画像点(u,v,1)を、ワールドでの方向ベクトルに直す:
+    Convert image point (u,v,1) to a direction vector in world coordinates:
       d_cam = K^{-1} [u,v,1]^T
-      d_world = R^T d_cam   （単位化）
-    カメラ中心 C = -R^T t
+      d_world = R^T d_cam   (normalized)
+    Camera center C = -R^T t
     """
     d_cam = np.linalg.inv(K) @ np.array([u, v, 1.0], dtype=float)
     d_world = R.T @ d_cam
@@ -144,19 +144,19 @@ def backproject_ray_world(K, R, t, u, v):
 
 def undistort_to_ideal_pixel(u, v, K, D=None, xi=None):
     """
-    入力: 歪みありの画素座標 (u,v) @ 2048x1536
-    出力: 歪み無し「理想ピクセル」u',v' （= K * 正規化座標）
+    Input: distorted pixel coordinates (u,v) @ 2048x1536
+    Output: undistorted "ideal pixel" u',v' (= K * normalized coordinates)
     """
     pts = np.array([[[float(u), float(v)]]], dtype=np.float64)  # shape (1,1,2)
     if xi is not None and D is not None and hasattr(cv2, "omnidir"):
-        # omnidir: 出力は正規化座標 (x,y)、z=1 と解釈
+        # omnidir: output is normalized coordinates (x,y), interpreted with z=1
         xy = cv2.omnidir.undistortPoints(pts, K, D, xi, R=np.eye(3), P=np.eye(3))  # (1,1,2)
         x, y = xy[0,0,0], xy[0,0,1]
         uvw = K @ np.array([x, y, 1.0])
         return float(uvw[0]), float(uvw[1])
     else:
-        # pinhole: 正規化座標へ -> K を掛けて理想ピクセルへ
-        xy = cv2.undistortPoints(pts, K, D if D is not None else None, P=np.eye(3))  # (1,1,2) 正規化
+        # pinhole: to normalized coordinates -> multiply by K to get ideal pixels
+        xy = cv2.undistortPoints(pts, K, D if D is not None else None, P=np.eye(3))  # (1,1,2) normalized
         x, y = xy[0,0,0], xy[0,0,1]
         uvw = K @ np.array([x, y, 1.0])
         return float(uvw[0]), float(uvw[1])
@@ -235,10 +235,10 @@ def main():
     ap.add_argument("--half_w", type=float, default=120.0)
     ap.add_argument("--half_h", type=float, default=80.0)
     ap.add_argument("--axis_len", type=float, default=70.0)
-    ap.add_argument("--use_2d", action="store_true", help="参照2DをJSONから使う")
-    ap.add_argument("--kp2d_dir", type=str, default=None, help="2D JSONディレクトリ")
-    ap.add_argument("--scene", type=str, default=None, help="シーン名")
-    ap.add_argument("--undistort_2d", action="store_true", help="2Dを歪み補正してから使う")
+    ap.add_argument("--use_2d", action="store_true", help="Use reference 2D keypoints from JSON")
+    ap.add_argument("--kp2d_dir", type=str, default=None, help="2D JSON directory")
+    ap.add_argument("--scene", type=str, default=None, help="Scene name")
+    ap.add_argument("--undistort_2d", action="store_true", help="Undistort 2D keypoints before use")
     ap.add_argument("--save", type=str, default="outputs/validation/reprojection_error/frustum_kps_epi.png")
     ap.add_argument("--show", action="store_true", help="Open an interactive window.")
     args = ap.parse_args()
@@ -291,7 +291,7 @@ def main():
     Ki, size_i, Di, xi_i = intr[ref_cam]
     Ri, ti, _Ci = extr[ref_cam]
 
-    # Ki, Ri, ti は参照カメラ
+    # Ki, Ri, ti are the reference camera
     if args.use_2d:
         ui = load_ui_from_json_any(args.kp2d_dir, args.scene, ref_cam, args.frame, args.kp_index)
     else:
@@ -302,9 +302,9 @@ def main():
     print(ui0,ui1)
     ui_h = np.array([ui0, ui1, 1.0])
     
-    # 参照カメラの逆投影レイ（見やすい長さで可視化）
+    # Back-projected rays from the reference camera (visualized with a readable length)
     Ci, di = backproject_ray_world(Ki, Ri, ti, ui0, ui1)
-    L = 2000.0  # レイの長さ（任意で調整）
+    L = 2000.0  # ray length (adjust as needed)
     P1 = Ci
     P2 = Ci + di * L
     ax.plot([P1[0], P2[0]], [P1[1], P2[1]], [P1[2], P2[2]], linewidth=2.0)
