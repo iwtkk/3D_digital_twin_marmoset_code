@@ -5,16 +5,17 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "reprojection_error"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 # load_config.py
 import yaml
-import pickle
 import os
 import argparse
 from utils.aniposelib.cameras import CameraGroup
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d
 import plot_ray_repr_error as prre
 import utils.frame_to_imgs as fti
 
@@ -124,8 +125,10 @@ def main():
     # 形を aniposelib に合わせる (n_cam, N, 2)
     p2d_flat = p2d.reshape(n_cam, -1, 2)
 
-    with open(os.path.join(base, 'kp3d_fxdJointLen.pickle'), 'rb') as f:
-        pts3d = pickle.load(f)
+    kp3d_path = resolve_kp3d(base)
+    if kp3d_path is None:
+        raise FileNotFoundError(f"kp3d (npz/pickle) not found: {base}")
+    pts3d = load_kp3d(kp3d_path)
     pts3d = pts3d['kp3d'][0][args.frame]
     
     # 三角測量（最適化なし）→ 投影誤差

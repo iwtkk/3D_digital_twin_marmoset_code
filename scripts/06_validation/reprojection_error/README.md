@@ -15,8 +15,18 @@ Corresponds to paper section: **Technical Validation – 再投影誤差**
 | `plot_violin_from_stats.py` | Plot violin from precomputed stats |
 | `kp3d_err_export.py` | Export errors to MATLAB or pickle format (`--format mat\|pickle\|both`) |
 | `plot_frustum_kps_epi.py` | Frustum and epipolar line visualization |
+| `run_all.sh` | Regenerate all outputs above for one kp3d source (`BASE OUT [RAY_SESSION]`) |
 
 ## Usage
+
+Regenerate everything (raw error, and the error of the reprojection-affine-aligned keypoints computed by
+`scripts/dev/reproj_tail/run/compute_aligned_reproj_err.py`):
+
+```bash
+bash run_all.sh /data/iwata/3D_digital_twin_marmoset_data/marmoset_keypoint_data/3D_temporal_keypoint_data \
+    outputs/validation/reprojection_error/raw cj611_20230226_090000
+bash run_all.sh outputs/dev/reproj_tail_aligned/err_npz outputs/validation/reprojection_error/aligned
+```
 
 ```bash
 # Visualize 3D rays for keypoint 9 (L wrist) at frame 70
@@ -38,3 +48,10 @@ python analyze_large_repr_err.py \
   --base data/marmoset_keypoint_data/3D_temporal_keypoint/{session}/ \
   --threshold 10.0
 ```
+
+## Note on the violin KDE bandwidth
+
+`compute_violin_stats.py` and `kp3d_err_violinplot.py` use Scott's rule with a robust scale
+(`min(std, IQR/1.349)`, `compute_violin_stats.robust_bw_factor`). With the plain std, a single failed
+triangulation (R elbow reaches 6.0e5 px in `cj611_20210831_110000`) widened the kernel and flattened that
+keypoint's violin. Without such outliers the bandwidth is identical to scipy/matplotlib's default.

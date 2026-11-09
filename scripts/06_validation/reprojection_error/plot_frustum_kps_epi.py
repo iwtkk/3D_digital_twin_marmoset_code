@@ -11,8 +11,8 @@ if str(_root / "src") not in sys.path:
 
 import argparse
 import json
+import math
 import os
-import pickle
 
 import cv2
 import h5py
@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import utils.plot_cameras_frustum as pcf
 from marmo3d.validation.utils import rodrigues_to_R
+from marmo3d import kp3d_io
 
 def load_extrinsics(h5_path):
     # "Return dict cam_id -> (R, t, C) using OpenCV convention x_c = R X + t."
@@ -150,7 +151,7 @@ def undistort_to_ideal_pixel(u, v, K, D=None, xi=None):
     pts = np.array([[[float(u), float(v)]]], dtype=np.float64)  # shape (1,1,2)
     if xi is not None and D is not None and hasattr(cv2, "omnidir"):
         # omnidir: 出力は正規化座標 (x,y)、z=1 と解釈
-        xy = cv2.omnidir.undistortPoints(pts, K, D, xi, R=np.eye(3), P=np.eye(3))  # (1,1,2)
+        xy = cv2.omnidir.undistortPoints(pts, K, D, np.array([[float(np.ravel(xi)[0])]]), np.eye(3))  # (1,1,2) normalized (OpenCV 4.x has no P)
         x, y = xy[0,0,0], xy[0,0,1]
         uvw = K @ np.array([x, y, 1.0])
         return float(uvw[0]), float(uvw[1])
@@ -206,8 +207,7 @@ def draw_line_on_frustum(ax, C, right, up, fwd, p1_pix, p2_pix, width, height, n
     ax.plot([P1[0], P2[0]], [P1[1], P2[1]], [P1[2], P2[2]], **plot_kwargs)
 
 def load_kp3d(pickle_path):
-    with open(pickle_path, "rb") as f:
-        d = pickle.load(f)
+    d = kp3d_io.load_kp3d(pickle_path)   # pickle / npz
     X = np.array(d["kp3d"])  # could be (frames,K,3) or (N,frames,K,3)
     if X.ndim == 4:
         X = X[0]
@@ -224,7 +224,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--extrin_h5", required=True, help="Path to cam_extrinsic_optim.h5")
     ap.add_argument("--intrin_h5", required=True, help="Path to cam_intrinsic.h5")
-    ap.add_argument("--pickle3d", required=True, help="Path to kp3d_fxdJointLen.pickle or kp3d.pickle")
+    ap.add_argument("--pickle3d", required=True, help="Path to kp3d_fxdJointLen.pickle / kp3d.pickle / {session}.npz")
     ap.add_argument("--frame", type=int, default=100, help="Frame index (0-based)")
     ap.add_argument("--kp_index", type=int, default=9, help="Keypoint index for epipolar lines")
     ap.add_argument("--ref_cam", type=str, default=None, help="Reference camera ID (e.g. '23506237')")

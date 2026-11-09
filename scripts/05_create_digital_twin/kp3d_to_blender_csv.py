@@ -1,7 +1,7 @@
 """
-kp3d pickle → Blender 用 CSV 変換スクリプト
+Convert kp3d (pickle/npz) to CSV for Blender
 
-1. pickle → outputs/animate_temp/csv/{session}_points.csv
+1. pickle/npz → outputs/animate_temp/csv/{session}_points.csv
 2. scale  → outputs/animate_temp/transformedcsv/{session}_points.csv_transformedtest.csv
 
 使い方:
@@ -18,13 +18,15 @@ from __future__ import annotations
 
 import argparse
 import os
-import pickle
 import re
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402
 
 
 # ── 定数 ──────────────────────────────────────────────────────────────────────
@@ -182,23 +184,29 @@ def pickletocsv(
     result_dir: Path,
     n_frame2draw: int = -1,
     csv_dir: Path = Path("./csv"),
+    i_animal: int = 0,
+    out_name: str | None = None,
 ):
+    """Take one animal (i_animal) from kp3d (pickle/npz) and write the intermediate CSV.
+
+    i_animal: index of the animal to take (default 0, compatible with the single-animal pipeline).
+    out_name: output file name without extension. None -> {session}_points (as before).
+              For multiple animals the caller passes {session}_animalN.
+    """
     result_dir = Path(result_dir)
     csv_dir    = Path(csv_dir)
 
     print("result dir:", result_dir)
 
-    pickleFile = result_dir / "kp3d_fxdJointLen.pickle"
-    if not pickleFile.exists():
-        pickleFile = result_dir / "kp3d.pickle"
-    if not pickleFile.exists():
-        raise FileNotFoundError(f"pickle file is not exist: {pickleFile}")
-    print("using:", pickleFile)
+    # result_dir is a session directory (searched npz -> pickle) or a kp3d file (e.g. {session}.npz)
+    kp3dFile = result_dir if result_dir.is_file() else resolve_kp3d(result_dir)
+    if kp3dFile is None:
+        raise FileNotFoundError(f"kp3d file (npz/pickle) is not exist in: {result_dir}")
+    print("using:", kp3dFile)
 
-    with open(pickleFile, "rb") as f:
-        data = pickle.load(f)
+    data = load_kp3d(kp3dFile)
 
-    data_name = os.path.basename(str(result_dir).rstrip("/"))
+    data_name = result_dir.stem if result_dir.is_file() else os.path.basename(str(result_dir).rstrip("/"))
 
     X = data["kp3d"]        # (n_animal, n_frame, n_kp, 3)
     S = data["kp3d_score"]  # (n_animal, n_frame, n_kp)
@@ -210,7 +218,8 @@ def pickletocsv(
 
     csv_dir.mkdir(parents=True, exist_ok=True)
 
-    i_animal = 0
+    if not (0 <= i_animal < n_animal):
+        raise IndexError(f"i_animal={i_animal} is out of range (n_animal={n_animal})")
     Xa = X[i_animal, :n_frame2draw, :, :].copy()
     Sa = S[i_animal, :n_frame2draw, :].copy()
 
@@ -254,9 +263,11 @@ def pickletocsv(
         data_dict[f"pts_{key}_z"] = Xa[:, kpi, 2]
 
     df = pd.DataFrame(data_dict)
-    out_csv = csv_dir / f"{data_name}_points.csv"
+    base = out_name if out_name is not None else f"{data_name}_points"
+    out_csv = csv_dir / f"{base}.csv"
     df.to_csv(out_csv, index=False)
     print("[OK ] wrote:", out_csv)
+    return out_csv
 
 
 # ── スケール・座標変換 → 最終 CSV ──────────────────────────────────────────────
@@ -298,7 +309,8 @@ def process_one(
     out_dir: Path,
     n_frame2draw: int,
 ):
-    result_dir = base_dir / data_name
+    flat_npz = base_dir / f"{data_name}.npz"     # released dataset layout (flat {session}.npz)
+    result_dir = flat_npz if flat_npz.exists() else base_dir / data_name
     csv_path = csv_dir / f"{data_name}_points.csv"
 
     print(f"\n=== {data_name} ===")
@@ -314,7 +326,7 @@ def process_one(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="kp3d pickle を Blender 用 CSV に変換する",
+        description="Convert kp3d (pickle/npz) to CSV for Blender",
         epilog=(
             "例:\n"
             "  python scripts/05_create_digital_twin/kp3d_to_blender_csv.py dailylife_cj611_20230227_100000\n"
@@ -333,7 +345,7 @@ def main():
         "--base-dir",
         type=Path,
         default=Path("outputs/3d"),
-        help="3D 結果のルートディレクトリ（デフォルト: outputs/3d）",
+        help="root of 3D results: {session}/kp3d*.{npz,pickle} or {session}.npz (default: outputs/3d)",
     )
     parser.add_argument(
         "--csv-dir",
@@ -355,7 +367,8 @@ def main():
         parser.error("data_name か --all のどちらかを指定してください")
 
     if args.all:
-        sessions = sorted(d.name for d in args.base_dir.iterdir() if d.is_dir())
+        sessions = sorted({d.name for d in args.base_dir.iterdir() if d.is_dir()}
+                          | {d.stem for d in args.base_dir.glob("*.npz")})
         if not sessions:
             print(f"セッションが見つかりません: {args.base_dir}")
             sys.exit(1)

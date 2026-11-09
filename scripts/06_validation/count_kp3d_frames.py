@@ -11,22 +11,22 @@ Usage:
 """
 
 import argparse
-import pickle
 import re
 import sys
 from collections import defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402
+
 DEFAULT_DATA_DIR = Path(__file__).parents[2] / "3D_digital_twin_marmoset_data" / \
     "marmoset_keypoint_data" / "3D_temporal_keypoint_data"
-KP3D_FILENAME = "kp3d_fxdJointLen.pickle"
 # セッション名末尾の _YYYYMMDD_HHMMSS を除いた部分を個体IDとして扱う
 SESSION_DATE_PATTERN = re.compile(r"_\d{8}_\d{6}$")
 
 
-def load_frame_count(pickle_path: Path) -> int:
-    with open(pickle_path, "rb") as f:
-        data = pickle.load(f)
+def load_frame_count(kp3d_path: Path) -> int:
+    data = load_kp3d(kp3d_path)
     # shape: (1, frames, keypoints, 3)
     return data["kp3d"].shape[1]
 
@@ -46,11 +46,13 @@ def main():
         print(f"エラー: ディレクトリが見つかりません: {data_dir}", file=sys.stderr)
         sys.exit(1)
 
-    sessions = sorted(p for p in data_dir.iterdir()
-                      if p.is_dir() and (p / KP3D_FILENAME).exists())
+    # session name -> kp3d file (flat {session}.npz / {session}/kp3d*.{npz,pickle})
+    names = sorted({p.name for p in data_dir.iterdir() if p.is_dir()}
+                   | {p.stem for p in data_dir.glob("*.npz")})
+    sessions = {n: f for n in names if (f := resolve_kp3d(data_dir, n)) is not None}
 
     if not sessions:
-        print(f"エラー: {KP3D_FILENAME} を含むセッションが見つかりません", file=sys.stderr)
+        print("Error: no session with kp3d (npz/pickle) found", file=sys.stderr)
         sys.exit(1)
 
     # 個体ID → {セッション名: フレーム数}
@@ -60,15 +62,14 @@ def main():
     print(f"セッション数: {len(sessions)}")
     print("集計中...\n")
 
-    for session_dir in sessions:
-        pkl = session_dir / KP3D_FILENAME
+    for name, kp3d_path in sessions.items():
         try:
-            n_frames = load_frame_count(pkl)
+            n_frames = load_frame_count(kp3d_path)
         except Exception as e:
-            missing.append((session_dir.name, str(e)))
+            missing.append((name, str(e)))
             continue
-        animal_id = extract_animal_id(session_dir.name)
-        animal_sessions[animal_id][session_dir.name] = n_frames
+        animal_id = extract_animal_id(name)
+        animal_sessions[animal_id][name] = n_frames
 
     # --- 個体別サマリー ---
     print("=" * 60)

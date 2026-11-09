@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import csv
-import pickle
 import random
 import sys
 from dataclasses import dataclass, field, asdict
@@ -25,6 +24,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 import marmo3d.marmo_dataset as marmo_dataset
+from marmo3d.kp3d_io import load_kp3d
 
 
 @dataclass
@@ -54,9 +54,8 @@ class FramesCache:
 
 
 def load_kp3d_frame_count(kp3d_path: Path) -> int:
-    """kp3d.pickleからフレーム数を取得（全animal_idの最小値）"""
-    with open(kp3d_path, "rb") as f:
-        data = pickle.load(f)
+    """Number of frames in kp3d (pickle/npz): the minimum over all animal_id."""
+    data = load_kp3d(kp3d_path)
 
     if "kp3d" not in data:
         raise KeyError(f"'kp3d' キーが見つかりません: {kp3d_path}")

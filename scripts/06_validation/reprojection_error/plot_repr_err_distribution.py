@@ -2,7 +2,7 @@
 
 import argparse
 import glob
-import pickle
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402
 DEFAULT_BASE = (
     PROJECT_ROOT
     / "3D_digital_twin_marmoset_data"
@@ -27,8 +29,7 @@ def load_kp3d_err_values(paths, key: str) -> tuple[np.ndarray, list[tuple[str, i
     per_file_stats = []
 
     for path in sorted(paths):
-        with open(path, "rb") as f:
-            data = pickle.load(f)
+        data = load_kp3d(path)   # pickle / npz
 
         if key not in data:
             raise KeyError(f"{key} not found in {path}")
@@ -51,7 +52,7 @@ def load_kp3d_err_values(paths, key: str) -> tuple[np.ndarray, list[tuple[str, i
         )
 
     if not aggregated:
-        raise RuntimeError("No finite values collected from input pickles.")
+        raise RuntimeError("No finite values collected from input files.")
 
     return np.concatenate(aggregated), per_file_stats
 
@@ -124,20 +125,20 @@ def plot_histogram(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Plot distribution of kp3d_err from pickle files.")
+    parser = argparse.ArgumentParser(description="Plot distribution of kp3d_err from kp3d pickle/npz files.")
     parser.add_argument(
         "--base",
         type=Path,
         default=DEFAULT_BASE,
-        help="Root directory containing session folders with kp3d_fxdJointLen.pickle.",
+        help="Root directory containing session folders with kp3d*.{npz,pickle} or {session}.npz files.",
     )
     parser.add_argument(
         "--pattern",
         nargs="+",
         default=None,
-        help="One or more glob patterns for kp3d pickle files. Overrides --base.",
+        help="One or more glob patterns for kp3d pickle/npz files. Overrides --base.",
     )
-    parser.add_argument("--key", default="kp3d_err", help="Key to extract from each pickle.")
+    parser.add_argument("--key", default="kp3d_err", help="Key to extract from each kp3d file (kp3d / kp3d_score / kp3d_err).")
     parser.add_argument("--bins", type=int, default=200, help="Number of histogram bins.")
     parser.add_argument("--fig-width", type=float, default=10.0, help="Figure width in inches.")
     parser.add_argument("--fig-height", type=float, default=6.0, help="Figure height in inches.")
@@ -178,7 +179,13 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     paths: list[str] = []
-    patterns = args.pattern or [str(args.base / "*" / "kp3d_fxdJointLen.pickle")]
+    if not args.pattern:
+        # look for {session}/kp3d*.{npz,pickle} and {session}.npz under --base
+        names = {p.name for p in args.base.iterdir() if p.is_dir()} | {p.stem for p in args.base.glob("*.npz")}
+        paths = [str(f) for n in sorted(names) if (f := resolve_kp3d(args.base, n)) is not None]
+        if not paths:
+            raise FileNotFoundError(f"No kp3d (npz/pickle) found under: {args.base}")
+    patterns = args.pattern or []
     for pattern in patterns:
         matches = glob.glob(pattern)
         if matches:

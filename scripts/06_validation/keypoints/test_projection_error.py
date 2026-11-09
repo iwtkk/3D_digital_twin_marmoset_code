@@ -21,11 +21,11 @@ if str(_root / "src") not in sys.path:
 
 import argparse
 import os
-import pickle
 
 import numpy as np
 import yaml
 from utils.aniposelib.cameras import CameraGroup
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d
 from marmo3d.validation.utils import load_ids_from_yaml, load_kp2d_f, build_points2d_for_frame
 
 def base_main():
@@ -74,10 +74,9 @@ def base_main():
     print(err_mean)
 
     # 比較用: 保存済みの kp3d_err（“正解”）も表示
-    kp3d_pkl = os.path.join(base, "kp3d_fxdJointLen.pickle")
-    if os.path.isfile(kp3d_pkl):
-        with open(kp3d_pkl, "rb") as f:
-            kp3d_raw = pickle.load(f)
+    kp3d_path = resolve_kp3d(base)
+    if kp3d_path is not None:
+        kp3d_raw = load_kp3d(kp3d_path)
         saved_err = kp3d_raw["kp3d_err"][args.animal][args.frame]  # (n_kp,)
         print("\n[saved kp3d_err from reconst_single_step3.py (px)]")
         print(saved_err)

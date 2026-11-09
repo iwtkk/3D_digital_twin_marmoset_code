@@ -30,6 +30,26 @@ bash scripts/00_setup/install.sh
 | 6 | `marmo3Dpose/requirements.txt` |
 | + | Blender 用 PyYAML → `third_party/` |
 
+## 1.5 Extracting the dataset (after downloading)
+
+The released dataset is a single folder holding split zips (`*_partNNN.zip`), `*_manifest.csv` files and `extract_dataset.py` (Harvard Dataverse cannot hold folders).
+The zips store the original relative paths, so `extract_dataset.py` restores the original folder layout. The same script is included in the dataset.
+It uses only the Python standard library (Python 3.7+), so `.venv` is not needed. It works on Linux, macOS and Windows (on Windows, use `python` or `py` instead of `python3`).
+
+```bash
+python3 extract_dataset.py <download_dir> --check          # check that all zips are present
+python3 extract_dataset.py <download_dir>                  # extract in place
+python3 extract_dataset.py <download_dir> --dst <dataset_dir> --gunzip-blend
+python3 extract_dataset.py <download_dir> --component 3D_temporal_keypoint_data   # only some folders
+python3 extract_dataset.py <download_dir> --session cj357_20221009_090000
+```
+
+- If it stops part way, run it again to continue (files already extracted are detected by size and skipped).
+- `--remove-zip` deletes each zip once its contents are verified.
+- If a zip still holds a single zip of the same name (the outer wrapper used for the Harvard Dataverse upload), the script unwraps it first.
+- The per-session `.blend` files are gzip-compressed. Blender opens them as they are; `--gunzip-blend` decompresses them.
+- On Windows, extract to a short path such as `C:\data` (paths inside the dataset are up to 123 characters; Windows limits a full path to 260).
+
 ## 2. データリンクの作成
 
 実データディレクトリとリポジトリをシンボリックリンクで接続します。

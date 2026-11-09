@@ -7,12 +7,15 @@ kp3d_err_tomat.py と kp3d_err_topickle.py を統合したスクリプト。
 import argparse
 import glob
 import os
+import sys
 import pickle
 from pathlib import Path
 
 import numpy as np
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402
 _DEFAULT_BASE = str(_PROJECT_ROOT / "3D_digital_twin_marmoset_data" / "marmoset_keypoint_data" / "3D_temporal_keypoint_data")
 _DEFAULT_OUTPUT_DIR = str(_PROJECT_ROOT / "outputs" / "validation" / "reprojection_error")
 
@@ -30,19 +33,20 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    sessions = args.sessions or sorted(glob.glob('*', root_dir=result_path))
+    # include both {session}/ directories and {session}.npz (flat layout of the released dataset)
+    sessions = args.sessions or sorted({n[:-len('.npz')] if n.endswith('.npz') else n
+                                        for n in glob.glob('*', root_dir=result_path)})
 
     kp3d_err_list = []
 
     for session in sessions:
-        picklefile = os.path.join(result_path, session, 'kp3d_fxdJointLen.pickle')
+        kp3d_file = resolve_kp3d(result_path, session)
 
-        if not os.path.isfile(picklefile):
-            print(f'[WARN] skip (not found): {picklefile}')
+        if kp3d_file is None:
+            print(f'[WARN] skip (kp3d npz/pickle not found): {os.path.join(result_path, session)}')
             continue
 
-        with open(picklefile, 'rb') as f:
-            data = pickle.load(f)
+        data = load_kp3d(kp3d_file)
 
         # 形状: (nAnimal=1, nFrame, nKeypoints=20) を想定
         kp3d_err = np.array(data['kp3d_err'], dtype=float)
