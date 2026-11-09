@@ -14,7 +14,7 @@
 set -euo pipefail
 
 INPUT_DIR=""
-OUTPUT_DIR="scripts/dev/images_to_video_files"
+OUTPUT_DIR="outputs/dev/images_to_video_files"
 SESSION=""
 FRAMERATE=24
 
@@ -24,6 +24,7 @@ CAMERAS=(
     Camera_Pinhole_orig
     Camera_Pinhole_x2
     Camera.23506214
+    Camera.23506237
 )
 
 usage() {

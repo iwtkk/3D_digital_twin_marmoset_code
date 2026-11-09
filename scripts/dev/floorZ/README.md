@@ -21,15 +21,15 @@ plot が `scripts/dev/floorZ_plot/`。
 
 | スクリプト | 入力(既定) | 出力 |
 |---|---|---|
-| `plot_corrected.py` | `outputs/3d` | `grid_after_correction.png` (+`--before-after`) |
-| `plot_before_grid.py` | `../ez2use/.../transformedcsv` | `height_dist_grid_before.png` |
-| `plot_before_after_session.py` | `../ez2use/.../transformedcsv` | `before_after_{session}.png` |
-| `plot_affine_validation.py` | `outputs/animate_temp/test_scale` | `height_dist_grid.png`, `affine_summary_plot.png` |
-| `plot_floor_y.py` | `floorZ_files/y_corrections.csv` + pickle | `floor_estimate_summary.png` 他 |
-| `plot_floor_estimate_corrected.py` | `floorZ_files/corrected` | `floor_estimate_corrected.png` |
-| `make_affine_regression_plot.py` | `outputs/3d` | `affine_regression_explained.png`（説明図） |
-| `make_distribution_kde_check.py` | `outputs/3d` | `what_is_happening_kde_fixed.png`（説明図） |
-| `make_what_is_happening.py` | `outputs/3d` | `what_is_happening_kde.png`（説明図） |
+| `plot_bz_dist_after.py` | `floorZ_files/corrected` + `affine_log.csv` | `grid_after_correction.png` (+`--before-after`) |
+| `plot_bz_dist_before.py` | `../ez2use/.../transformedcsv` | `height_dist_grid_before.png` |
+| `plot_bz_before_after_session.py` | `../ez2use/.../transformedcsv` | `before_after_{session}.png` |
+| `plot_scaletest_validation.py` | `outputs/animate_temp/test_scale` | `height_dist_grid.png`, `affine_summary_plot.png` |
+| `plot_floor_y_estimate.py` | `floorZ_files/y_corrections.csv` + pickle | `floor_estimate_summary.png` 他 |
+| `plot_floor_z_per_session.py` | `floorZ_files/corrected` | `floor_estimate_corrected.png` |
+| `plot_affine_regression.py` | `outputs/3d` | `affine_regression_explained.png`（説明図） |
+| `plot_kde_peak_check.py` | `outputs/3d` | `what_is_happening_kde_fixed.png`（説明図） |
+| `plot_correction_pipeline.py` | `outputs/3d` | `what_is_happening_kde.png`（説明図） |
 
 KDE bandwidth / マッチ距離などのパラメータと座標変換定数はすべて
 `run/floorz_core.py` に集約。アルゴリズムを変えるときはここを編集する。

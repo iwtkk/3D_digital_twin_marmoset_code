@@ -13,8 +13,16 @@
 | `outliers` | kp3d / Blender bbox はみ出しと垂直ずれランキング | [README](outliers/README.md) |
 | `bbox` | 補正前 Blender bbox はみ出し集計 | [README](bbox/README.md) |
 | `quality_score` | kp3d_score / kp3d_err の分布把握 | [README](quality_score/README.md) |
+| `reproj_tail` | 再投影誤差 tail を作る KP / フレーム / セッションの特定と除外の感度分析 | [README](reproj_tail/README.md) |
 | `strip` | ファイル名マーカー除去ユーティリティ | [README](strip/README.md) |
 | `images_to_video` | 画像シーケンス → MP4 | [README](images_to_video/README.md) |
+| `pose2d` | 2D姿勢推定の生結果を実カメラ動画に重畳して目視確認 | [README](pose2d/README.md) |
+| `render_compare` | 実カメラ映像と Blender レンダーを左右に並べた比較動画 | [README](render_compare/README.md) |
+| `fur_ablation` | fur（hair-curve / simplified / なし）ごとの実画像との SSIM と fur の厚み | [README](fur_ablation/README.md) |
+| `consistency_roi` | デジタルツイン検証の PSNR/SSIM をマーモセット周辺 ROI で計算 | [README](consistency_roi/README.md) |
+| `consistency_camvar` | デジタルツイン検証の SSIM/PSNR がカメラ間でばらつく原因の切り分け | [README](consistency_camvar/README.md) |
+| `pose2d_error` | 学習データ上での2Dキーポイント推定誤差（キーポイント別バイオリン） | [README](pose2d_error/README.md) |
+| `benchmark` | パイプライン各段の処理速度（2D推論 / 3D再構成 / Blender）とリアルタイム可否 | [README](benchmark/README.md) |
 
 典型的な流れは run でデータ（CSV/JSON/NPZ）を `{target}_files/` に生成し、plot がそれを
 読んで図を `{target}_plot/` に出力する。共有アルゴリズムは各 target の `run/*_core.py` /

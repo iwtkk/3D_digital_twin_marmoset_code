@@ -35,8 +35,8 @@ import floorz_core as core            # noqa: E402
 import estimate_floor_y as efy        # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_FILES  = Path("scripts/dev/floorZ_files")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_FILES  = Path("outputs/dev/floorZ_files")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 
 def plot_summary(df: pd.DataFrame, out_dir: Path):

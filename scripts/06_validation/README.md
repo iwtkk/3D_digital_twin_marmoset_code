@@ -35,6 +35,14 @@ python analyze_large_repr_err.py \
   --base data/marmoset_keypoint_data/3D_temporal_keypoint/{session}/
 ```
 
+## 3D keypoint error against the labeled ground truth (Fig. 2E)
+
+See [keypoint_gt_error/README.md](keypoint_gt_error/README.md).
+
+```bash
+.venv/bin/python scripts/06_validation/keypoint_gt_error/plot_error_violin.py --dataset-root <dataset>
+```
+
 ## SSIM / PSNR
 
 Compare real camera frames with rendered pseudo-view frames:

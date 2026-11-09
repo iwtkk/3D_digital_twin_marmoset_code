@@ -1,19 +1,20 @@
 """
 KDE affine 補正結果の可視化 (plot)。
 
-pickle から床 KP (wrist/ankle) の bZ 分布を直接計算し、補正前/補正後を
-Blender 物理高さ (床/足場/棒/天井) と重ねてプロットする。
+corrected CSV と affine_log.csv から補正後 / 補正前-補正後を描く。
+pickle には触れない。
 
-入力 (--input-dir, 既定 outputs/3d):
-  {input-dir}/{session}/kp3d_fxdJointLen.pickle  (無ければ kp3d.pickle)
+入力:
+  --input-dir  (既定 scripts/dev/floorZ_files/corrected): *_corrected.csv
+  --files-dir  (既定 scripts/dev/floorZ_files):            affine_log.csv
 出力 (--output-dir, 既定 scripts/dev/floorZ_plot):
   grid_after_correction.png
   grid_before_after.png   (--before-after 指定時)
 
 使い方:
-  OPENBLAS_NUM_THREADS=1 python plot_corrected.py                 # 全セッション
-  OPENBLAS_NUM_THREADS=1 python plot_corrected.py --before-after
-  OPENBLAS_NUM_THREADS=1 python plot_corrected.py --session cj425_20210427_120000
+  python plot_corrected.py
+  python plot_corrected.py --before-after
+  python plot_corrected.py --session cj425_20210427_120000
 """
 from __future__ import annotations
 
@@ -26,6 +27,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
+import pandas as pd
 
 _RUN = Path(__file__).resolve().parent
 if _RUN.name == "plot":
@@ -33,19 +35,38 @@ if _RUN.name == "plot":
 sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
-DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_INPUT  = Path("outputs/dev/floorZ_files/corrected")
+DEFAULT_FILES  = Path("outputs/dev/floorZ_files")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 
-def compute_session(session: str, input_dir: Path, n_frames: int = -1) -> dict | None:
-    pkl = core.resolve_pickle(input_dir / session)
-    if pkl is None:
+def load_session(session: str, corr_dir: Path, log_row: pd.Series) -> dict | None:
+    csv_path = corr_dir / f"{session}_corrected.csv"
+    if not csv_path.exists():
         return None
-    vals = core.trim_1_99(core.floor_bz_series(pkl, n_frames))
-    peaks = core.detect_peaks_kde(vals)
-    a, b, status = core.fit_affine(peaks)
-    return {"session": session, "animal": session.split("_")[0],
-            "vals": vals, "peaks": peaks, "a": a, "b": b, "status": status}
+
+    a      = float(log_row["slope"])
+    b      = float(log_row["intercept"])
+    status = str(log_row["status"])
+    peaks_m_raw = log_row.get("peaks_m", "")
+    peaks_before = np.array(
+        [float(x) for x in str(peaks_m_raw).split(";") if x.strip()],
+        dtype=float,
+    )
+
+    df = pd.read_csv(csv_path)
+    z_cols = core.floor_z_cols(df.columns)
+    if not z_cols:
+        return None
+    vals_c = core.trim_1_99(df[z_cols].min(axis=1).values)
+
+    return {
+        "session": session,
+        "animal": session.split("_")[0],
+        "vals_c": vals_c,
+        "peaks_before": peaks_before,
+        "a": a, "b": b, "status": status,
+    }
 
 
 def _draw_dist(ax, vals, color, peaks=None, title="", xlabel=""):
@@ -74,10 +95,9 @@ def plot_after_grid(recs, out_path: Path, ncol: int = 6):
     axes = np.atleast_1d(axes).ravel()
     for ax, r in zip(axes, recs):
         color = core.ANIMAL_COLORS.get(r["animal"], "gray")
-        vals_c = r["a"] * r["vals"] + r["b"]
-        peaks_c = r["a"] * r["peaks"] + r["b"]
+        peaks_c = r["a"] * r["peaks_before"] + r["b"]
         warn = " !" if core.slope_warn(r["a"]) else ""
-        _draw_dist(ax, vals_c, color, peaks_c,
+        _draw_dist(ax, r["vals_c"], color, peaks_c,
                    f'{r["session"][3:]}\n[{r["status"]}] a={r["a"]:.3f} b={r["b"]:+.3f}{warn}',
                    "bZ corrected (m)")
     for ax in axes[n:]:
@@ -101,12 +121,14 @@ def plot_before_after_grid(recs, out_path: Path):
     axes = np.atleast_2d(axes)
     for i, r in enumerate(recs):
         color = core.ANIMAL_COLORS.get(r["animal"], "gray")
-        warn = " !" if core.slope_warn(r["a"]) else ""
-        _draw_dist(axes[i, 0], r["vals"], color, r["peaks"],
+        a, b = r["a"], r["b"]
+        vals_before = (r["vals_c"] - b) / a
+        peaks_c = a * r["peaks_before"] + b
+        warn = " !" if core.slope_warn(a) else ""
+        _draw_dist(axes[i, 0], vals_before, color, r["peaks_before"],
                    f'{r["session"][3:]}  BEFORE', "bZ (m)")
-        _draw_dist(axes[i, 1], r["a"] * r["vals"] + r["b"], color,
-                   r["a"] * r["peaks"] + r["b"],
-                   f'AFTER [{r["status"]}] a={r["a"]:.3f} b={r["b"]:+.3f}{warn}',
+        _draw_dist(axes[i, 1], r["vals_c"], color, peaks_c,
+                   f'AFTER [{r["status"]}] a={a:.3f} b={b:+.3f}{warn}',
                    "bZ corrected (m)")
     fig.suptitle("BEFORE vs AFTER affine correction (floor KP bZ)", fontsize=12)
     plt.tight_layout(rect=[0, 0.003, 1, 0.99])
@@ -120,31 +142,43 @@ def main():
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT,
-                    help=f"pickle のルート (既定: {DEFAULT_INPUT})")
+                    help=f"補正済み CSV のディレクトリ (既定: {DEFAULT_INPUT})")
+    ap.add_argument("--files-dir", type=Path, default=DEFAULT_FILES,
+                    help=f"affine_log.csv の場所 (既定: {DEFAULT_FILES})")
     ap.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT,
                     help=f"図の出力先 (既定: {DEFAULT_OUTPUT})")
     ap.add_argument("--session", default=None,
                     help="セッション名 (省略時は全セッション)")
     ap.add_argument("--before-after", action="store_true",
                     help="before/after 2 列グリッドも出力")
-    ap.add_argument("--n-frames", type=int, default=-1, help="処理フレーム数 (-1=全)")
     args = ap.parse_args()
 
+    log_path = args.files_dir / "affine_log.csv"
+    if not log_path.exists():
+        print(f"{log_path} がありません。先に run/pkl_to_corrected_csv.py を実行してください。",
+              file=sys.stderr)
+        sys.exit(1)
+    log_df = pd.read_csv(log_path)
+
     if args.session:
-        sessions = [args.session]
-    else:
-        sessions = sorted(d.name for d in args.input_dir.iterdir() if d.is_dir())
+        log_df = log_df[log_df["session"] == args.session]
+        if log_df.empty:
+            print(f"{args.session} が affine_log.csv にありません", file=sys.stderr)
+            sys.exit(1)
+
+    sessions = log_df["session"].tolist()
     print(f"{len(sessions)} セッションを処理します")
 
     recs = []
-    for i, s in enumerate(sessions, 1):
+    for i, session in enumerate(sessions, 1):
         try:
-            r = compute_session(s, args.input_dir, args.n_frames)
+            row = log_df[log_df["session"] == session].iloc[0]
+            r = load_session(session, args.input_dir, row)
         except Exception as e:
-            print(f"  [ERROR] {s}: {e}", file=sys.stderr)
+            print(f"  [ERROR] {session}: {e}", file=sys.stderr)
             r = None
         if r is None:
-            print(f"  [SKIP] {s}", file=sys.stderr)
+            print(f"  [SKIP] {session}", file=sys.stderr)
             continue
         recs.append(r)
         if i % 20 == 0 or i == len(sessions):

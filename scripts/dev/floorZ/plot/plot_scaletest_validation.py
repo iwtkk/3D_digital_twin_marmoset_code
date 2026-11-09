@@ -30,7 +30,7 @@ sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/animate_temp/test_scale")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 
 def process_csv(path: Path) -> dict:
@@ -41,8 +41,8 @@ def process_csv(path: Path) -> dict:
     if not z_cols:
         return {"session": session, "animal": animal, "status": "no_floor_cols"}
     vals  = core.trim_1_99(df[z_cols].min(axis=1).values)
-    peaks = core.detect_peaks_kde(vals)
-    slope, intercept, status = core.fit_affine(peaks)
+    peaks, peak_dens = core.detect_peaks_kde(vals, return_density=True)
+    slope, intercept, status = core.fit_affine(peaks, peak_densities=peak_dens)
     fr = None
     if len(peaks) and status != "no_peaks":
         fr = round((slope * peaks[0] + intercept - core.PHYSICAL_HEIGHTS_M[0]) * 1000, 1)

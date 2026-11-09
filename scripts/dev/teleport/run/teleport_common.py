@@ -8,31 +8,22 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
-FPS_3D = 24.0
-FPS_2D = 25.0
-DT = 1.0 / FPS_3D
-VIS_SCORE_THR = 0.5    # 2D keypoint "visible" if score >= this
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
 
-KP_NAMES = [
-    "nose", "L_eye", "R_eye", "L_ear", "R_ear",
-    "L_shoulder", "R_shoulder", "L_elbow", "R_elbow",
-    "L_wrist", "R_wrist", "L_hip", "R_hip",
-    "L_knee", "R_knee", "L_ankle", "R_ankle",
-    "backbone_peak", "tail_1", "tail_2",
-]
-N_KP = 20
+FPS_3D = cfg.FPS_3D
+FPS_2D = cfg.FPS_2D
+DT = 1.0 / FPS_3D
+VIS_SCORE_THR = 0.5    # 2D keypoint "visible" if score >= this (検出しきい値; config 外)
+
+KP_NAMES = cfg.KP_NAMES
+N_KP = cfg.N_KP
 
 # 解剖学的な隣接関節（v2 の孤立ジャンプ判定で使用）
-NEIGHBORS = {
-    0: [1, 2, 3, 4], 1: [0, 2], 2: [0, 1], 3: [0, 5], 4: [0, 6],
-    5: [3, 6, 7, 11, 17], 6: [4, 5, 8, 12, 17],
-    7: [5, 9], 8: [6, 10], 9: [7], 10: [8],
-    11: [5, 12, 13, 17], 12: [6, 11, 14, 17],
-    13: [11, 15], 14: [12, 16], 15: [13], 16: [14],
-    17: [5, 6, 11, 12, 18], 18: [17, 19], 19: [18],
-}
+NEIGHBORS = cfg.NEIGHBORS
 
 
 def t3d_to_t2d(t3d: int) -> int:

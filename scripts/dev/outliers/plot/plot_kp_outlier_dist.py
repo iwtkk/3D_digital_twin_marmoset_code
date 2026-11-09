@@ -21,16 +21,13 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
-DEFAULT_INPUT  = Path("scripts/dev/outliers_files")
-DEFAULT_OUTPUT = Path("scripts/dev/outliers_plot")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
 
-KP_NAMES = [
-    "nose", "L_eye", "R_eye", "L_ear", "R_ear",
-    "L_shoulder", "R_shoulder", "L_elbow", "R_elbow",
-    "L_wrist", "R_wrist", "L_hip", "R_hip",
-    "L_knee", "R_knee", "L_ankle", "R_ankle",
-    "backbone_peak", "tail_1", "tail_2",
-]
+DEFAULT_INPUT  = Path("outputs/dev/outliers_files")
+DEFAULT_OUTPUT = Path("outputs/dev/outliers_plot")
+
+KP_NAMES = cfg.KP_NAMES
 IND_COLORS = {"cj357": "#1f77b4", "cj425": "#ff7f0e", "cj611": "#2ca02c"}
 
 

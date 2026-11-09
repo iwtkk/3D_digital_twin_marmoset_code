@@ -20,23 +20,20 @@ from pathlib import Path
 
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
+
 DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/outliers_files")
+DEFAULT_OUTPUT = Path("outputs/dev/outliers_files")
 
-FPS_3D, FPS_2D = 24.0, 25.0
+FPS_3D, FPS_2D = cfg.FPS_3D, cfg.FPS_2D
 # グローバル inlier bbox: 全 222 セッションの 2–98 パーセンタイル (mm)
-BBOX_X = (681.33, 1580.68)
-BBOX_Y = (-665.49, 92.27)
-BBOX_Z = (633.38, 1512.50)
+BBOX_X = cfg.BBOX_X
+BBOX_Y = cfg.BBOX_Y
+BBOX_Z = cfg.BBOX_Z
 
-KP_NAMES = [
-    "nose", "L_eye", "R_eye", "L_ear", "R_ear",
-    "L_shoulder", "R_shoulder", "L_elbow", "R_elbow",
-    "L_wrist", "R_wrist", "L_hip", "R_hip",
-    "L_knee", "R_knee", "L_ankle", "R_ankle",
-    "backbone_peak", "tail_1", "tail_2",
-]
-N_KP = 20
+KP_NAMES = cfg.KP_NAMES
+N_KP = cfg.N_KP
 
 
 def _excess(vals, lo, hi):

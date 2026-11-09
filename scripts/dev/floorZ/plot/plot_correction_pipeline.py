@@ -29,7 +29,7 @@ sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 _CJK = "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf"
 if Path(_CJK).exists():
@@ -54,6 +54,8 @@ def main():
     ap.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     ap.add_argument("--session", nargs="+", default=None,
                     help="セッション名を列挙 (省略時は代表4件)")
+    ap.add_argument("--legacy", action="store_true",
+                    help="旧動作 (Hungarian マッチング) で実行 (比較用)")
     args = ap.parse_args()
 
     sessions = args.session or DEFAULT_SESSIONS
@@ -68,8 +70,10 @@ def main():
         raw = core.floor_bz_series(pkl)          # 時系列 (NaN 込み)
         vals = core.trim_1_99(raw)
         xg, dens = core.kde_curve(vals)
-        peaks = core.detect_peaks_kde(vals)
-        a, b, status, mp_v, mh_v = core.fit_affine(peaks, return_pairs=True)
+        peaks, peak_dens = core.detect_peaks_kde(vals, return_density=True)
+        a, b, status, mp_v, mh_v = core.fit_affine(
+            peaks, return_pairs=True,
+            peak_densities=peak_dens, legacy=args.legacy)
 
         ax1, ax2, ax3, ax4 = axes[r]
 

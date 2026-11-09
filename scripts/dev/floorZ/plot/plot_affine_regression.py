@@ -26,7 +26,7 @@ sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 _CJK = "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf"
 if Path(_CJK).exists():
@@ -51,8 +51,8 @@ def main():
 
     vals = core.trim_1_99(core.floor_bz_series(pkl))
     xg, dens = core.kde_curve(vals)
-    peaks = core.detect_peaks_kde(vals)
-    a, b, status, mp, mh = core.fit_affine(peaks, return_pairs=True)
+    peaks, peak_dens = core.detect_peaks_kde(vals, return_density=True)
+    a, b, status, mp, mh = core.fit_affine(peaks, return_pairs=True, peak_densities=peak_dens)
     print(f"peaks={np.round(peaks, 3)}  a={a:.4f} b={b:+.4f} status={status}")
 
     labels = ["床 floor", "足場 low perch", "棒 high perch", "天井 ceiling"]

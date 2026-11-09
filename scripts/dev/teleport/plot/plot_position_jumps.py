@@ -33,9 +33,9 @@ if _RUN.name == "plot":
 sys.path.insert(0, str(_RUN))
 import teleport_common as tc  # noqa: E402
 
-DEFAULT_INPUT  = Path("scripts/dev/teleport_files")
+DEFAULT_INPUT  = Path("outputs/dev/teleport_files")
 DEFAULT_PICKLE = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/teleport_plot")
+DEFAULT_OUTPUT = Path("outputs/dev/teleport_plot")
 THRESHOLD_MM = 100.0
 KP, N_KP = tc.KP_NAMES, tc.N_KP
 

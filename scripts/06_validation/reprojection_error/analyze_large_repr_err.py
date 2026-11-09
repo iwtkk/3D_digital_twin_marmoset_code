@@ -11,13 +11,15 @@
 import argparse
 import glob
 import os
-import pickle
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT / "src"))
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402
 _DEFAULT_BASE = str(_PROJECT_ROOT / "3D_digital_twin_marmoset_data" / "marmoset_keypoint_data" / "3D_temporal_keypoint_data")
 
 
@@ -35,7 +37,9 @@ def main():
     TOP_N_PER_SESSION = args.top_n_per_session
     ERR_THRESHOLD = args.threshold
 
-    sessions = args.sessions or sorted(glob.glob('*', root_dir=result_path))
+    # include both {session}/ directories and {session}.npz (flat layout of the released dataset)
+    sessions = args.sessions or sorted({n[:-len('.npz')] if n.endswith('.npz') else n
+                                        for n in glob.glob('*', root_dir=result_path)})
 
     # (session, frame_idx, mean_err_of_frame) のリスト
     all_records = []
@@ -45,12 +49,11 @@ def main():
     print("=" * 70)
 
     for session in sessions:
-        picklefile = os.path.join(result_path, session, 'kp3d_fxdJointLen.pickle')
-        if not os.path.isfile(picklefile):
+        kp3d_file = resolve_kp3d(result_path, session)
+        if kp3d_file is None:
             continue
 
-        with open(picklefile, 'rb') as f:
-            data = pickle.load(f)
+        data = load_kp3d(kp3d_file)
 
         kp3d_err = np.array(data['kp3d_err'], dtype=float)
 

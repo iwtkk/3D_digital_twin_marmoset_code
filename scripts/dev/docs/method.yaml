@@ -1,0 +1,113 @@
+# scripts/dev 共通設定。
+#
+# ここに置くのは「物理キャリブレーション・骨格・座標変換・フレームレート」など
+# target 横断で同一の事実(=A〜D・F)。アルゴリズムのチューニング値
+# (KDE/affine パラメータ=E、各 target の検出しきい値=G) は各スクリプト側に残す。
+#
+# 読み込みは scripts/dev/_config.py 経由。値を変えたいときはこのファイルだけ編集する。
+
+# ── A. kp3d(mm) → Blender(m) 座標変換 ────────────────────────────────────────
+coordinate_transform:
+  blender_bbox_scale: [0.86658, 0.88791, 0.7679]      # Blender bbox フルスパン
+  blender_center:     [0.0, -0.11142, 1.11765]
+  kp3d_center:        [-1131.005, -1072.940, 286.610]  # mm  (= kp3d_global_norm["2-98"] 由来の既定)
+  kp3d_norm_scale:    [449.675, 439.560, 378.880]      # mm
+  rotation_deg:                                        # kp3d → Blender 整列回転
+    rx: -90
+    ry: 0
+    rz: 180
+  # percentile をキーにした global norm キャッシュ。各エントリは計測空間 mm の
+  # inlier bbox lo/hi (kp3d_inlier_bbox_mm と同形式, 回転前)。
+  # compute_global_norm / pkl_to_corrected_csv が未計算の percentile を計算して追記する。
+  # center/scale は floorz_core.bbox_mm_to_center_scale でここから導出する。
+  kp3d_global_norm:
+    "2-98":
+      x: [681.33, 1580.68]
+      y: [-665.49, 92.27]
+      z: [633.38, 1512.5]
+    "1-99":
+      x: [669.0861, 1595.2016]
+      y: [-699.5613, 96.4786]
+      z: [623.2466, 1522.6984]
+    "0.5-99.5":
+      x: [652.6197, 1608.479]
+      y: [-715.3585, 101.1651]
+      z: [607.2224, 1534.8202]
+    "0.1-99.9":
+      x: [0, 1627.5612]
+      y: [-737.4417, 115.3409]
+      z: [0, 1560.6688]
+
+# ── B. 物理高さ (Blender bZ, m): 床 / 足場 / 棒 / 天井 ────────────────────────
+physical_heights_m: [0.7337, 1.0179, 1.3035, 1.5016]
+physical_labels:    [floor, low, bar, ceil]
+
+# ── C. kp3d 空間のグローバル inlier bbox (mm) ────────────────────────────────
+# 全 222 セッションの 2–98 パーセンタイル (analysis_log.md 参照)。
+# y 上限 92.27 が床レベル (= 旧 GLOBAL_FLOOR_Y)。
+kp3d_inlier_bbox_mm:
+  x: [681.33, 1580.68]
+  y: [-665.49, 92.27]
+  z: [633.38, 1512.50]
+
+# ── D. 骨格 ──────────────────────────────────────────────────────────────────
+# names は正準形(スペース区切り)。_config が以下を派生する:
+#   display 形 ("L_eye" 等) = name.replace(" ", "_")
+#   key 形    ("l_eye" 等)  = sanitize(name)
+#   floor_kp_idx           = key に floor_kp_keywords を含む index
+keypoints:
+  names:
+    - nose
+    - L eye
+    - R eye
+    - L ear
+    - R ear
+    - L shoulder
+    - R shoulder
+    - L elbow
+    - R elbow
+    - L wrist
+    - R wrist
+    - L hip
+    - R hip
+    - L knee
+    - R knee
+    - L ankle
+    - R ankle
+    - backbone peak
+    - tail_1
+    - tail_2
+  floor_kp_keywords: [wrist, ankle]
+  # 解剖学的隣接関節 (index ベース, 無向)。teleport / kinematics で共用。
+  neighbors:
+    0:  [1, 2, 3, 4]
+    1:  [0, 2]
+    2:  [0, 1]
+    3:  [0, 5]
+    4:  [0, 6]
+    5:  [3, 6, 7, 11, 17]
+    6:  [4, 5, 8, 12, 17]
+    7:  [5, 9]
+    8:  [6, 10]
+    9:  [7]
+    10: [8]
+    11: [5, 12, 13, 17]
+    12: [6, 11, 14, 17]
+    13: [11, 15]
+    14: [12, 16]
+    15: [13]
+    16: [14]
+    17: [5, 6, 11, 12, 18]
+    18: [17, 19]
+    19: [18]
+
+# ── F. フレームレート ────────────────────────────────────────────────────────
+fps:
+  fps_3d: 24.0
+  fps_2d: 25.0
+
+# ── 個体色 (描画共通) ────────────────────────────────────────────────────────
+animal_colors:
+  cj425: steelblue
+  cj611: darkorange
+  cj357: seagreen

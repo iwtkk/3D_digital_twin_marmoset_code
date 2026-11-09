@@ -23,17 +23,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-DEFAULT_INPUT  = Path("scripts/dev/quality_score_files")
-DEFAULT_OUTPUT = Path("scripts/dev/quality_score_plot")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
 
-KP_NAMES = [
-    "nose", "L_eye", "R_eye", "L_ear", "R_ear",
-    "L_shoulder", "R_shoulder", "L_elbow", "R_elbow",
-    "L_wrist", "R_wrist", "L_hip", "R_hip",
-    "L_knee", "R_knee", "L_ankle", "R_ankle",
-    "backbone_peak", "tail_1", "tail_2",
-]
-N_KP = 20
+DEFAULT_INPUT  = Path("outputs/dev/quality_score_files")
+DEFAULT_OUTPUT = Path("outputs/dev/quality_score_plot")
+
+KP_NAMES = cfg.KP_NAMES
+N_KP = cfg.N_KP
 SCORE_CLAMP = 0.5
 CLAMP_EPS = 0.05
 

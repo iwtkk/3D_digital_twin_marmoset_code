@@ -16,6 +16,20 @@ SUBSAMPLE_MAX = 7790723  # KDE 用サブサンプル上限。この程度あれ�
 RNG_SEED = 0
 
 
+def robust_bw_factor(x: np.ndarray) -> float:
+    """Scott's factor with a robust scale: n^(-1/5) * min(std, IQR/1.349) / std.
+
+    Equal to scipy's default ('scott') unless extreme outliers inflate the std.
+    A single failed triangulation (e.g. 6e5 px) would otherwise widen the kernel so much that
+    the violin of that keypoint loses its shape.
+    """
+    std = float(np.std(x))
+    if std == 0:
+        return x.size ** (-1 / 5)
+    q1, q3 = np.percentile(x, [25, 75])
+    return x.size ** (-1 / 5) * min(std, (q3 - q1) / 1.349) / std
+
+
 def main():
     parser = argparse.ArgumentParser(description='バイオリンプロット用のKDE統計量を計算する')
     parser.add_argument('--input', default=_DEFAULT_INPUT, help='kp3d_err_all.pickleのパス')
@@ -62,7 +76,7 @@ def main():
         else:
             x_kde = x
 
-        kde = gaussian_kde(x_kde)
+        kde = gaussian_kde(x_kde, bw_method=robust_bw_factor(x_kde))
         density = kde(grid)
 
         results.append({

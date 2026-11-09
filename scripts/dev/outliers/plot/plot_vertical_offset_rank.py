@@ -36,20 +36,22 @@ from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from plot_blender_bbox_outlier_dist import (   # noqa: E402
+from plot_bbox_deviation_dist import (   # noqa: E402
     KP_KEYS, BBOX_LO, BBOX_HI, BLENDER_CENTER, MM, detect_scale, session_label,
     position_edges,
 )
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
 
 EZ = position_edges()[2]                 # 垂直 Z のビン端 (position_dist と共通)
 CZ = 0.5 * (EZ[:-1] + EZ[1:])
 
-FLOOR_KP = ["l_wrist", "r_wrist", "l_ankle", "r_ankle"]
+FLOOR_KP = cfg.FLOOR_KP_KEYS              # ['l_wrist', 'r_wrist', 'l_ankle', 'r_ankle']
 FLOOR_Z  = BBOX_LO[2]    # 0.7337 m
 CEIL_Z   = BBOX_HI[2]    # 1.5016 m
 
-DEF_CSV_DIR = Path("scripts/dev/floorZ_files/corrected")
-DEF_OUTPUT  = Path("scripts/dev/outliers_plot")
+DEF_CSV_DIR = Path("outputs/dev/floorZ_files/corrected")
+DEF_OUTPUT  = Path("outputs/dev/outliers_plot")
 DEF_GLOB    = "*_corrected.csv"
 
 

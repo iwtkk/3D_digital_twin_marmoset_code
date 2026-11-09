@@ -20,12 +20,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
+
 DEFAULT_INPUT  = Path("../ez2use/outputs/animate_temp/transformedcsv")
-DEFAULT_OUTPUT = Path("scripts/dev/bbox_files")
+DEFAULT_OUTPUT = Path("outputs/dev/bbox_files")
 SUFFIX = "_points.csv_transformedtest.csv"
 
-BLENDER_BBOX_SCALE = np.array([0.86658, 0.88791, 0.7679])
-BLENDER_CENTER     = np.array([0.0, -0.11142, 1.11765])
+BLENDER_BBOX_SCALE = cfg.BLENDER_BBOX_SCALE
+BLENDER_CENTER     = cfg.BLENDER_CENTER
 BBOX_LO = BLENDER_CENTER - BLENDER_BBOX_SCALE / 2
 BBOX_HI = BLENDER_CENTER + BLENDER_BBOX_SCALE / 2
 

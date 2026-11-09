@@ -11,13 +11,13 @@ if str(_root / "src") not in sys.path:
 
 import argparse
 import os
-import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
 from utils.aniposelib.cameras import CameraGroup
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d
 from marmo3d.validation.utils import (
     cam_map, load_ids_from_yaml, load_kp2d_f, build_points2d_for_frame, rodrigues_to_R,
 )
@@ -207,8 +207,10 @@ def main():
     # 形を aniposelib に合わせる (n_cam, N, 2)
     p2d_flat = p2d.reshape(n_cam, -1, 2)
 
-    with open(os.path.join(base, 'kp3d_fxdJointLen.pickle'), 'rb') as f:
-        pts3d = pickle.load(f)
+    kp3d_path = resolve_kp3d(base)
+    if kp3d_path is None:
+        raise FileNotFoundError(f"kp3d (npz/pickle) not found: {base}")
+    pts3d = load_kp3d(kp3d_path)
     pts3d = pts3d['kp3d'][0][args.frame]
     
     # 三角測量（最適化なし）→ 投影誤差

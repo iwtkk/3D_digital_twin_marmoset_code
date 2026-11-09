@@ -30,7 +30,7 @@ sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
 DEFAULT_INPUT  = Path("../ez2use/outputs/animate_temp/transformedcsv")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 
 def find_csv(input_dir: Path, session: str) -> Path:
@@ -77,8 +77,8 @@ def main():
     df = pd.read_csv(path)
     z_cols = core.floor_z_cols(df.columns)
     vals = core.trim_1_99(df[z_cols].min(axis=1).values)
-    peaks = core.detect_peaks_kde(vals)
-    a, b, status = core.fit_affine(peaks)
+    peaks, peak_dens = core.detect_peaks_kde(vals, return_density=True)
+    a, b, status = core.fit_affine(peaks, peak_densities=peak_dens)
     vals_c, peaks_c = a * vals + b, a * peaks + b
     fr = (peaks_c[0] - core.PHYSICAL_HEIGHTS_M[0]) * 1000 if len(peaks) else float("nan")
     warn = " !" if core.slope_warn(a) else ""

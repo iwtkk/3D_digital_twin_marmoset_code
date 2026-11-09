@@ -2,6 +2,8 @@ import sys
 from pathlib import Path
 # multicam_toolbox はローカルモジュールとして scripts/03_run_marmo3dpose/marmo3Dpose/ に存在する
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "03_run_marmo3dpose" / "marmo3Dpose"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402
 
 import os
 
@@ -143,9 +145,8 @@ def reproject(config_path, i_cam, p3d):
 def procSingleVideo(config_path, data_name, raw_data_dir,result_dir,vidout_dir, 
                     i_cam=7,n_frame2draw=-1,ignore_score=False,show_as_possible=True,redo=False,
                     showID=True,mrksize=5):    
-    pickleFile= result_dir + '/kp3d_fxdJointLen.pickle'    
-    if (not os.path.exists(pickleFile)):
-        pickleFile= result_dir + '/kp3d.pickle'    
+    pickleFile = resolve_kp3d(result_dir)   # npz → pickle
+    pickleFile = str(pickleFile) if pickleFile is not None else result_dir + '/kp3d_fxdJointLen.pickle'
     print(pickleFile)
     # -----
 
@@ -169,8 +170,7 @@ def procSingleVideo(config_path, data_name, raw_data_dir,result_dir,vidout_dir,
     else:
         vw = None
 
-    with open(pickleFile, 'rb') as f:
-        data = pickle.load(f)
+    data = load_kp3d(pickleFile)
 
     data_name = os.path.basename(result_dir)
     mdata = raw_data_dir + '/' + data_name + '.' + str(ID[i_cam]) + '/metadata.yaml'

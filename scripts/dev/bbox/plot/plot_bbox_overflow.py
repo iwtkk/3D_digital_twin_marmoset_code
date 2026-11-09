@@ -18,8 +18,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
-DEFAULT_INPUT  = Path("scripts/dev/bbox_files")
-DEFAULT_OUTPUT = Path("scripts/dev/bbox_plot")
+DEFAULT_INPUT  = Path("outputs/dev/bbox_files")
+DEFAULT_OUTPUT = Path("outputs/dev/bbox_plot")
 
 
 def main():

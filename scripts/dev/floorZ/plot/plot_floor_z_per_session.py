@@ -29,8 +29,8 @@ if _RUN.name == "plot":
 sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
-DEFAULT_INPUT  = Path("scripts/dev/floorZ_files/corrected")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_INPUT  = Path("outputs/dev/floorZ_files/corrected")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 REF_STYLE = [("Floor",   "saddlebrown",    "--"),
              ("Scaffold", "steelblue",     "-."),

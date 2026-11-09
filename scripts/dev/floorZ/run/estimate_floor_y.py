@@ -34,11 +34,14 @@ sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_files")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_files")
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
 
 FLOOR_KP            = core.FLOOR_KP_IDX     # L/R wrist, L/R ankle
-FLOOR_Y_CONTACT_THR = -50.0                 # mm: p99 がこれ未満なら床接触なし
-GLOBAL_FLOOR_Y      = 92.27                 # mm: bbox inlier 上限 ≈ 実際の床
+FLOOR_Y_CONTACT_THR = -50.0                 # mm: p99 がこれ未満なら床接触なし (検出しきい値; config 外)
+GLOBAL_FLOOR_Y      = cfg.FLOOR_Y_MM        # mm: kp3d inlier bbox y 上限 ≈ 実際の床
 
 
 def estimate_floor_y(kp3d: np.ndarray, percentile: float = 99.0) -> float:

@@ -31,7 +31,7 @@ sys.path.insert(0, str(_RUN))
 import kinematics_common as kc  # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/kinematics_files")
+DEFAULT_OUTPUT = Path("outputs/dev/kinematics_files")
 
 
 class HistAccum:

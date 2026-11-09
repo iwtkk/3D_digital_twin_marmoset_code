@@ -29,7 +29,7 @@ import teleport_common as tc  # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/3d")
 DEFAULT_D2D    = Path("outputs/2d")
-DEFAULT_OUTPUT = Path("scripts/dev/teleport_files")
+DEFAULT_OUTPUT = Path("outputs/dev/teleport_files")
 
 THRESHOLD_MM = 100.0
 

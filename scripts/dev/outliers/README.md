@@ -16,11 +16,12 @@
 ## plot/（→ outliers_plot/）
 | スクリプト | 入力(既定) | 出力 |
 |---|---|---|
-| `plot_outlier_deviation_dist.py` | `outliers_files` (JSON) | `deviation_dist.png` |
-| `plot_blender_bbox_outlier_dist.py` | `floorZ_files/corrected` (CSV) | `deviation_dist*.png`, `position_dist.png`, `position_hist.npz` |
-| `plot_pre_post_compare.py` | `floorZ_files/corrected` + transformedcsv | `position_pre_post.png` |
-| `rank_vertical_offset.py` | `floorZ_files/corrected` (CSV) | `vertical_offset_by_session.{csv,png}`, `vertical_dist_by_session.png` |
+| `plot_kp_outlier_dist.py` | `outliers_files` (JSON) | `deviation_dist.png` |
+| `plot_bbox_deviation_dist.py` | `floorZ_files/corrected` (CSV) | `deviation_dist*.png`, `position_dist.png`, `position_hist.npz` |
+| `plot_kp_dist_before_after.py` | `floorZ_files/corrected` + transformedcsv | `position_pre_post.png` |
+| `plot_vertical_offset_rank.py` | `floorZ_files/corrected` (CSV) | `vertical_offset_by_session.{csv,png}`, `vertical_dist_by_session.png` |
+| `plot_kp_position_dist.py` | `floorZ_files/corrected` (CSV) | `position_dist_{session}.png`, `position_dist_{animal}.png` |
 
-`plot_blender_bbox_outlier_dist.py` が共有ヘルパー（bbox 定数・位置ヒスト集計）を提供し、
-`plot_pre_post_compare.py` と `rank_vertical_offset.py` がそれを import する。
+`plot_bbox_deviation_dist.py` が共有ヘルパー（bbox 定数・位置ヒスト集計）を提供し、
+`plot_kp_dist_before_after.py` と `plot_vertical_offset_rank.py` がそれを import する。
 bbox の評価方法は `README.md` 内の本節および各スクリプト docstring を参照。

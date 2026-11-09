@@ -26,7 +26,7 @@ sys.path.insert(0, str(_RUN))
 import floorz_core as core  # noqa: E402
 
 DEFAULT_INPUT  = Path("outputs/3d")
-DEFAULT_OUTPUT = Path("scripts/dev/floorZ_plot")
+DEFAULT_OUTPUT = Path("outputs/dev/floorZ_plot")
 
 _CJK = "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf"
 if Path(_CJK).exists():
@@ -62,8 +62,8 @@ def main():
             continue
         vals = core.trim_1_99(core.floor_bz_series(pkl))
         xg, dens = core.kde_curve(vals)
-        peaks = core.detect_peaks_kde(vals)
-        _, _, _, mp, _ = core.fit_affine(peaks, return_pairs=True)
+        peaks, peak_dens = core.detect_peaks_kde(vals, return_density=True)
+        _, _, _, mp, _ = core.fit_affine(peaks, return_pairs=True, peak_densities=peak_dens)
 
         ax.hist(vals, bins=120, density=True, color="0.80", edgecolor="none", zorder=1,
                 label="floor KP bZ ヒストグラム (density)")

@@ -12,18 +12,18 @@ run は計算→JSON、plot は JSON を読んで図を描く（一部 timeline 
 | スクリプト | 入力(既定) | 出力 |
 |---|---|---|
 | `teleport_common.py` | — | 共有ライブラリ（ChunkCache 等, CLI なし） |
-| `analyze_teleport.py` | `outputs/3d`, `outputs/2d` | `{session}_teleport.json`, `teleport_summary.json` |
-| `analyze_teleport_v2.py` | `outputs/3d`, `outputs/2d` | `{session}_teleport_v2.json`, `teleport_summary_v2.json` |
+| `detect_position_jumps.py` | `outputs/3d`, `outputs/2d` | `{session}_teleport.json`, `teleport_summary.json` |
+| `detect_position_jumps_twostage.py` | `outputs/3d`, `outputs/2d` | `{session}_teleport_v2.json`, `teleport_summary_v2.json` |
 
 ## plot/（→ teleport_plot/ ・ teleport_v2_plot/）
 
 | スクリプト | 入力(既定) | 出力 |
 |---|---|---|
-| `plot_teleport.py` | `teleport_files` + `outputs/3d` | heatmap / timeline / camera visibility / jump dist |
-| `plot_teleport_v2.py` | `teleport_v2_files` + `outputs/3d` | heatmap / kp freq / jump patterns / camera vis / velocity dist |
+| `plot_position_jumps.py` | `teleport_files` + `outputs/3d` | heatmap / timeline / camera visibility / jump dist |
+| `plot_position_jumps_twostage.py` | `teleport_v2_files` + `outputs/3d` | heatmap / kp freq / jump patterns / camera vis / velocity dist |
 
 実行例:
 ```bash
-OPENBLAS_NUM_THREADS=1 python3 scripts/dev/teleport/run/analyze_teleport_v2.py
-OPENBLAS_NUM_THREADS=1 python3 scripts/dev/teleport/plot/plot_teleport_v2.py
+OPENBLAS_NUM_THREADS=1 python3 scripts/dev/teleport/run/detect_position_jumps_twostage.py
+OPENBLAS_NUM_THREADS=1 python3 scripts/dev/teleport/plot/plot_position_jumps_twostage.py
 ```

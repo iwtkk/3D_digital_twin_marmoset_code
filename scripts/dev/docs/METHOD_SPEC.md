@@ -45,13 +45,13 @@ Generated output directories
 Plot outputs must be saved under:
 
 ```text
-scripts/dev/{target}_plot/
+outputs/dev/{target}_plot/
 ```
 
 Generated data files such as CSV, TSV, JSON, and intermediate result files must be saved under:
 
 ```text
-scripts/dev/{target}_files/
+outputs/dev/{target}_files/
 ```
 
 ## about to make a directory
@@ -59,3 +59,9 @@ scripts/dev/{target}_files/
 scripts/dev/{target}/run/
 scripts/dev/{target}/plot/
 の下にはディレクトリを作らない
+
+## csv or pickle
+
+runやplotの際に補正前後のcsvを使うか生データのpickleファイルを使うとき
+出来るだけcsvを使うようにする 生データを使わなければいけない時にのみpickleを使用する
+スクリプトの名前に_csv, _pickleと明記する

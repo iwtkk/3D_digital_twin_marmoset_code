@@ -27,6 +27,7 @@ deviation は Blender m 空間で計算し、読みやすさのため mm (×1000
 from __future__ import annotations
 
 import argparse
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -39,9 +40,12 @@ import matplotlib.ticker as ticker
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Rectangle
 
-# ── Blender bbox (pkl_to_corrected_csv.py と同一) ─────────────────────────────
-BLENDER_BBOX_SCALE = np.array([0.86658, 0.88791, 0.7679])
-BLENDER_CENTER     = np.array([0.0, -0.11142, 1.11765])
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+import _config as cfg  # noqa: E402
+
+# ── Blender bbox (floorz_core / pkl_to_corrected_csv.py と同一) ───────────────
+BLENDER_BBOX_SCALE = cfg.BLENDER_BBOX_SCALE
+BLENDER_CENTER     = cfg.BLENDER_CENTER
 HALF = BLENDER_BBOX_SCALE / 2
 BBOX_LO = BLENDER_CENTER - HALF   # (3,)  m
 BBOX_HI = BLENDER_CENTER + HALF   # (3,)  m
@@ -63,16 +67,10 @@ POS_PAD_M = 0.4
 POS_NBINS = 150
 
 # 元の 20 キーポイントのみ評価 (派生点 shoulder_mid/base/center_eye は除外)
-KP_KEYS = [
-    "nose", "l_eye", "r_eye", "l_ear", "r_ear",
-    "l_shoulder", "r_shoulder", "l_elbow", "r_elbow",
-    "l_wrist", "r_wrist", "l_hip", "r_hip",
-    "l_knee", "r_knee", "l_ankle", "r_ankle",
-    "backbone_peak", "tail_1", "tail_2",
-]
+KP_KEYS = cfg.KP_KEYS
 
-CSV_DIR = Path("scripts/dev/floorZ_files/corrected")
-DEFAULT_OUTPUT = Path("scripts/dev/outliers_plot")
+CSV_DIR = Path("outputs/dev/floorZ_files/corrected")
+DEFAULT_OUTPUT = Path("outputs/dev/outliers_plot")
 
 
 def excess(vals, lo, hi):

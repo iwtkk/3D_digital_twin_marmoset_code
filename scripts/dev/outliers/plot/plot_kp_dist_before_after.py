@@ -36,15 +36,15 @@ from matplotlib.patches import Rectangle
 
 # 同ディレクトリのメインスクリプトからヘルパーを再利用
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from plot_blender_bbox_outlier_dist import (   # noqa: E402
+from plot_bbox_deviation_dist import (   # noqa: E402
     BBOX_LO, BBOX_HI, position_edges, accumulate_position_hists,
 )
 
 DEF_PRE_DIR  = Path("../ez2use/outputs/animate_temp/transformedcsv")
 DEF_PRE_GLOB = "*_transformedtest.csv"
-DEF_POST_DIR = Path("scripts/dev/floorZ_files/corrected")
+DEF_POST_DIR = Path("outputs/dev/floorZ_files/corrected")
 DEF_POST_GLOB = "*_corrected.csv"
-DEF_OUTPUT = Path("scripts/dev/outliers_plot")
+DEF_OUTPUT = Path("outputs/dev/outliers_plot")
 
 
 def get_hists(csv_dir: Path, glob: str, cache: Path | None):
