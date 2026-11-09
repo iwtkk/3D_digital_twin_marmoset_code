@@ -73,7 +73,7 @@ EYE_SRC = {
 def parse_blender_args():
     argv = sys.argv
     if "--" not in argv:
-        raise ValueError("CSVパスを -- <path> で渡してください")
+        raise ValueError("Pass the CSV path as -- <path>")
     idx = argv.index("--")
     rest = argv[idx + 1:]
     csv_path = None
@@ -90,7 +90,7 @@ def parse_blender_args():
         else:
             i += 1
     if csv_path is None:
-        raise ValueError("CSVパスが指定されていません。")
+        raise ValueError("CSV path not specified.")
     return csv_path, armature_name
 
 
@@ -146,23 +146,23 @@ bone_names = list(bone_pts.keys())
 amt = bpy.data.objects[ARMATURE_NAME]
 
 total_frames = pts.shape[0]
-# 1-indexed のフレーム番号配列（float: fcurve の co に使う）
+# 1-indexed frame number array (float: used for fcurve co)
 frame_indices = np.arange(1, total_frames + 1, dtype=float)
 
 start_time = time.time()
-print(f"[INFO] 全{total_frames}フレームを一括処理します（バッチモード）")
+print(f"[INFO] Processing all {total_frames} frames at once (batch mode)")
 
 
 def _get_fcurves_container(obj, action):
-    """Blender 4.x / 5.x 両対応でfcurvesコレクションを返す。
+    """Return the fcurves collection (supports both Blender 4.x and 5.x).
 
-    Blender 5.0でAction APIが刷新され action.fcurves が廃止された。
-    5.x では layer → strip → channelbag → fcurves の構造を辿る必要がある。
+    The Action API was redesigned in Blender 5.0 and action.fcurves was removed.
+    In 5.x, fcurves must be reached via layer → strip → channelbag → fcurves.
     """
     # Blender 4.x
     if hasattr(action, 'fcurves'):
         return action.fcurves
-    # Blender 5.x: layered action 構造
+    # Blender 5.x: layered action structure
     layer = action.layers[0] if action.layers else action.layers.new(name="Layer")
     strip = layer.strips[0] if layer.strips else layer.strips.new(type='KEYFRAME')
     slot = action.slots[0] if action.slots else action.slots.new(id_type=obj.id_type, name=obj.name)
@@ -184,7 +184,7 @@ BATCH_SIZE = 10000
 
 
 def insert_fcurve_batch(fcurves, data_path, index, frames, values):
-    """全フレーム分のキーフレームを一括挿入。per-frame keyframe_insert より大幅に高速。"""
+    """Insert keyframes for all frames at once. Much faster than per-frame keyframe_insert."""
     fc = fcurves.find(data_path, index=index)
     if fc is None:
         fc = fcurves.new(data_path=data_path, index=index)
@@ -192,17 +192,17 @@ def insert_fcurve_batch(fcurves, data_path, index, frames, values):
         fc.keyframe_points.clear()
 
     n = len(frames)
-    # BATCH_SIZE ずつ add することでBlender内部のメモリ確保を分散
+    # Add in chunks of BATCH_SIZE to spread out Blender's internal memory allocation
     for chunk_start in range(0, n, BATCH_SIZE):
         fc.keyframe_points.add(min(BATCH_SIZE, n - chunk_start))
 
-    # co は [frame0, val0, frame1, val1, ...] のフラット配列
+    # co is a flat array: [frame0, val0, frame1, val1, ...]
     co = np.empty(n * 2, dtype=float)
     co[0::2] = frames
     co[1::2] = values
     fc.keyframe_points.foreach_set("co", co)
 
-    # LINEAR補間 (CONSTANT=0, LINEAR=1, BEZIER=2)
+    # LINEAR interpolation (CONSTANT=0, LINEAR=1, BEZIER=2)
     fc.keyframe_points.foreach_set("interpolation", [1] * n)
     fc.update()
 
@@ -211,14 +211,14 @@ def has_xyz(prefix):
     return all((prefix + a) in cols for a in ("x", "y", "z"))
 
 
-# ===== 1. アーマチュアボーン =====
+# ===== 1. Armature bones =====
 _, amt_fcurves = get_or_create_action(amt, "ArmatureAnimation")
 
 for bone_name in bone_names:
     prefix = bone_pts[bone_name]
     global_locs = pts[:, [cols[prefix + "x"], cols[prefix + "y"], cols[prefix + "z"]]]  # (N, 3)
 
-    # rest pose の逆行列でグローバル→ボーンローカル座標に変換（全フレーム一括）
+    # Convert global -> bone-local coords via the inverse rest pose matrix (all frames at once)
     inv_mat = np.array(amt.data.bones[bone_name].matrix_local.inverted())  # (4, 4)
     ones = np.ones((total_frames, 1))
     local_locs = (inv_mat @ np.hstack([global_locs, ones]).T).T[:, :3]  # (N, 3)
@@ -227,9 +227,9 @@ for bone_name in bone_names:
     for axis_idx in range(3):
         insert_fcurve_batch(amt_fcurves, data_path, axis_idx, frame_indices, local_locs[:, axis_idx])
 
-print(f"[INFO] ボーン処理完了: {time.time() - start_time:.2f}秒")
+print(f"[INFO] Bones done: {time.time() - start_time:.2f} s")
 
-# ===== 2. カメラ =====
+# ===== 2. Cameras =====
 for cam_key, cam_prefix in cam_pts.items():
     cam_obj = cam_objs[cam_key]
     if cam_obj is None:
@@ -261,9 +261,9 @@ for cam_key, cam_prefix in cam_pts.items():
         insert_fcurve_batch(cam_fcurves, "location", axis_idx, frame_indices, locs[:, axis_idx])
         insert_fcurve_batch(cam_fcurves, "rotation_euler", axis_idx, frame_indices, rots[:, axis_idx])
 
-print(f"[INFO] カメラ処理完了: {time.time() - start_time:.2f}秒")
+print(f"[INFO] Cameras done: {time.time() - start_time:.2f} s")
 
-# ===== 3. 顔パーツオブジェクト =====
+# ===== 3. Face part objects =====
 for name in names:
     if name not in objs:
         continue
@@ -274,10 +274,10 @@ for name in names:
     for axis_idx in range(3):
         insert_fcurve_batch(obj_fcurves, "location", axis_idx, frame_indices, obj_locs[:, axis_idx])
 
-print(f"[INFO] 顔パーツ処理完了: {time.time() - start_time:.2f}秒")
+print(f"[INFO] Face parts done: {time.time() - start_time:.2f} s")
 
 elapsed = time.time() - start_time
-print(f"[INFO] 全フレーム処理時間: {elapsed:.2f} 秒")
+print(f"[INFO] Total processing time for all frames: {elapsed:.2f} s")
 
 out_path = bpy.data.filepath
 bpy.ops.wm.save_mainfile(filepath=out_path)

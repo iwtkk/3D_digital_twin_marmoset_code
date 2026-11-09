@@ -1,32 +1,32 @@
 version: 1
 
-# パス定義（ハードコードパスの一元管理）
-# 以下はリポジトリルートに置くシンボリックリンク（.gitignore 済み）
-# setup_data_links.sh で一括作成する
+# Path definitions (central place for hard-coded paths)
+# The following are symlinks at the repository root (already in .gitignore)
+# Created all at once by setup_data_links.sh
 paths:
   vid: "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/marmoset_keypoint_data/video_data"
   results_2d: "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/marmoset_keypoint_data/2D_temporal_keypoint_data"
   results: "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/marmoset_keypoint_data"
-  logs: "{PROJECT_ROOT}/logs"        # ログ出力先
+  logs: "{PROJECT_ROOT}/logs"        # log output directory
 
 dataset:
   name: marmo3dpose
   description: >
-    セッション単位の動画（25fps保存）と処理後成果物（24fps基準）を
-    セッションIDで紐付け、探索・検証・読み出し・可視化・連結を行う。
+    Links per-session videos (stored at 25fps) and processed outputs (24fps-based)
+    by session ID, for discovery, validation, loading, visualization and concatenation.
 
-  # ルート（paths セクションのシンボリックリンク経由）
+  # Roots (via the symlinks in the paths section)
   roots:
     video_roots:
       - "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/marmoset_keypoint_data/video_data"
     results_root: "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/marmoset_keypoint_data"
 
-  # camid（8台）の唯一の真実
+  # Single source of truth for camid (8 cameras)
   cameras:
     source: "{PROJECT_ROOT}/config/marmo*/config.yaml"
     field: "camera_id"
     expected_count: 8
-    # ここは「実値」を一度確定させて埋める（0-7/1-8/8桁などを固定）
+    # Fill in the actual values once decided (fix 0-7 / 1-8 / 8-digit etc.)
     allowed_ids:
       - "23506226"
       - "23511607"
@@ -36,60 +36,60 @@ dataset:
       - "23506237"
       - "23511613"
       - "23506239"
-    ordering: "config"  # config.yamlの順を正とする
+    ordering: "config"  # the order in config.yaml is authoritative
 
   ids:
-    # 「セッションID」をカメラと切り離して固定（曖昧さの元を消す）
-    # prefixは列挙して確定（dailylife と cj を混在させない）
+    # Define the session ID independently of the camera (removes ambiguity)
+    # Enumerate prefixes explicitly (do not mix dailylife and cj)
     session_prefixes:
       - "dailylife_cj"
       - "cj"
 
-    # セッションID（cam無し）
+    # Session ID (without cam)
     session_id_regex: "^(?P<prefix>dailylife_cj|cj)(?P<animal>\\d+)_(?P<date>\\d{8})_(?P<time>\\d{6})$"
 
-    # 動画フォルダID（session_id + .camid）
+    # Video folder ID (session_id + .camid)
     video_folder_id_template: "{session_id}.{camid}"
     video_folder_id_regex: "^(?P<session_id>(dailylife_cj|cj)\\d+_\\d{8}_\\d{6})\\.(?P<camid>.+)$"
 
-    # 処理後フォルダID（session_id）
+    # Processed folder ID (session_id)
     results_folder_id_template: "{session_id}"
 
   layout:
-    # 動画chunk仕様
+    # Video chunk spec
     video_chunks:
       filename_template: "{chunk_index:06d}.mp4"
       chunk_frames_nominal: 10000
       last_chunk_may_be_short: true
 
-    # 動画のメタデータ（imgstore参照用）
+    # Video metadata (for imgstore lookup)
     metadata:
       filename: "metadata.yaml"
-      # 仕様として「どこにあるか」を固定（Sessionクラスが迷わない）
+      # Fix the location in the spec (so the Session class need not guess)
       path_template: "{video_root}/{video_folder_id}/metadata.yaml"
 
-    # npz（存在チェックのみ要件化）
+    # npz (only existence is required)
     npz:
-      # mp4の本数と同数のnpzがあるべき、という要件を固定
+      # Require the number of npz files to match the number of mp4 files
       must_match_video_chunk_count: true
-      # 置き場所が不明なら「同階層」などに固定しておく（適宜変更）
+      # If the location is unknown, fix it to e.g. the same directory (change as needed)
       path_template: "{video_root}/{video_folder_id}/{chunk_index:06d}.npz"
 
   discovery:
-    # vid* や 3d* の * を「許容候補と優先順位」として仕様化
+    # Specify the * in vid* / 3d* as allowed candidates with priority
     video_root_priority:
       - "{PROJECT_ROOT}/3D_digital_twin_marmoset_data/marmoset_keypoint_data/video_data"
 
     results_subdirs:
       - 3D_temporal_keypoint_data
 
-    # 複数見つかった時の扱い（仕様として決める）
+    # Behavior when multiple are found (defined by the spec)
     on_multiple_matches:
       policy: "priority_first"   # priority_first / latest_mtime / error / collect_all
       latest_key: "mtime"
 
   artifacts:
-    # 3D（必須）
+    # 3D (required)
     kp3d:
       required: true
       path_templates:
@@ -97,12 +97,12 @@ dataset:
         - "{results_root}/{results_subdir}/{results_folder_id}/kp3d.pickle"
         - "{results_root}/{results_subdir}/{results_folder_id}/kp3d*.pickle"
       selection:
-        # 「どっちでもいい」を仕様として定義：優先順位
+        # Define "either is fine" in the spec: priority order
         prefer_contains:
           - "fxdJointLen"
         fallback: "first_match"  # first_match / latest_mtime / error
 
-    # 2D（任意：あれば使う）
+    # 2D (optional: used if present)
     kp2d:
       required: false
       any_of:
@@ -111,13 +111,13 @@ dataset:
         - "{results_root}/{results_subdir}/{results_folder_id}/kp2d*.json"
         - "{results_root}/{results_subdir}/{results_folder_id}/kp2d*.pickle"
 
-    # 追加成果物（任意）
+    # Additional outputs (optional)
     alldata_json:
       required: false
       path_template: "{results_root}/{results_subdir}/{results_folder_id}/{camid}/alldata.json"
 
   integrity:
-    # スキップ判定（チェックリスト化）
+    # Skip checks (as a checklist)
     skip_policy:
       if_any_fail: "skip_session"   # skip_session / raise / mark_invalid_only
       record_log: true
@@ -129,7 +129,7 @@ dataset:
       must_have_npz_count_match_mp4: true
 
     sync_check:
-      # 「5000フレーム以上ズレていないか」要件を固定
+      # Require that the offset is not 5000 frames or more
       enabled: true
       max_frame_diff: 5000
       basis: "total_frames_per_cam"  # total_frames_per_cam / duration / timestamps
@@ -139,17 +139,17 @@ dataset:
       must_have_kp3d_at_least_one: true
 
   timebase:
-    # 25fps保存の動画と、24fps基準の処理結果の対応
+    # Mapping between 25fps-stored videos and 24fps-based processed results
     video_fps_stored: 25.0
     processing_fps: 24.0
 
-    # 「開始時刻はimgstoreで開始フレームを閲覧できるのでそれを基準」
+    # Start time is based on the start frame, which can be read from imgstore
     alignment:
       truth_source: "imgstore_metadata"  # imgstore_metadata / explicit_timestamp / manual_offset
-      start_frame_key: "imgstore_start_frame"  # metadata.yaml内のどのキーを真とするか（確定して埋める）
+      start_frame_key: "imgstore_start_frame"  # which key in metadata.yaml is authoritative (fill in once decided)
 
     mapping:
-      # t24 -> t25 の対応を仕様として固定（丸め規則も）
+      # Fix the t24 -> t25 mapping in the spec (including rounding rule)
       formula: "t25 = round(t24 * video_fps_stored / processing_fps)"
       rounding: "nearest"   # nearest / floor / ceil
       clamp:
@@ -157,7 +157,7 @@ dataset:
         max_frame: "video_total_frames_minus_1"
 
   logging:
-    # スキップログ（後工程が楽になる）
+    # Skip log (makes downstream steps easier)
     format: "jsonl"
     path: "{PROJECT_ROOT}/logs/skip_log.jsonl"
     fields:
@@ -170,18 +170,18 @@ dataset:
       - traceback
 
   partitioning:
-    # yyyymmdd で区切りたい
+    # split by yyyymmdd
     by_date:
       enabled: true
-      key: "date"   # session_idから抽出
-      range_inclusive: ["00000000", "99999999"]  # 必要なら埋める
+      key: "date"   # extracted from session_id
+      range_inclusive: ["00000000", "99999999"]  # fill in if needed
 
-    # 疾患/健常の区切り（年月日で指定したい）
+    # Diseased/healthy split (specified by date)
     health_status:
       enabled: true
       source: "{PROJECT_ROOT}/config/health_status.yaml"
       schema:
-        # 例:
+        # Example:
         # cj001:
         #   diseased_from: "20250101"
         #   diseased_to:   "20250331"
@@ -190,13 +190,13 @@ dataset:
         date_key: "date"
 
   aggregation:
-    # 個体ごとの3D姿勢推定結果を連結
+    # Concatenate 3D pose estimation results per individual
     enabled: true
     group_by: ["animal"]
     index_columns: ["animal", "session_id", "frame"]
-    include_camid: false  # 3Dがセッション単位ならfalse、cam別に残すならtrue
+    include_camid: false  # false if 3D is per session, true to keep per cam
     output:
-      # 大きくなる想定なら parquet 推奨（pickleも許容）
+      # parquet recommended if large (pickle also allowed)
       format: "parquet"   # parquet / hdf5 / pickle
       path_template: "{PROJECT_ROOT}/outputs/aggregate/{animal}/kp3d_aggregate.{ext}"
-      compression: "zstd"   # parquetの場合
+      compression: "zstd"   # for parquet

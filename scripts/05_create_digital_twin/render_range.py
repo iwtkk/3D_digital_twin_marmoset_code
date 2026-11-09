@@ -1,22 +1,22 @@
-"""Blender 側のレンダーワーカー（カラー画像 / PNG）。
+"""Blender-side render worker (color images / PNG).
 
-2つのモードがある。
+There are two modes.
 
-  batch (従来)  : --start/--end を1回レンダリングして blender を終了する。
-  warm (--serve): .blend を読み込んだまま常駐し、stdin から1行1JSONのジョブ
-                  （render_ipc.py 参照）を受け取って連続でレンダリングする。
+  batch (old)   : render --start/--end once and exit blender.
+  warm (--serve): stay resident with the .blend loaded, receive one JSON job per line
+                  from stdin (see render_ipc.py) and render them one after another.
 
-warm 運用の狙いは、チャンクごとに blender を起動し直すことで毎回払っていた
-  - .blend のロード（ジオメトリ・テクスチャ）
-  - CUDA/OptiX コンテキスト初期化と GPU へのシーン転送
-  - BVH 構築（use_persistent_data はプロセス内でしか効かない）
-を、ワーカー1本につき1回に減らすこと。カメラ・出力先・フレーム範囲はジョブごとに
-切り替えられるので、1つの .blend の全カメラ・全チャンクを同じプロセスで消化できる。
+The goal of warm mode is to reduce the costs that were paid every time blender was restarted per chunk
+  - loading the .blend (geometry, textures)
+  - CUDA/OptiX context init and scene upload to the GPU
+  - BVH build (use_persistent_data only works within a process)
+to once per worker. Camera, output directory and frame range can be switched per job,
+so all cameras and chunks of one .blend can be processed in the same process.
 
-使い方:
+Usage:
   blender work.blend -b -P render_range.py -- --camera Camera_C --start 1 --end 50 \\
       --out outputs/render/s/Camera_C --prefix s_Camera_C_
-  blender work.blend -b -P render_range.py -- --serve   # ディスパッチャから使う
+  blender work.blend -b -P render_range.py -- --serve   # used from the dispatcher
 """
 import json
 import os
@@ -35,94 +35,94 @@ from render_ipc import encode  # noqa: E402
 # CLI
 # --------------------------------------------------------------------------
 def build_arg_parser(description, default_prefix="frame_", default_samples=32):
-    """warm/batch 共通のオプション定義。depth 版（render_range_depth.py）も使う。"""
+    """Option definitions shared by warm/batch. Also used by the depth version (render_range_depth.py)."""
     import argparse
     p = argparse.ArgumentParser(description=description)
 
-    # --- ジョブ指定（batch モードのみ必須。warm モードでは stdin のジョブが優先） ---
+    # --- Job spec (required only in batch mode; in warm mode stdin jobs take priority) ---
     p.add_argument("--serve", action="store_true",
-                   help="warm モード。stdin から1行1JSONのジョブを受け取り常駐する")
+                   help="Warm mode. Stay resident and receive one JSON job per line from stdin")
     p.add_argument("--camera", default=None, help="Camera object name")
     p.add_argument("--start", type=int, default=None, help="Start frame")
     p.add_argument("--end", type=int, default=None, help="End frame (inclusive)")
     p.add_argument("--out", default=None, help="Output directory")
     p.add_argument("--prefix", default=default_prefix,
                    help=f"Output filename prefix (default: {default_prefix})")
-    p.add_argument("--resolution", default=None, help="解像度 WxH（例: 1920x1080）")
+    p.add_argument("--resolution", default=None, help="Resolution WxH (e.g. 1920x1080)")
     p.add_argument("--overwrite", action="store_true",
-                   help="既に出力ファイルがあっても上書きする（デフォルトはスキップ）")
+                   help="Overwrite existing output files (default: skip)")
 
-    # --- デバイス ---
+    # --- Device ---
     p.add_argument("--backend", default="CUDA", choices=["CUDA", "OPTIX"],
-                   help="Cycles の GPU バックエンド（デフォルト: CUDA）")
+                   help="Cycles GPU backend (default: CUDA)")
     p.add_argument("--allow-cpu-fallback", action="store_true",
-                   help="GPU デバイスが1つも有効化できなくても CPU で続行する"
-                        "（デフォルトはエラーで停止。CPU への無言フォールバックは"
-                        "1フレーム15秒が4分になる最大の罠なので既定では許可しない）")
+                   help="Continue on CPU even if no GPU device can be enabled "
+                        "(default: stop with an error. A silent fallback to CPU "
+                        "turns 15 s/frame into 4 min/frame, so it is not allowed by default)")
     p.add_argument("--no-persistent-data", dest="persistent_data", action="store_false",
-                   help="フレーム間でシーンデータを保持しない（デフォルトは保持）")
+                   help="Do not keep scene data between frames (default: keep)")
 
-    # --- 画に影響する最適化（blender_render/tools/optimize_blend.py と同じ内容） ---
+    # --- Optimizations that change the image (same as blender_render/tools/optimize_blend.py) ---
     p.add_argument("--optimize", action="store_true",
-                   help="デノイザーOptiX・Simplify・indirect clamp・adaptive threshold・"
-                        "ガラスの影オフをまとめて適用する（画が変わるのでオプトイン）")
+                   help="Apply OptiX denoiser, Simplify, indirect clamp, adaptive threshold and "
+                        "glass shadow off together (opt-in because it changes the image)")
     p.add_argument("--samples", type=int, default=default_samples,
-                   help=f"Cycles サンプル数を上書き（デフォルト: {default_samples}）。"
-                        f"0 以下を渡すと .blend の設定をそのまま使う")
+                   help=f"Override Cycles sample count (default: {default_samples}). "
+                        f"A value <= 0 uses the .blend setting as is")
     p.add_argument("--denoiser", default=None,
                    choices=["OPTIX", "OPENIMAGEDENOISE", "NONE"],
-                   help="デノイザー（省略時は .blend の設定のまま、--optimize 時は OPTIX）")
+                   help="Denoiser (default: keep the .blend setting; OPTIX with --optimize)")
     p.add_argument("--adaptive-threshold", type=float, default=None,
-                   help="Adaptive Sampling の Noise Threshold（--optimize 時の既定 0.03）")
+                   help="Adaptive Sampling noise threshold (default with --optimize: 0.03)")
     p.add_argument("--indirect-clamp", type=float, default=None,
-                   help="Light Path の Indirect Clamp（--optimize 時の既定 3.0）")
+                   help="Light Path indirect clamp (default with --optimize: 3.0)")
     p.add_argument("--texture-limit", default=None,
-                   help="Simplify のビューポート用テクスチャ上限px（--optimize 時の既定 2048）")
+                   help="Simplify viewport texture limit in px (default with --optimize: 2048)")
     p.add_argument("--texture-limit-render", default=None,
-                   help="Simplify のレンダー用テクスチャ上限px（--optimize 時の既定 4096）")
+                   help="Simplify render texture limit in px (default with --optimize: 4096)")
     p.add_argument("--glass-keyword", action="append", default=[],
-                   help="このキーワードを名前に含むマテリアルを持つオブジェクトの"
-                        "影レイ可視性を切る（複数指定可、既定: glass window）")
+                   help="Disable shadow-ray visibility of objects with a material whose name "
+                        "contains this keyword (repeatable; default: glass window)")
     return p
 
 
 def parse_args(parser):
-    """Blender の引数は `--` 以降がユーザー用。"""
+    """Blender arguments after `--` are for the user script."""
     argv = sys.argv
     argv = argv[argv.index("--") + 1:] if "--" in argv else []
     return parser.parse_args(argv)
 
 
 # --------------------------------------------------------------------------
-# 制御メッセージ
+# Control messages
 # --------------------------------------------------------------------------
 def emit(msg):
-    """制御メッセージを stdout へ1行出力する（Blender のログと混ざっても判別可能）。"""
+    """Write one control message line to stdout (distinguishable even when mixed with Blender logs)."""
     print(encode(msg), flush=True)
 
 
 def _set(obj, attr, value, log):
-    """存在しない/型が違う設定を無視しつつ代入する（Blender のバージョン差対策）。"""
+    """Assign a setting, ignoring missing attributes or type mismatches (for Blender version differences)."""
     if value is None or not hasattr(obj, attr):
         return False
     try:
         setattr(obj, attr, value)
     except (TypeError, ValueError) as e:
-        log.append(f"{attr}={value!r} 設定不可 ({e})")
+        log.append(f"{attr}={value!r} cannot be set ({e})")
         return False
     log.append(f"{attr}={value!r}")
     return True
 
 
 # --------------------------------------------------------------------------
-# シーン設定（ワーカー起動時に1回だけ実行する）
+# Scene setup (run only once when the worker starts)
 # --------------------------------------------------------------------------
 def setup_gpu(backend, allow_cpu_fallback=False):
-    """Cycles の GPU バックエンドを有効化し、有効になったデバイス名を返す。
+    """Enable the Cycles GPU backend and return the names of the enabled devices.
 
-    Blender の Preferences 側 compute_device_type が NONE のままだと、シーンで
-    device='GPU' にしても静かに CPU にフォールバックする（blender_render/tools/README.md
-    §0）。ここで明示的に設定し、GPU が1つも取れなければ既定ではエラーにする。
+    If compute_device_type in Blender Preferences stays NONE, rendering silently
+    falls back to CPU even with device='GPU' in the scene (blender_render/tools/README.md
+    §0). Set it explicitly here, and by default raise an error if no GPU is available.
     """
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
@@ -130,31 +130,31 @@ def setup_gpu(backend, allow_cpu_fallback=False):
     prefs.compute_device_type = backend
     prefs.get_devices()
 
-    # prefs.devices には「過去にそのマシンで見えていたデバイス」が userpref に
-    # 残り続ける（GPU1枚しか見えない状況でも CUDA 5件 + OPTIX 5件が並ぶことを実測）。
-    # 実在するデバイスは get_devices_for_type() で取る。
+    # prefs.devices keeps devices that were visible on this machine in the past in userpref
+    # (measured: 5 CUDA + 5 OPTIX entries even when only one GPU is visible).
+    # Get the devices that really exist with get_devices_for_type().
     try:
         present = list(prefs.get_devices_for_type(backend))
-    except AttributeError:      # 古い Blender 向けフォールバック
+    except AttributeError:      # fallback for old Blender
         present = list(prefs.devices)
 
     for device in prefs.devices:
-        # GPU デバイスのみ有効化。CPU デバイスは無効にしてシーン同期に回す
-        # （複数ワーカーを同一GPUに載せたときの CPU 競合を抑える）
+        # Enable only GPU devices. Disable CPU devices and leave the CPU for scene sync
+        # (reduces CPU contention when several workers share one GPU)
         device.use = (device.type == backend)
 
     enabled = [d.name for d in present if d.type == backend]
 
-    # has_active_device() が Cycles 側の最終判定（False なら実際には CPU で回る）
+    # has_active_device() is Cycles' final verdict (False means it really runs on CPU)
     try:
         gpu_active = bool(prefs.has_active_device())
     except AttributeError:
         gpu_active = bool(enabled)
 
     if not enabled or not gpu_active:
-        msg = (f"backend={backend} の GPU デバイスが有効になっていません "
-               f"（このまま実行すると CPU にフォールバックして数十倍遅くなります）。"
-               f"実在デバイス: {[(d.name, d.type) for d in present]}, "
+        msg = (f"No GPU device is enabled for backend={backend} "
+               f"(running as is would fall back to CPU and be tens of times slower). "
+               f"Present devices: {[(d.name, d.type) for d in present]}, "
                f"has_active_device={gpu_active}")
         if not allow_cpu_fallback:
             raise RuntimeError(msg)
@@ -167,23 +167,23 @@ def setup_gpu(backend, allow_cpu_fallback=False):
 
 
 def apply_warm_settings(scene, persistent_data=True):
-    """画を変えない範囲の高速化設定。warm/batch 問わず常に適用する。"""
+    """Speed-up settings that do not change the image. Always applied in both warm and batch mode."""
     log = []
-    # フレーム間でシーンデータ（BVH等）を保持する。プロセスを維持する warm 運用では
-    # チャンクをまたいでも効くので、cold 運用より効果が大きい。
+    # Keep scene data (BVH etc.) between frames. In warm mode, where the process is kept,
+    # this also works across chunks, so the effect is larger than in cold mode.
     _set(scene.render, "use_persistent_data", persistent_data, log)
-    # デノイズとコンポジットを GPU 側で行い、CPU 律速を避ける
+    # Denoise and composite on the GPU to avoid being CPU-bound
     _set(scene.cycles, "denoising_use_gpu", True, log)
     _set(scene.render, "compositor_device", "GPU", log)
     return log
 
 
 def apply_optimizations(scene, args):
-    """blender_render/tools/optimize_blend.py と同じ「画が変わる」最適化。
+    """Image-changing optimizations, same as blender_render/tools/optimize_blend.py.
 
-    --optimize でプリセット値を、個別オプションが指定されていればそちらを適用する。
-    optimize_blend.py と同様、カメラカリングとデシメートには触らない（シーン依存で
-    画が壊れることが検証済み）。
+    --optimize applies preset values; individual options take priority when given.
+    Like optimize_blend.py, camera culling and decimation are not touched (verified
+    to break the image depending on the scene).
     """
     log = []
     cy = scene.cycles
@@ -196,8 +196,8 @@ def apply_optimizations(scene, args):
         if _set(cy, "denoiser", denoiser, log):
             _set(cy, "use_denoising", True, log)
         else:
-            # OptiX 非対応GPUなら Blender 側の既定（OIDN）のまま
-            log.append(f"denoiser={denoiser} は使えないため既定のまま")
+            # On GPUs without OptiX support, keep Blender's default (OIDN)
+            log.append(f"denoiser={denoiser} unavailable; keeping default")
 
     _set(cy, "samples", args.samples, log)
     _set(cy, "adaptive_threshold",
@@ -217,13 +217,13 @@ def apply_optimizations(scene, args):
     if preset or args.glass_keyword:
         keywords = [k.lower() for k in (args.glass_keyword or ["glass", "window"])]
         n = disable_glass_shadows(keywords)
-        log.append(f"ガラス材質の影レイ可視性をオフ: {n} オブジェクト")
+        log.append(f"Shadow-ray visibility off for glass materials: {n} objects")
     return log
 
 
 def disable_glass_shadows(keywords):
-    """名前がキーワードに一致するマテリアルを持つオブジェクトの影レイ可視性を切る。"""
-    # 後方の単語境界だけ要求する（"Flexiglass" は拾い、"Windows Button" は拾わない）
+    """Disable shadow-ray visibility of objects with a material whose name matches a keyword."""
+    # Require only a trailing word boundary ("Flexiglass" matches, "Windows Button" does not)
     pats = [re.compile(re.escape(k) + r"\b") for k in keywords]
     glass_mats = {m.name for m in bpy.data.materials
                   if any(p.search(m.name.lower()) for p in pats)}
@@ -252,7 +252,7 @@ def set_camera(scene, name):
 
 
 def job_value(job, args, key, default=None):
-    """ジョブの値 > CLI の値 > default の優先順で取り出す。"""
+    """Get a value with priority: job value > CLI value > default."""
     if job.get(key) is not None:
         return job[key]
     v = getattr(args, key, None)
@@ -260,10 +260,10 @@ def job_value(job, args, key, default=None):
 
 
 # --------------------------------------------------------------------------
-# レンダリング本体
+# Rendering
 # --------------------------------------------------------------------------
 def render_color_job(job, args):
-    """1ジョブ（=1カメラ・連続フレーム範囲）をレンダリングする。"""
+    """Render one job (= one camera, contiguous frame range)."""
     scene = bpy.context.scene
     set_camera(scene, job_value(job, args, "camera"))
 
@@ -276,13 +276,13 @@ def render_color_job(job, args):
 
     scene.render.image_settings.file_format = 'PNG'
 
-    out_dir = bpy.path.abspath(job_value(job, args, "out"))  # //relative にも対応
+    out_dir = bpy.path.abspath(job_value(job, args, "out"))  # also handles //relative paths
     os.makedirs(out_dir, exist_ok=True)
     prefix = job_value(job, args, "prefix", "frame_")
     start, end = int(job["start"]), int(job["end"])
     overwrite = bool(job_value(job, args, "overwrite", False))
 
-    # タイムライン上のレンジも合わせておく
+    # Also match the timeline range
     scene.frame_start, scene.frame_end = start, end
 
     rendered = skipped = 0
@@ -302,14 +302,14 @@ def render_color_job(job, args):
 
 
 # --------------------------------------------------------------------------
-# warm ループ
+# Warm loop
 # --------------------------------------------------------------------------
 def serve(args, render_job, ready_info=None):
-    """stdin から1行1JSONのジョブを受け取り、EOF か quit まで処理し続ける。"""
+    """Receive one JSON job per line from stdin and keep processing until EOF or quit."""
     emit(dict(ready_info or {}, event="ready", pid=os.getpid()))
     while True:
         line = sys.stdin.readline()
-        if not line:  # ディスパッチャが stdin を閉じた
+        if not line:  # the dispatcher closed stdin
             break
         line = line.strip()
         if not line:
@@ -317,7 +317,7 @@ def serve(args, render_job, ready_info=None):
         try:
             job = json.loads(line)
         except json.JSONDecodeError as e:
-            emit({"status": "error", "message": f"不正なジョブ行: {e}"})
+            emit({"status": "error", "message": f"Invalid job line: {e}"})
             continue
         if job.get("cmd") == "quit":
             break
@@ -326,17 +326,17 @@ def serve(args, render_job, ready_info=None):
             stats = render_job(job, args)
             emit(dict(stats, id=job.get("id"), status="ok",
                       sec=round(time.time() - t0, 2)))
-        except Exception as e:  # 1ジョブの失敗でワーカーを落とさない
+        except Exception as e:  # do not kill the worker because one job failed
             emit({"id": job.get("id"), "status": "error", "message": str(e),
                   "traceback": traceback.format_exc(),
                   "sec": round(time.time() - t0, 2)})
 
 
 def run(args, render_job, extra_setup=None):
-    """batch/warm 共通のエントリポイント。depth 版もこれを使う。"""
+    """Entry point shared by batch/warm. Also used by the depth version."""
     scene = bpy.context.scene
     if args.samples is not None and args.samples <= 0:
-        args.samples = None  # .blend の設定をそのまま使う
+        args.samples = None  # use the .blend setting as is
 
     devices = setup_gpu(args.backend, args.allow_cpu_fallback)
     log = apply_warm_settings(scene, args.persistent_data)
@@ -354,8 +354,8 @@ def run(args, render_job, extra_setup=None):
     missing = [f"--{k}" for k in ("camera", "start", "end", "out")
                if getattr(args, k) is None]
     if missing:
-        raise SystemExit(f"batch モードでは {', '.join(missing)} が必要です"
-                         f"（常駐させる場合は --serve）")
+        raise SystemExit(f"batch mode requires {', '.join(missing)} "
+                         f"(use --serve to run resident)")
     stats = render_job({"start": args.start, "end": args.end}, args)
     print(f"done: rendered={stats['rendered']} skipped={stats['skipped']}", flush=True)
 

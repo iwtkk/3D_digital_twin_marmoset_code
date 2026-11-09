@@ -4,14 +4,14 @@ Convert kp3d (pickle/npz) to CSV for Blender
 1. pickle/npz → outputs/animate_temp/csv/{session}_points.csv
 2. scale  → outputs/animate_temp/transformedcsv/{session}_points.csv_transformedtest.csv
 
-使い方:
-  # 1セッション
+Usage:
+  # Single session
   python scripts/05_create_digital_twin/kp3d_to_blender_csv.py dailylife_cj611_20230227_100000
 
-  # 全セッション
+  # All sessions
   python scripts/05_create_digital_twin/kp3d_to_blender_csv.py --all
 
-  # 出力先を指定
+  # Specify output directory
   python scripts/05_create_digital_twin/kp3d_to_blender_csv.py --all --out-dir outputs/my_csvs/
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402
 
 
-# ── 定数 ──────────────────────────────────────────────────────────────────────
+# ── Constants ──────────────────────────────────────────────────────────────────────
 
 KP_NAMES = [
     "nose", "L eye", "R eye", "L ear", "R ear", "L shoulder", "R shoulder",
@@ -41,10 +41,10 @@ SCALE = 1 / 1000
 BLENDER_NECK_TAIL = [1.50 - 0.340, 0.995 - 0.06, 0.780]
 
 
-# ── ユーティリティ ─────────────────────────────────────────────────────────────
+# ── Utilities ─────────────────────────────────────────────────────────────
 
 def sanitize(name: str) -> str:
-    """CSV の列名として安全なキーへ変換: 小文字化, 空白→_, 英数と_以外を削除"""
+    """Convert to a key safe for CSV column names: lowercase, spaces -> _, drop chars other than alphanumerics and _"""
     key = name.lower().strip().replace(" ", "_")
     return re.sub(r"[^a-z0-9_]", "", key)
 
@@ -107,7 +107,7 @@ def _rotmat_to_euler_xyz(R):
     return np.stack([rx, ry, rz], axis=-1)
 
 
-# ── 頭部姿勢推定 ───────────────────────────────────────────────────────────────
+# ── Head pose estimation ───────────────────────────────────────────────────────────────
 
 def add_cam_pose_with_euler(
     points: pd.DataFrame,
@@ -120,8 +120,8 @@ def add_cam_pose_with_euler(
     forward_sign=-1,
 ):
     """
-    両目・両耳から頭部の向き（XYZ Euler, rad）を推定し列を追加する。
-    out_prefixes 各 prefix と center_eye_prefix に {rx,ry,rz} を書き出す。
+    Estimate head orientation (XYZ Euler, rad) from both eyes and ears and add columns.
+    Write {rx,ry,rz} for each prefix in out_prefixes and for center_eye_prefix.
     """
     need = (
         [f"{l_eye}{a}" for a in "xyz"]
@@ -131,7 +131,7 @@ def add_cam_pose_with_euler(
     )
     for c in need:
         if c not in points.columns:
-            raise ValueError(f"必要列がありません: {c}")
+            raise ValueError(f"Missing required column: {c}")
 
     LE  = points[[f"{l_eye}x", f"{l_eye}y", f"{l_eye}z"]].to_numpy(float)
     RE  = points[[f"{r_eye}x", f"{r_eye}y", f"{r_eye}z"]].to_numpy(float)
@@ -178,7 +178,7 @@ def add_cam_pose_with_euler(
     return points
 
 
-# ── pickle → 中間 CSV ─────────────────────────────────────────────────────────
+# ── pickle → intermediate CSV ─────────────────────────────────────────────────────────
 
 def pickletocsv(
     result_dir: Path,
@@ -225,21 +225,21 @@ def pickletocsv(
 
     kp_names_now = KP_NAMES[:]
 
-    # index 5 と 6 の中点（shoulder_mid）
+    # Midpoint of index 5 and 6 (shoulder_mid)
     if max(5, 6) < Xa.shape[1]:
         mid56 = (Xa[:, 5, :] + Xa[:, 6, :]) / 2
         Xa = np.concatenate([Xa, mid56[:, np.newaxis, :]], axis=1)
         Sa = np.concatenate([Sa, ((Sa[:, 5] + Sa[:, 6]) / 2)[:, np.newaxis]], axis=1)
         kp_names_now.append("shoulder_mid")
 
-    # index 11 と 12 の中点（base）
+    # Midpoint of index 11 and 12 (base)
     if max(11, 12) < Xa.shape[1]:
         mid1112 = (Xa[:, 11, :] + Xa[:, 12, :]) / 2
         Xa = np.concatenate([Xa, mid1112[:, np.newaxis, :]], axis=1)
         Sa = np.concatenate([Sa, ((Sa[:, 11] + Sa[:, 12]) / 2)[:, np.newaxis]], axis=1)
         kp_names_now.append("base")
 
-    # index 1 と 2 の中点（center_eye）
+    # Midpoint of index 1 and 2 (center_eye)
     if max(1, 2) < Xa.shape[1]:
         mid12 = (Xa[:, 1, :] + Xa[:, 2, :]) / 2
         Xa = np.concatenate([Xa, mid12[:, np.newaxis, :]], axis=1)
@@ -250,7 +250,7 @@ def pickletocsv(
     Xa = Xa @ R.T
 
     kp_keys = unique_keys(kp_names_now)
-    assert len(kp_keys) == Xa.shape[1] == Sa.shape[1], "キー名とデータの数が不一致です"
+    assert len(kp_keys) == Xa.shape[1] == Sa.shape[1], "Number of key names does not match data"
 
     n_frames = Xa.shape[0]
     data_dict: dict = {
@@ -270,7 +270,7 @@ def pickletocsv(
     return out_csv
 
 
-# ── スケール・座標変換 → 最終 CSV ──────────────────────────────────────────────
+# ── Scaling / coordinate transform → final CSV ──────────────────────────────────────────────
 
 def scale(points_path, BNT=None, out_dir: Path = None):
     print("transform and scale DLC points.")
@@ -300,7 +300,7 @@ def scale(points_path, BNT=None, out_dir: Path = None):
     print("done")
 
 
-# ── パイプライン ───────────────────────────────────────────────────────────────
+# ── Pipeline ───────────────────────────────────────────────────────────────
 
 def process_one(
     data_name: str,
@@ -314,9 +314,9 @@ def process_one(
     csv_path = csv_dir / f"{data_name}_points.csv"
 
     print(f"\n=== {data_name} ===")
-    print(f"  入力: {result_dir}")
-    print(f"  中間 CSV: {csv_path}")
-    print(f"  出力 CSV: {out_dir}")
+    print(f"  Input: {result_dir}")
+    print(f"  Intermediate CSV: {csv_path}")
+    print(f"  Output CSV: {out_dir}")
 
     pickletocsv(result_dir=result_dir, n_frame2draw=n_frame2draw, csv_dir=csv_dir)
     scale(csv_path, out_dir=out_dir)
@@ -328,7 +328,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Convert kp3d (pickle/npz) to CSV for Blender",
         epilog=(
-            "例:\n"
+            "Examples:\n"
             "  python scripts/05_create_digital_twin/kp3d_to_blender_csv.py dailylife_cj611_20230227_100000\n"
             "  python scripts/05_create_digital_twin/kp3d_to_blender_csv.py --all"
         ),
@@ -337,10 +337,10 @@ def main():
     parser.add_argument(
         "data_name",
         nargs="?",
-        help="セッション名（例: dailylife_cj611_20230227_100000）。--all と同時に指定不可。",
+        help="Session name (e.g. dailylife_cj611_20230227_100000). Cannot be combined with --all.",
     )
-    parser.add_argument("--all", action="store_true", help="--base-dir 以下の全セッションを処理する")
-    parser.add_argument("--n-frame2draw", type=int, default=-1, help="変換するフレーム数（-1 で全フレーム）")
+    parser.add_argument("--all", action="store_true", help="Process all sessions under --base-dir")
+    parser.add_argument("--n-frame2draw", type=int, default=-1, help="Number of frames to convert (-1 for all frames)")
     parser.add_argument(
         "--base-dir",
         type=Path,
@@ -351,28 +351,28 @@ def main():
         "--csv-dir",
         type=Path,
         default=Path("outputs/animate_temp/csv"),
-        help="中間 CSV の出力先（デフォルト: outputs/animate_temp/csv）",
+        help="Output directory for intermediate CSV (default: outputs/animate_temp/csv)",
     )
     parser.add_argument(
         "--out-dir",
         type=Path,
         default=Path("outputs/animate_temp/transformedcsv"),
-        help="変換済み CSV の出力先（デフォルト: outputs/animate_temp/transformedcsv）",
+        help="Output directory for transformed CSV (default: outputs/animate_temp/transformedcsv)",
     )
     args = parser.parse_args()
 
     if args.all and args.data_name:
-        parser.error("data_name と --all は同時に指定できません")
+        parser.error("data_name and --all cannot be specified together")
     if not args.all and not args.data_name:
-        parser.error("data_name か --all のどちらかを指定してください")
+        parser.error("Specify either data_name or --all")
 
     if args.all:
         sessions = sorted({d.name for d in args.base_dir.iterdir() if d.is_dir()}
                           | {d.stem for d in args.base_dir.glob("*.npz")})
         if not sessions:
-            print(f"セッションが見つかりません: {args.base_dir}")
+            print(f"No sessions found: {args.base_dir}")
             sys.exit(1)
-        print(f"{len(sessions)} セッションを処理します")
+        print(f"Processing {len(sessions)} sessions")
         skipped = []
         for session in sessions:
             try:
@@ -381,7 +381,7 @@ def main():
                 print(f"  [SKIP] {e}", file=sys.stderr)
                 skipped.append(session)
         if skipped:
-            print(f"\n{len(skipped)} セッションをスキップしました: {skipped}", file=sys.stderr)
+            print(f"\nSkipped {len(skipped)} sessions: {skipped}", file=sys.stderr)
     else:
         process_one(args.data_name, args.base_dir, args.csv_dir, args.out_dir, args.n_frame2draw)
 

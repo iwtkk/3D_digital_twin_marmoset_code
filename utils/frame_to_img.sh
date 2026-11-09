@@ -2,9 +2,9 @@
 cd "$(git rev-parse --show-toplevel)"
 set -euo pipefail
 
-# 使い方:
+# Usage:
 #   ./grab_frame.sh <frame_number(1-based)> <session> <input_dir> [output_dir] [ext]
-# 例:
+# Example:
 #   ./grab_frame.sh 30 S001 ./videos ./frames mp4
 
 if [[ $# -lt 3 ]]; then
@@ -12,16 +12,16 @@ if [[ $# -lt 3 ]]; then
   exit 1
 fi
 
-FRAME_1_BASED="$1"            # 人間の数え方：1,2,3...（例: 30）
-SESSION="$2"                   # セッションID（例: S001）
-IN_DIR="$3"                    # 入力ディレクトリ
-OUT_DIR="$4"        # 出力ディレクトリ（省略時は入力と同じ）
-EXT='mp4'                # 入力拡張子（省略時 mp4）
+FRAME_1_BASED="$1"            # human counting: 1,2,3... (e.g. 30)
+SESSION="$2"                   # session ID (e.g. S001)
+IN_DIR="$3"                    # input directory
+OUT_DIR="$4"        # output directory (defaults to input)
+EXT='mp4'                # input extension (defaults to mp4)
 
-# 対象カメラID
+# Target camera IDs
 cam_ids=(23511614 23506237 23506226 23506239 23511607 23506236 23511613 23506214)
 
-# 0始まりに変換（ffmpegのフレーム番号は0始まり）
+# Convert to 0-based (ffmpeg frame numbers are 0-based)
 if ! [[ "$FRAME_1_BASED" =~ ^[0-9]+$ ]] || [[ "$FRAME_1_BASED" -le 0 ]]; then
   echo "Error: frame_number must be a positive integer (1-based)." >&2
   exit 1
@@ -40,7 +40,7 @@ for cam_id in "${cam_ids[@]}"; do
     continue
   fi
 
-  # 目的のフレームだけを1枚PNGで書き出し
+  # Write only the target frame as a single PNG
   ffmpeg -hide_banner -loglevel error -y \
     -i "$inputvid" \
     -vf "$FILTER" \

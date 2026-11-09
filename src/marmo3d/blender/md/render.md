@@ -1,9 +1,9 @@
 in run_render.py
         commands = render_setting.RenderJob(
-            base_blend=base_blend, # TODO render_spec
+            base_blend=base_blend,
             render_spec_path=render_spec_path,
-            script_path=Path("class_blueprint/blender/render.py"), # TODO render_specで指定
-            output_root=Path("./render"), # TODO render_specで指定
+            script_path=Path("class_blueprint/blender/render.py"),
+            output_root=Path("./render"),
             profile=req.profile,
         ).make_commands(plan)
 

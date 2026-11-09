@@ -1,20 +1,20 @@
 version: 1
 
 validation:
-  # データセット設定への参照
+  # Reference to dataset settings
   dataset_spec: "{PROJECT_ROOT}/config/dataset_spec.yaml"
 
-  # フレーム抽出設定
+  # Frame extraction settings
   frame_extraction:
     output_root: "{PROJECT_ROOT}/outputs/validation/consistency/frames"
     output_path_template: "{output_root}/{session_id}/Camera.{camera_id}/{frame_number:07d}.png"
 
-  # レンダリング画像設定
+  # Rendered image settings
   render:
     root: "{PROJECT_ROOT}/outputs/validation/consistency/render"
     path_template: "{render_root}/{session_id}/{hash}/image/Camera.{camera_id}/{frame_number:07d}.png"
 
-  # メトリクス設定
+  # Metrics settings
   metrics:
     methods: ["ssim", "psnr"]
     output_path: "{PROJECT_ROOT}/outputs/validation/consistency/metrics.json"

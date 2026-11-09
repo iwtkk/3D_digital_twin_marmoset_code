@@ -22,25 +22,25 @@ FrameSpec = Union[None, int, Sequence[int], Tuple[int, int]]
 OverridesSpec = Union[bool, Dict[str, object]]
 
 TRACE_SUMMARIES = {
-    "CheckRequest.validate": "入力パラメータの妥当性を検証する",
-    "_is_int": "整数かどうかを判定する",
-    "_extract_profiles": "render_spec から profile 一覧を取り出す",
-    "_normalize_sessions": "sessions を Path の配列に正規化する",
-    "_validate_frame_spec": "frames の指定形式を検証する",
-    "_find_kp3d_pickle": "kp3d の pickle ファイルを探索する",
-    "_infer_frame_count": "kp3d データからフレーム数を推定する",
-    "_normalize_frame_list": "フレーム番号リストを正規化する",
-    "split_frames": "フレーム一覧を split 数で分割する",
-    "resolve_frames": "frames 指定を解決しフレーム一覧を作る",
-    "_frames_from_kp3d": "kp3d から全フレーム一覧を作る",
-    "should_skip_output": "override と出力有無でスキップ判定する",
-    "_overrides_flag": "overrides の有効/無効を判定する",
-    "RenderPlan.from_request": "リクエストから RenderPlan を作成する",
-    "SaveJobs.save": "RenderPlan を保存する",
-    "SaveJobs.load": "RenderPlan を読み込む",
-    "RenderJob.make_commands": "Blender 実行コマンドを組み立てる",
-    "Executor._run_command": "コマンドを実行しリトライ/タイムアウトを処理する",
-    "Executor.execute": "コマンド群を順次または並列で実行する",
+    "CheckRequest.validate": "Validate input parameters",
+    "_is_int": "Check whether a value is an integer",
+    "_extract_profiles": "Extract the list of profiles from render_spec",
+    "_normalize_sessions": "Normalize sessions into a list of Paths",
+    "_validate_frame_spec": "Validate the frames specification format",
+    "_find_kp3d_pickle": "Search for the kp3d pickle file",
+    "_infer_frame_count": "Infer the frame count from kp3d data",
+    "_normalize_frame_list": "Normalize the frame number list",
+    "split_frames": "Split the frame list into the given number of splits",
+    "resolve_frames": "Resolve the frames spec into a frame list",
+    "_frames_from_kp3d": "Build the full frame list from kp3d",
+    "should_skip_output": "Decide skipping from override and existing outputs",
+    "_overrides_flag": "Determine whether overrides are enabled",
+    "RenderPlan.from_request": "Create a RenderPlan from a request",
+    "SaveJobs.save": "Save the RenderPlan",
+    "SaveJobs.load": "Load the RenderPlan",
+    "RenderJob.make_commands": "Build the Blender command",
+    "Executor._run_command": "Run a command, handling retries/timeouts",
+    "Executor.execute": "Run commands sequentially or in parallel",
 }
 
 set_trace_summaries(TRACE_SUMMARIES, clear=True)
@@ -335,7 +335,7 @@ class RenderJob:
         plan: RenderPlan,
         extra_args_resolver: Optional[Callable[[RenderPlanItem], Sequence[str]]] = None,
     ) -> List[List[str]]:
-        # blender コマンド配列を構築
+        # Build the blender command list
         with trace_scope("RenderJob.make_commands"):
             if not self.base_blend:
                 raise ValueError("base_blend is required to build commands")

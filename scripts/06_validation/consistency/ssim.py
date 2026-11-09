@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 def ssim_components_channel(img1, img2, L=255, K1=0.01, K2=0.03, win_sigma=1.5):
     """
-    1ch画像同士で SSIM の要素ごとのマップを計算
-    戻り値:
+    Compute per-component SSIM maps for a pair of single-channel images
+    Returns:
         l_map, c_map, s_map, ssim_map
     """
     img1 = img1.astype(np.float64)
@@ -46,7 +46,7 @@ def ssim_components_channel(img1, img2, L=255, K1=0.01, K2=0.03, win_sigma=1.5):
 
 def ssim_rgb_full_maps(img1_bgr, img2_bgr, win_sigma=1.5):
     if img1_bgr.shape != img2_bgr.shape:
-        raise ValueError("画像サイズが異なります")
+        raise ValueError("Image sizes differ")
 
     img1 = cv2.cvtColor(img1_bgr, cv2.COLOR_BGR2RGB)
     img2 = cv2.cvtColor(img2_bgr, cv2.COLOR_BGR2RGB)
@@ -80,21 +80,21 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Compute SSIM and component maps (luminance/contrast/structure) for two RGB images."
     )
-    # 必須の画像パス2つ
-    parser.add_argument("img1", help="1枚目の画像パス")
-    parser.add_argument("img2", help="2枚目の画像パス")
+    # Two required image paths
+    parser.add_argument("img1", help="Path to the first image")
+    parser.add_argument("img2", help="Path to the second image")
 
-    # オプション引数
+    # Optional arguments
     parser.add_argument(
         "--win-sigma",
         type=float,
         default=1.5,
-        help="SSIM用ガウシアンのsigma (default: 1.5)",
+        help="Gaussian sigma for SSIM (default: 1.5)",
     )
     parser.add_argument(
         "--show",
         action="store_true",
-        help="Rチャンネルのマップをmatplotlibで表示する",
+        help="Show R-channel maps with matplotlib",
     )
 
     return parser.parse_args()
@@ -103,14 +103,14 @@ def parse_args():
 def main():
     args = parse_args()
 
-    # 画像読み込み
+    # Load images
     img1 = cv2.imread(args.img1, cv2.IMREAD_COLOR)
     img2 = cv2.imread(args.img2, cv2.IMREAD_COLOR)
 
     if img1 is None:
-        raise FileNotFoundError(f"img1 が読めませんでした: {args.img1}")
+        raise FileNotFoundError(f"Could not read img1: {args.img1}")
     if img2 is None:
-        raise FileNotFoundError(f"img2 が読めませんでした: {args.img2}")
+        raise FileNotFoundError(f"Could not read img2: {args.img2}")
 
     result = ssim_rgb_full_maps(img1, img2, win_sigma=args.win_sigma)
 

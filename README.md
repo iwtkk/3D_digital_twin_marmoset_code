@@ -65,10 +65,10 @@ See [docs/dataset_correspondence.md](docs/dataset_correspondence.md) for which s
 │   ├── 04_build_3d_environment/    # Cage model construction (README only)
 │   ├── 05_create_digital_twin/     # Apply pose to Blender, render
 │   └── 06_validation/              # Technical validation
-│       ├── keypoints/              # 推定された2D・3Dキーポイント
-│       ├── reprojection_error/     # 再投影誤差
-│       ├── environment_accuracy/   # 3D環境モデルの幾何精度評価
-│       └── consistency/            # 実験環境再現の一貫性 (SSIM/PSNR)
+│       ├── keypoints/              # Estimated 2D/3D keypoints
+│       ├── reprojection_error/     # Reprojection error
+│       ├── environment_accuracy/   # Geometric accuracy of the 3D environment model
+│       └── consistency/            # Consistency of the reconstructed experimental environment (SSIM/PSNR)
 │
 ├── config/                         # Configuration files
 │   └── marmo_cj425m/               # Camera calibration for session cj425m
@@ -86,33 +86,13 @@ See [docs/dataset_correspondence.md](docs/dataset_correspondence.md) for which s
 
 ## Installation
 
-### 動作確認済み環境
+### Tested environment
 
-| 項目 | バージョン |
+| Item | Version |
 |---|---|
 | OS | Ubuntu 22.04 |
 | Python | 3.10.12 |
 | CUDA | 11.6 |
-
-### Python environment
-
-```bash
-git clone --recurse-submodules https://github.com/c7h2y/3D_digital_twin_marmoset_code.git
-cd 3D_digital_twin_marmoset_code
-
-python -m venv .venv
-source .venv/bin/activate
-bash scripts/00_setup/install.sh
-```
-
-このスクリプトは以下を順番にインストールします:
-
-1. PyTorch 1.10.2 + torchvision 0.11.3 (CUDA 11.3)
-2. mmcv-full 1.6.2
-3. mmdetection / mmpose (サブモジュールから)
-4. `requirements.txt`
-5. marmo3Dpose の依存パッケージ
-6. Blender 用 PyYAML (`third_party/` へ配置)
 
 ### External software
 
@@ -127,10 +107,20 @@ bash scripts/00_setup/install.sh
 
 ## Quick start
 
-### Step 1 – Set up data links
+### Step 1 – Set up dataset and environment
 
 ```bash
-# Create symbolic links connecting the data directory to the repository
+# Download the dataset from AWS S3 (no sign-in required)
+aws s3 --no-sign-request cp --recursive s3://digitaltwin-marmoset/ ./3D_digital_twin_marmoset_data 
+
+# Clone the repository 
+git clone --recurse-submodules https://github.com/iwtkk/3D_digital_twin_marmoset_code.git
+cd 3D_digital_twin_marmoset_code
+
+# Create a virtual environment and install dependencies
+python -m venv .venv
+source .venv/bin/activate
+bash scripts/00_setup/install.sh
 bash scripts/00_setup/setup_data_links.sh /path/to/3D_digital_twin_marmoset_data
 ```
 
@@ -157,10 +147,21 @@ bash scripts/03_run_marmo3dpose/run_marmo3d_multi.sh --device cuda:1 --splits 2 
 ### Step 3 – Apply pose to Blender and render
 
 ```bash
-blender 3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend \
-  --background \
-  --python scripts/05_create_digital_twin/blender_animation.py -- \
-  outputs/animate_temp/transformedcsv/session.csv
+#blender 3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend \
+# --background \
+# --python scripts/05_create_digital_twin/blender_animation.py -- \
+# outputs/animate_temp/transformedcsv/session.csv
+
+bash scripts/05_create_digital_twin/run_animate_.sh \
+  --blend 3D_digital_twin_marmoset_data/3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend \
+  --output-dir outputs/blender \
+  --all
+
+bash scripts/05_create_digital_twin/run_render.sh \
+  --blend-dir outputs/blender \
+  --all-csv \
+  --all-frames \
+  --gpu 0
 ```
 
 ---
@@ -251,5 +252,5 @@ If you use this code, please cite:
 
 ## Contact
 
-- **GitHub Issues**: [https://github.com/c7h2y/3D_digital_twin_marmoset_code/issues](https://github.com/c7h2y/3D_digital_twin_marmoset_code/issues)
+- **GitHub Issues**: [https://github.com/iwtkk/3D_digital_twin_marmoset_code/issues](https://github.com/iwtkk/3D_digital_twin_marmoset_code/issues)
 - **Email**: iwata.koki.sd@gmail.com

@@ -22,7 +22,7 @@ from marmo3d.blender import render_spec
 
 def main(profile, frames, **kwargs):
     
-    # 変数
+    # Variables
     ## kwargs
     split = kwargs.get('split')
     overrides = kwargs.get('overrides')
@@ -40,11 +40,8 @@ def main(profile, frames, **kwargs):
     
 
     sessions = dataset_info.iter_sessions(valid_only=True, log_skips=True)
-    
-    # TODO render_spec.yamlの情報とdataset_yamlの情報を分けるかどうか
-    # TODO 分けるとしたらどうするの
-    
-    # 出力ログ
+
+    # Output log
     print("base.blend:", render_info.resolve_base_blend(project_root))
     print(type(render_info.resolve_base_blend(project_root)))
     print("resolution:", render_info.get_resolution(project_root))
@@ -52,10 +49,6 @@ def main(profile, frames, **kwargs):
     print("views:", [v.view_id for v in views])
     print("frames:", frames)
 
-    # TODO 
-    # {session: dailylife, frames: [100, 235]},
-    # {session: dailylife, frames: [100, 235]},
-    # {session: dailylife, frames: [100, 235]},
     for s in sessions:
         animal = s.animal
         session_id = s.session_id
@@ -63,8 +56,6 @@ def main(profile, frames, **kwargs):
 
         session_path = os.path.join(dataset_info.results_root, dataset_info.results_subdir, session_id)
         req = render_setting.RenderRequest( 
-            # TODO ここ以降にreqとrender_specが混在してて気持ち悪い
-            # TODO RenderRequestって本当にいる？
             profile=profile,
             sessions=session_path,
             frames=frames,
@@ -83,7 +74,7 @@ def main(profile, frames, **kwargs):
             output_dir_resolver=lambda session, _frames: output_root / session.name,
         )
 
-        # CSV結果を構築（再利用可能な関数を使用）
+        # Build CSV results (using the reusable function)
         csv_results = render_csv.build_csv_results(
             plan_items=plan.items,
             kp3d_finder=render_setting._find_kp3d_pickle,
@@ -99,10 +90,10 @@ def main(profile, frames, **kwargs):
         print("Render plan items:", len(plan.items))
         script_path = Path(__file__).resolve().parents[2] / "class_blueprint/blender/render.py"
         commands = render_setting.RenderJob(
-            base_blend=base_blend, # TODO render_spec
+            base_blend=base_blend,
             render_spec_path=render_spec_path,
-            script_path=script_path, # TODO render_specで指定
-            output_root=output_root, # TODO render_specで指定
+            script_path=script_path,
+            output_root=output_root,
             profile=req.profile,
         ).make_commands(
             plan,
@@ -120,9 +111,7 @@ def main(profile, frames, **kwargs):
             commands, dry_run=req.dry_run
         )
         
-        # manifest（例: image）
-        # TODO Executor実行時にRenderManifestを実行するようにする
-        # TODO　ここにこれを記述しない
+        # manifest (e.g. image)
             # m = render_spec.RenderManifest(
             #     animal=animal,
             #     session_id=session_id,

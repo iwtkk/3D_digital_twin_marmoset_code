@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# render_parallel.py に渡すため保持
+# Kept to pass to render_parallel.py
 CAM_NAMES=("Camera_R" "Camera_L")
 FRAME_START=1
 FRAME_END=10
@@ -29,7 +29,7 @@ for csv in "$CSV_DIR"/*.csv; do
   echo 'start' $csv
   ((cnt++))
   if [[ $ALL -eq 0 ]] && (( cnt > COUNT )); then
-    echo "CSV の処理上限 (${COUNT}) に達したので終了します"
+    echo "Reached CSV processing limit (${COUNT}); exiting"
     break
   fi
   echo $cnt
@@ -37,14 +37,14 @@ for csv in "$CSV_DIR"/*.csv; do
 
   echo "=== CSV: $csv (name=${name}) ==="
 
-  # 1) CSV からアニメを仕込んで .blend を複製・上書き保存
+  # 1) Apply animation from CSV, then copy and save the .blend
   mkdir -p outputs/animate_temp/blenders outputs/blender
   cp "$BLEND_BASE" "outputs/blender/work_${name}.blend"
 
   blender "outputs/blender/work_${name}.blend" \
     -b -P scripts/05_create_digital_twin/blender_animation.py -- "$csv" --armature "$ARMATURE_NAME"
 
-  # 2) その .blend を各カメラごとに並列レンダリング
+  # 2) Render that .blend in parallel for each camera
   mkdir -p "outputs/render/${name}"
 
   for CAM_NAME in "${CAM_NAMES[@]}"; do

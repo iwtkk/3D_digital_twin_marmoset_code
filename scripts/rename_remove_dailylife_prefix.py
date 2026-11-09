@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""dailylife_ プレフィックスをディレクトリ名・ファイル名から除去する。
+"""Remove the dailylife_ prefix from directory and file names.
 
-対象ディレクトリ（直下のセッションディレクトリ）:
+Target directories (session directories directly under):
   - marmoset_keypoint_data/2D_temporal_keypoint_data/
   - marmoset_keypoint_data/3D_temporal_keypoint_data/
   - marmoset_keypoint_data/video_data/
 
-対象ファイル（各セッションディレクトリ以下を再帰検索）:
+Target files (searched recursively under each session directory):
   - dailylife_*.json
   - dailylife_*.blend
 
 Usage:
     python scripts/rename_remove_dailylife_prefix.py            # dry-run
-    python scripts/rename_remove_dailylife_prefix.py --execute  # 実際にリネーム
+    python scripts/rename_remove_dailylife_prefix.py --execute  # actually rename
 """
 
 import argparse
@@ -38,7 +38,7 @@ def collect_dir_renames(target_dir: Path) -> tuple[list[tuple[Path, Path]], list
             continue
         dst = target_dir / src.name[len(PREFIX):]
         if dst.exists():
-            conflicts.append(f"衝突: {dst}")
+            conflicts.append(f"Conflict: {dst}")
         else:
             renames.append((src, dst))
     return renames, conflicts
@@ -51,27 +51,27 @@ def collect_file_renames(target_dir: Path) -> tuple[list[tuple[Path, Path]], lis
             continue
         dst = src.parent / src.name[len(PREFIX):]
         if dst.exists():
-            conflicts.append(f"衝突: {dst}")
+            conflicts.append(f"Conflict: {dst}")
         else:
             renames.append((src, dst))
     return renames, conflicts
 
 
 def main():
-    parser = argparse.ArgumentParser(description="dailylife_ プレフィックスを除去")
+    parser = argparse.ArgumentParser(description="Remove the dailylife_ prefix")
     parser.add_argument("--execute", action="store_true",
-                        help="実際にリネームする（省略時は dry-run）")
+                        help="Actually rename (dry-run if omitted)")
     args = parser.parse_args()
 
-    mode = "実行" if args.execute else "dry-run"
-    print(f"モード: {mode}\n")
+    mode = "execute" if args.execute else "dry-run"
+    print(f"Mode: {mode}\n")
 
     dir_renames, dir_conflicts = [], []
     file_renames, file_conflicts = [], []
 
     for target_dir in TARGET_DIRS:
         if not target_dir.exists():
-            print(f"[スキップ] 存在しない: {target_dir}")
+            print(f"[Skip] Does not exist: {target_dir}")
             continue
         dr, dc = collect_dir_renames(target_dir)
         fr, fc = collect_file_renames(target_dir)
@@ -79,34 +79,34 @@ def main():
         dir_conflicts.extend(dc)
         file_renames.extend(fr)
         file_conflicts.extend(fc)
-        print(f"{target_dir.name}: ディレクトリ {len(dr)}件、ファイル {len(fr)}件"
-              + (f"、衝突 {len(dc)+len(fc)}件" if dc or fc else ""))
+        print(f"{target_dir.name}: {len(dr)} directories, {len(fr)} files"
+              + (f", {len(dc)+len(fc)} conflicts" if dc or fc else ""))
 
     all_conflicts = dir_conflicts + file_conflicts
     if all_conflicts:
-        print("\n警告（衝突のため対象外）:")
+        print("\nWarnings (skipped due to conflicts):")
         for c in all_conflicts:
             print(f"  {c}")
 
-    print(f"\n[ディレクトリ] {len(dir_renames)}件:")
+    print(f"\n[Directories] {len(dir_renames)}:")
     for src, dst in dir_renames:
         print(f"  {src.name}  →  {dst.name}  [{src.parent.name}]")
 
-    print(f"\n[ファイル] {len(file_renames)}件:")
+    print(f"\n[Files] {len(file_renames)}:")
     for src, dst in file_renames:
         print(f"  {src.name}  →  {dst.name}  [{src.parent}]")
 
     if not args.execute:
-        print("\n実際にリネームするには --execute を付けて再実行してください。")
+        print("\nRe-run with --execute to actually rename.")
         return
 
-    print("\nリネーム実行中...")
-    # ファイルを先に（親ディレクトリがリネームされると旧パスが無効になるため）
+    print("\nRenaming...")
+    # Files first (old paths become invalid once parent directories are renamed)
     for src, dst in file_renames:
         src.rename(dst)
     for src, dst in dir_renames:
         src.rename(dst)
-    print(f"完了: ディレクトリ {len(dir_renames)}件、ファイル {len(file_renames)}件")
+    print(f"Done: {len(dir_renames)} directories, {len(file_renames)} files")
 
 
 if __name__ == "__main__":

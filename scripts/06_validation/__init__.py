@@ -1,3 +1,3 @@
 """
-06_validation スクリプト群
+06_validation scripts
 """

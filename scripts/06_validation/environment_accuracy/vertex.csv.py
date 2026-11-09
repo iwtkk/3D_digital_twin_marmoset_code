@@ -4,45 +4,45 @@ import mathutils
 import csv
 import os
 
-# アクティブオブジェクトを取得
+# Get the active object
 obj = bpy.context.active_object
 
-# オブジェクトが MESH かつ Edit モードであることを確認
+# Check that the object is a MESH and in Edit mode
 if obj and obj.type == 'MESH' and obj.mode == 'EDIT':
-    # bmesh を作成 (Edit モードのメッシュを参照)
+    # Create a bmesh (referencing the Edit mode mesh)
     me = obj.data
     bm = bmesh.from_edit_mesh(me)
 
-    # 保存先のCSVファイルパス
-    # "//" は現在の.blendファイルと同じフォルダを指す
+    # Output CSV file path
+    # "//" refers to the same folder as the current .blend file
     csv_filepath = bpy.path.abspath("//selected_vertices.csv")
 
-    # ファイルを書き込み用に開く
+    # Open the file for writing
     with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
 
-        # ヘッダー行を書き込み（必要に応じて列名を変えてください）
+        # Write the header row (change the column names as needed)
         writer.writerow(["VertexIndex", "LocalX", "LocalY", "LocalZ", "WorldX", "WorldY", "WorldZ"])
 
-        # bmesh 上の頂点を走査
+        # Iterate over the vertices in the bmesh
         for v in bm.verts:
-            if v.select:  # 選択されている頂点だけ
-                # ローカル座標 (オブジェクト内部のメッシュ座標)
+            if v.select:  # selected vertices only
+                # Local coordinates (mesh coordinates in object space)
                 local_co = v.co
-                # ワールド座標
+                # World coordinates
                 world_co = obj.matrix_world @ local_co
 
-                # CSVに1行書き込み
+                # Write one row to CSV
                 writer.writerow([
                     v.index,
                     local_co.x*1000, local_co.y*1000, local_co.z*1000,
                     world_co.x*1000, world_co.y*1000, world_co.z*1000
                 ])
 
-    # bmesh を更新して終了
+    # Update the bmesh and finish
     bmesh.update_edit_mesh(me)
 
-    print(f"CSV出力完了: {csv_filepath}")
+    print(f"CSV export complete: {csv_filepath}")
 
 else:
-    print("アクティブオブジェクトが MESH ではないか、Edit モードではありません。")
+    print("The active object is not a MESH or is not in Edit mode.")

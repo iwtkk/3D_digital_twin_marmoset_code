@@ -8,7 +8,7 @@ import json
 try:
     import yaml  # PyYAML
 except ImportError as e:
-    raise ImportError("PyYAML が必要です: pip install pyyaml") from e
+    raise ImportError("PyYAML is required: pip install pyyaml") from e
 
 
 # -------------------------
@@ -24,7 +24,7 @@ def deep_get(d: Dict[str, Any], key: str, default: Any = None) -> Any:
     return cur
 
 def render_template(s: str, ctx: Dict[str, Any]) -> str:
-    # 仕様内の {PROJECT_ROOT} 等を format で解決
+    # Resolve {PROJECT_ROOT} etc. in the spec via format
     return s.format(**ctx)
 
 def load_yaml(path: Union[str, Path]) -> Dict[str, Any]:
@@ -38,7 +38,7 @@ def glob_one(root: Union[str, Path], pattern: str) -> Path:
     if not hits:
         raise FileNotFoundError(f"glob not found: {root}/{pattern}")
     if len(hits) > 1:
-        # 仕様上は priority_first 等もあり得るが、ここは最小実装
+        # The spec may allow priority_first etc., but this is a minimal implementation
         return hits[0]
     return hits[0]
 
@@ -82,21 +82,21 @@ class ArmatureSpec:
 
 @dataclass(frozen=True)
 class ViewInfo:
-    # 実行時に使う “view の正規化表現”
+    # Normalized view representation used at runtime
     profile: ProfileName
-    view_index: int                 # 0..N-1（image出力の {view_index:02d} 用）
-    view_id: str                    # video出力の {view_id} 用（例: "Camera.0" や "camera_l"）
-    camera_object_name: str         # Blender上のカメラオブジェクト名
-    camid: Optional[str] = None     # env_camera の場合だけ config の camera_id が入る想定
+    view_index: int                 # 0..N-1 (for {view_index:02d} in image output)
+    view_id: str                    # for {view_id} in video output (e.g. "Camera.0" or "camera_l")
+    camera_object_name: str         # camera object name in Blender
+    camid: Optional[str] = None     # set to the config camera_id only for env_camera
 
 @dataclass(frozen=True)
 class RenderingProfileEnvCamera:
     engine: EngineName
     samples: int
     transparent_background: bool
-    resolution_source: str          # config.yaml 等へのテンプレパス
-    resolution_field: str           # 例: "img_size"
-    camera_pattern: str             # 例: "Camera.{view_index}"
+    resolution_source: str          # template path to config.yaml etc.
+    resolution_field: str           # e.g. "img_size"
+    camera_pattern: str             # e.g. "Camera.{view_index}"
 
 @dataclass(frozen=True)
 class RenderingProfileMarmoEyes:
@@ -112,7 +112,7 @@ class RenderingProfileMarmoAnEye:
     resolution: Tuple[int, int]
     samples: int
     transparent_background: bool
-    camera: str                     # "camera_l" 等
+    camera: str                     # e.g. "camera_l"
 
 @dataclass(frozen=True)
 class OutputVideoSpec:
@@ -155,7 +155,7 @@ class RenderSpec:
     csv: CsvSpec
     armature: ArmatureSpec
     profile: ProfileName
-    profiles: Dict[ProfileName, Any]  # 上の各Profile dataclass
+    profiles: Dict[ProfileName, Any]  # each Profile dataclass above
     output: OutputSpec
     pipeline: PipelineSpec
     manifests: ManifestsSpec
@@ -244,12 +244,10 @@ class RenderSpec:
         return Path(render_template(self.inputs.base_blend.path, ctx))
 
     def temp3d_path(self, project_root: Union[str, Path], session_id: str, frame: int, override_source_path: Optional[str] = None) -> Path:
-        # TODO dataset_spec.pyからkp3dpathを取ってくる
-        # TODO temporaryにkp3dファイルを保存しないので消す
         if override_source_path:
-             # overrideがある場合はそれを信じる（formatもpickleなどを想定）
-             # ユーザー要望: "処理後のファイルにあるpickleファイルを指定する...そのときにはセッションIDと処理後のファイルのパスを渡す"
-             # パスが渡されたらそのまま返す (Path化して)
+             # If an override is given, trust it (format assumed to be pickle etc.)
+             # User request: "specify the pickle file among the processed outputs... in that case pass the session ID and the processed file path"
+             # If a path is given, return it as is (converted to Path)
              return Path(override_source_path)
 
         ctx = {"PROJECT_ROOT": str(project_root), "session_id": session_id, "frame": frame}
@@ -263,16 +261,16 @@ class RenderSpec:
         ctx = {"PROJECT_ROOT": str(project_root), "session_id": session_id, "frame": frame}
         return Path(render_template(self.csv.path_template, ctx))
 
-    # --- config 参照（env_camera で必要） ---
+    # --- config lookup (required for env_camera) ---
 
     def _load_first_marmo_config(self, project_root: Union[str, Path]) -> Dict[str, Any]:
-        # render_spec.yaml は "{PROJECT_ROOT}/config/marmo*/config.yaml" を参照 :contentReference[oaicite:1]{index=1}
+        # render_spec.yaml references "{PROJECT_ROOT}/config/marmo*/config.yaml" :contentReference[oaicite:1]{index=1}
         ctx = {"PROJECT_ROOT": str(project_root)}
         pattern = render_template("{PROJECT_ROOT}/config/marmo*/config.yaml", ctx)
-        # pattern は project_root からの相対/絶対どちらでも可、ここでは Path.glob 用に分解
-        # 例: "/.../proj/config/marmo*/config.yaml"
+        # pattern may be relative to project_root or absolute; split here for Path.glob
+        # e.g. "/.../proj/config/marmo*/config.yaml"
         p = Path(pattern)
-        # 親を遡って glob する
+        # Walk up parents and glob
         return load_yaml(glob_one(p.parent.parent, f"{p.parent.name}/{p.name}"))
 
     def get_views(self, project_root: Union[str, Path], profile: Optional[ProfileName] = None) -> List[ViewInfo]:
@@ -373,7 +371,7 @@ class RenderSpec:
 # -------------------------
 
 if __name__ == "__main__":
-    # project_root はあなたのプロジェクトルートを渡す
+    # Pass your project root as project_root
     project_root = Path(".").resolve()
 
     spec = RenderSpec.from_yaml("render_spec.yaml")

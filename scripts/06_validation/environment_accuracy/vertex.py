@@ -1,21 +1,21 @@
 import bpy
 import bmesh
 
-# アクティブオブジェクトを取得
+# Get the active object
 obj = bpy.context.active_object
 
-# オブジェクトが MESH かつ Edit モードであることを確認
+# Check that the object is a MESH and in Edit mode
 if obj and obj.type == 'MESH' and obj.mode == 'EDIT':
-    # bmesh を作成 (Edit モードのメッシュを参照)
+    # Create a bmesh (referencing the Edit mode mesh)
     me = obj.data
     bm = bmesh.from_edit_mesh(me)
 
-    # bmesh 上の頂点を走査
+    # Iterate over the vertices in the bmesh
     for v in bm.verts:
-        if v.select:  # 選択されている頂点だけ
-            # ローカル座標 (オブジェクト内部のメッシュ座標)
+        if v.select:  # selected vertices only
+            # Local coordinates (mesh coordinates in object space)
             local_co = v.co
-            # ワールド座標
+            # World coordinates
             world_co = obj.matrix_world @ local_co
 
             print(f"Vertex Index: {v.index}")
@@ -23,8 +23,8 @@ if obj and obj.type == 'MESH' and obj.mode == 'EDIT':
             print(f"  World : {world_co}")
             print("-------------")
 
-    # bmesh を更新して終了
+    # Update the bmesh and finish
     bmesh.update_edit_mesh(me)
 
 else:
-    print("アクティブオブジェクトが MESH ではないか、Edit モードではありません。")
+    print("The active object is not a MESH or is not in Edit mode.")

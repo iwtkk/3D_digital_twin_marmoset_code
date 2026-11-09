@@ -19,15 +19,15 @@ while [[ $# -gt 0 ]]; do
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  --blend <file>      ベースblendファイル（デフォルト: 3D_digital_twin_marmoset_data/...）
-  --armature <name>   アーマチュア名（デフォルト: NF_Armature）
-  --csv-dir <dir>     CSVディレクトリ（デフォルト: outputs/animate_temp/transformedcsv）
-  --output-dir <dir>  出力blendファイルの保存先（デフォルト: outputs/blender）
-  --count <n>         処理するCSV数の上限（デフォルト: 10）
-  --all               すべてのCSVを処理
-  --max-jobs <n>      並列数上限（デフォルト: 4）
-  --verbose           Blenderの出力をログファイルに保存（OUTPUT_DIR/work_NAME.log）
-  -h, --help          このヘルプを表示
+  --blend <file>      Base blend file (default: 3D_digital_twin_marmoset_data/...)
+  --armature <name>   Armature name (default: NF_Armature)
+  --csv-dir <dir>     CSV directory (default: outputs/animate_temp/transformedcsv)
+  --output-dir <dir>  Output directory for blend files (default: outputs/blender)
+  --count <n>         Max number of CSVs to process (default: 10)
+  --all               Process all CSVs
+  --max-jobs <n>      Max number of parallel jobs (default: 4)
+  --verbose           Save Blender output to a log file (OUTPUT_DIR/work_NAME.log)
+  -h, --help          Show this help
 EOF
       exit 0;;
     --blend)      BLEND_BASE="$2";    shift 2;;
@@ -44,7 +44,7 @@ done
 
 mkdir -p "$OUTPUT_DIR"
 
-# 今回処理するCSV数を事前カウント（スキップ分を除く）
+# Count the CSVs to process in advance (excluding skipped ones)
 to_process=0
 for csv in "$CSV_DIR"/*.csv; do
   name=$(basename "$csv" .csv)
@@ -53,7 +53,7 @@ for csv in "$CSV_DIR"/*.csv; do
   [[ $ALL -eq 0 ]] && (( to_process >= COUNT )) && break
 done
 
-# セッション単位のdoneマーカー用一時ディレクトリ
+# Temporary directory for per-session done markers
 SESSION_DIR=$(mktemp -d)
 
 pids=()
@@ -62,18 +62,18 @@ monitor_pid=""
 cleanup() {
   [[ -n "$monitor_pid" ]] && kill "$monitor_pid" 2>/dev/null
   printf "\n"
-  echo "中断シグナルを受信しました。実行中の blender ジョブを終了します..."
+  echo "Received interrupt signal. Terminating running blender jobs..."
   for pid in "${pids[@]}"; do
     kill "$pid" 2>/dev/null
   done
   wait
   rm -rf "$SESSION_DIR"
-  echo "すべてのジョブを終了しました"
+  echo "All jobs terminated"
   exit 1
 }
 trap cleanup SIGINT SIGTERM
 
-# プログレスバー監視プロセス（verboseでは不要）
+# Progress bar monitor process (not needed in verbose mode)
 if [[ $VERBOSE -eq 0 ]] && (( to_process > 0 )); then
   bar_width=30
   (
@@ -109,7 +109,7 @@ for csv in "$CSV_DIR"/*.csv; do
 
   (( processed++ ))
   if [[ $ALL -eq 0 ]] && (( processed > COUNT )); then
-    [[ $VERBOSE -eq 1 ]] && echo "CSV の処理上限 (${COUNT}) に達したので終了します"
+    [[ $VERBOSE -eq 1 ]] && echo "Reached CSV processing limit (${COUNT}); exiting"
     break
   fi
 
@@ -151,4 +151,4 @@ done
 [[ -n "$monitor_pid" ]] && { wait "$monitor_pid" 2>/dev/null; printf "\n"; }
 rm -rf "$SESSION_DIR"
 
-echo "すべてのジョブが終了しました"
+echo "All jobs finished"

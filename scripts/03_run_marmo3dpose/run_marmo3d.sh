@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# ez2use 用ラッパー: marmo3Dpose/all.sh を outputs/ に向けて実行する
+# ez2use wrapper: run marmo3Dpose/all.sh with results directed to outputs/
 #
-# 使い方（プロジェクトルートから）:
-#   bash scripts/03_run_marmo3dpose/run_marmo3d.sh [オプション...]
+# Usage (from the project root):
+#   bash scripts/03_run_marmo3dpose/run_marmo3d.sh [options...]
 #
-# all.sh のすべてのオプションをそのまま渡せる:
+# All all.sh options can be passed through as is:
 #   --device cuda:1
 #   --sessions session1,session2
 #   --config ./config/marmo_cj425m/config.yaml
-#   など
+#   etc.
 #
-# --results を明示指定すると上書きできる:
+# Override by specifying --results explicitly:
 #   bash scripts/03_run_marmo3dpose/run_marmo3d.sh --results /other/path
 
 set -euo pipefail

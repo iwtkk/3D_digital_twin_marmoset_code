@@ -1,13 +1,13 @@
 # config/health_status.yaml
 meta:
   date_format: "YYYYMMDD"
-  # 期間にヒットしない場合の扱い（運用に合わせて）
+  # Behavior when no period matches (adjust to your workflow)
   default_status: "healthy"   # healthy / diseased / unknown
-  # to を省略(null)した場合は「無期限」として扱う想定
+  # If to is omitted (null), it is treated as open-ended
   open_ended_to: null
 
 animals:
-  # 期間でステータスが切り替わる個体
+  # Individuals whose status changes by period
   cj611:
     periods:
       - status: "healthy"
@@ -41,7 +41,7 @@ animals:
     notes: "Female"
 
 
-# PDモデルはこちら。
+# PD models are listed here.
 
 # Cj425, Male DOB(day of birth): 2014/4/11
 
@@ -50,10 +50,10 @@ animals:
 # Cj611, Female, DOB: 2018/5/28
 
 # 2023/03/14, Right brain
-# 注入日と注入したHemisphere（方半球）、注入法は論文にあります。
+# Injection date, injected hemisphere, and injection method are described in the paper.
 
-# 他はWild typeの動物です。
-# 注入してから徐々に症状が進行します。
+# The others are wild-type animals.
+# Symptoms progress gradually after injection.
 
 #  357F   2011/11/21
-# この個体は、特に注入など行っておりません。
+# This individual received no injection.

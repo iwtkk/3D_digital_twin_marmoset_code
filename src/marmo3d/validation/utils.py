@@ -1,5 +1,5 @@
 """
-共通ユーティリティ関数
+Common utility functions
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from typing import Dict, List, Any, Tuple
 import numpy as np
 import yaml
 
-# パス設定
+# Path settings
 current_dir = Path(__file__).resolve().parent
 marmo3d_dir = current_dir.parent          # src/marmo3d/
 src_dir = marmo3d_dir.parent              # src/
@@ -28,14 +28,14 @@ import marmo3d.marmo_dataset as marmo_dataset
 
 
 def load_valid_config(config_path: Path) -> Dict[str, Any]:
-    """consistency.yamlを読み込み"""
+    """Load consistency.yaml"""
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
     return config
 
 
 def expand_path_template(template: str, project_root: Path, **kwargs) -> Path:
-    """パステンプレートを展開"""
+    """Expand a path template"""
     expanded = template.replace("{PROJECT_ROOT}", str(project_root))
     for key, value in kwargs.items():
         expanded = expanded.replace(f"{{{key}}}", str(value))
@@ -44,14 +44,14 @@ def expand_path_template(template: str, project_root: Path, **kwargs) -> Path:
 
 def discover_camera_ids(dataset_info: marmo_dataset.MarmoDataset) -> List[str]:
     """
-    カメラIDを取得（allowed_idsが空の場合はvideo_rootから自動検出）
+    Get camera IDs (auto-detected from video_root if allowed_ids is empty)
     """
-    # まずallowed_idsを試す
+    # Try allowed_ids first
     camera_ids = dataset_info.spec.camera_allowed_ids
     if camera_ids:
         return [str(cid) for cid in camera_ids]
 
-    # 空の場合は自動検出
+    # Auto-detect if empty
     discovered = set()
     if dataset_info.video_root.exists():
         for p in dataset_info.video_root.iterdir():
@@ -62,19 +62,19 @@ def discover_camera_ids(dataset_info: marmo_dataset.MarmoDataset) -> List[str]:
 
     camera_ids = sorted(list(discovered))
     if not camera_ids:
-        raise ValueError("カメラIDが見つかりません")
+        raise ValueError("No camera IDs found")
 
     return camera_ids
 
 
 def get_project_root() -> Path:
-    """プロジェクトルートを取得"""
+    """Get the project root"""
     return project_root
 
 
-# ---- キーポイント検証ユーティリティ ----------------------------------------
+# ---- Keypoint validation utilities ----------------------------------------
 
-# カメラハードウェアID -> 表示ラベルのマッピング
+# Mapping from camera hardware ID -> display label
 cam_map: Dict[int, str] = {
     23506226: "Cam 1",
     23511607: "Cam 2",
@@ -88,14 +88,14 @@ cam_map: Dict[int, str] = {
 
 
 def load_ids_from_yaml(config_yaml: str | Path) -> List[str]:
-    """カメラ設定yamlからカメラIDリストを読み込む"""
+    """Load the camera ID list from the camera config yaml"""
     with open(config_yaml, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     return [str(x) for x in cfg["camera_id"]]
 
 
 def load_kp2d_f(base_dir: str | Path) -> np.ndarray:
-    """kp2d_f.pickle を読み込む。期待形状: (n_frame, n_kp, n_animal, 3, n_cam)"""
+    """Load kp2d_f.pickle. Expected shape: (n_frame, n_kp, n_animal, 3, n_cam)"""
     path = os.path.join(base_dir, "kp2d_f.pickle")
     with open(path, "rb") as f:
         kp2d_f = pickle.load(f)
@@ -107,10 +107,10 @@ def build_points2d_for_frame(
     kp2d_f: np.ndarray, frame: int, animal: int, score_thresh: float
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    指定フレーム・個体の2Dキーポイントを抽出する。
+    Extract 2D keypoints for the specified frame and individual.
 
     Returns:
-        points_2d: (n_cam, n_kp, 2)  score_thresh未満は NaN
+        points_2d: (n_cam, n_kp, 2)  NaN where below score_thresh
         scores:    (n_cam, n_kp)
     """
     n_frame, n_kp, n_animal, dim, n_cam = kp2d_f.shape
@@ -132,7 +132,7 @@ def build_points2d_for_frame(
 
 
 def rodrigues_to_R(rvec: np.ndarray) -> np.ndarray:
-    """Rodrigues ベクトル -> 回転行列 (OpenCV 規約)"""
+    """Rodrigues vector -> rotation matrix (OpenCV convention)"""
     rvec = np.asarray(rvec, dtype=float).reshape(3)
     theta = np.linalg.norm(rvec)
     if theta < 1e-12:

@@ -1,34 +1,34 @@
 #!/usr/bin/env bash
 # =============================================================================
-# setup_data_links.sh  —  データベースとリポジトリをシンボリックリンクで接続する
+# setup_data_links.sh  —  link the dataset to the repository via symlinks
 # =============================================================================
 #
-# 【何をするスクリプトか】
-#   リポジトリルート（code/）直下と outputs/ 内に、
-#   実データへのシンボリックリンクを作成する。
-#   一度だけ実行すれば以降のスクリプトはすべて同じパスで動く。
+# [What this script does]
+#   Creates symlinks to the actual data directly under the repository root (code/)
+#   and inside outputs/.
+#   Run once; all subsequent scripts then work with the same paths.
 #
-# 【作成されるシンボリックリンク（リポジトリルート基準）】
+# [Symlinks created (relative to repository root)]
 #
-#   3D_digitaltwin_marmoset_code/                              ← リポジトリルート
+#   3D_digitaltwin_marmoset_code/                              ← repository root
 #   ├── vid             -> <DATA_ROOT>/marmoset_keypoint_data/video_data/
 #   └── outputs/
 #       ├── 2d          -> <DATA_ROOT>/marmoset_keypoint_data/2D_temporal_keypoint_data/
 #       ├── 3d          -> <DATA_ROOT>/marmoset_keypoint_data/3D_temporal_keypoint_data/
 #       └── digitaltwin -> <DATA_ROOT>/3D_digital_twin_marmoset_data/
 #
-#   ※ vid/, outputs/ は .gitignore 済みのためリンク自体は git 管理されない。
+#   Note: vid/ and outputs/ are in .gitignore, so the links themselves are not tracked by git.
 #
-# 【使い方】
-#   # 引数で指定する場合
+# [Usage]
+#   # Specify via argument
 #   bash scripts/00_setup/setup_data_links.sh /path/to/3D_digital_twin_marmoset_data
 #
-#   # 環境変数で指定する場合
+#   # Specify via environment variable
 #   export DATA_DIR_ROOT=/data/iwata/3D_digital_twin_marmoset_data
 #   bash scripts/00_setup/setup_data_links.sh
 #
-# 【DATA_ROOT について】
-#   DATA_ROOT は以下のサブディレクトリを持つディレクトリを指定する:
+# [About DATA_ROOT]
+#   DATA_ROOT must be a directory containing the following subdirectories:
 #     <DATA_ROOT>/marmoset_keypoint_data/
 #     <DATA_ROOT>/3D_digital_twin_marmoset_data/
 #
@@ -37,8 +37,8 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-DATA_ROOT="${1:-${DATA_DIR_ROOT:?'DATA_DIR_ROOT を第1引数か環境変数 DATA_DIR_ROOT で指定してください'}}"
-DATA_ROOT="${DATA_ROOT%/}"  # 末尾スラッシュを除去
+DATA_ROOT="${1:-${DATA_DIR_ROOT:?'Specify DATA_DIR_ROOT as the first argument or the DATA_DIR_ROOT environment variable'}}"
+DATA_ROOT="${DATA_ROOT%/}"  # Strip trailing slash
 
 MKP="${DATA_ROOT}/marmoset_keypoint_data"
 DTW="${DATA_ROOT}/3D_digital_twin_data"
@@ -47,35 +47,35 @@ echo "DATA_ROOT    : ${DATA_ROOT}"
 echo "PROJECT_ROOT : $(pwd)"
 echo ""
 
-# 実体ディレクトリの存在確認
+# Check that the target directories exist
 for d in "${MKP}/video_data" "${MKP}/2D_temporal_keypoint_data" "${MKP}/3D_temporal_keypoint_data" "${DTW}"; do
     if [[ ! -d "$d" ]]; then
-        echo "ERROR: ディレクトリが見つかりません: $d" >&2
+        echo "ERROR: directory not found: $d" >&2
         exit 1
     fi
 done
 
-# --- リポジトリルート直下 ---
+# --- Directly under repository root ---
 ln -sfn "${MKP}/video_data" vid
-echo "作成: $(pwd)/vid"
+echo "Created: $(pwd)/vid"
 echo "   -> ${MKP}/video_data"
 
-# --- outputs/ 内 ---
+# --- Inside outputs/ ---
 mkdir -p outputs
 ln -sfn "${MKP}/2D_temporal_keypoint_data" outputs/2d
-echo "作成: $(pwd)/outputs/2d"
+echo "Created: $(pwd)/outputs/2d"
 echo "   -> ${MKP}/2D_temporal_keypoint_data"
 
 ln -sfn "${MKP}/3D_temporal_keypoint_data" outputs/3d
-echo "作成: $(pwd)/outputs/3d"
+echo "Created: $(pwd)/outputs/3d"
 echo "   -> ${MKP}/3D_temporal_keypoint_data"
 
 ln -sfn "${DTW}" outputs/digitaltwin
-echo "作成: $(pwd)/outputs/digitaltwin"
+echo "Created: $(pwd)/outputs/digitaltwin"
 echo "   -> ${DTW}"
 
 echo ""
-echo "=== 確認 ==="
+echo "=== Verify ==="
 for link in vid outputs/2d outputs/3d outputs/digitaltwin; do
     target=$(readlink "$link" 2>/dev/null || echo "(not a symlink)")
     echo "  $link -> $target"
