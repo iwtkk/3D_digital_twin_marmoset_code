@@ -14,32 +14,32 @@ cd 3D_digital_twin_marmoset_code
 
 ## Setup
 
-動作確認済み環境: Python 3.10.12、CUDA 12.7
+Tested environment: Python 3.10.12, CUDA 12.7
 
-> **注意**: `python3` が 3.12 以降を指す場合、torch 1.13.1 の wheel が存在しないため必ず `python3.10` を指定する。
+> **Note**: If `python3` points to 3.12 or later, there is no torch 1.13.1 wheel, so always specify `python3.10`.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 
-# 1. PyTorch（cu116 ビルドは CUDA 12.x でも動作する）
-#    torch==1.10.2+cu113 は配布終了のため 1.13.1+cu116 を使用する
+# 1. PyTorch (the cu116 build also works on CUDA 12.x)
+#    torch==1.10.2+cu113 is no longer distributed, so use 1.13.1+cu116
 pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 \
     --extra-index-url https://download.pytorch.org/whl/cu116
 
-# 2. mmcv（torch + CUDA バージョンに合わせたビルドを指定）
+# 2. mmcv (specify the build matching the torch + CUDA version)
 pip install mmcv-full==1.6.2 \
     -f https://download.openmmlab.com/mmcv/dist/cu116/torch1.13/index.html
 
-# 3. mmdetection / mmpose（サブモジュールから editable インストール）
+# 3. mmdetection / mmpose (editable install from the submodules)
 pip install -e scripts/02_train/mmdetection
 pip install -e scripts/02_train/mmpose
 
-# 4. lap は numpy 2.x でビルドが失敗するため、numpy を先に固定してからインストール
+# 4. lap fails to build with numpy 2.x, so pin numpy first and then install it
 pip install "numpy==1.22.4"
 pip install "lap==0.4.0"
 
-# 5. その他の依存パッケージ
+# 5. Other dependencies
 pip install -r requirements.txt
 ```
 
@@ -57,7 +57,7 @@ scripts/03_run_marmo3dpose/marmo3Dpose/model/
 
 ## Data layout
 
-学習データは Zenodo からダウンロードできます（URL は論文参照）。
+The training data can be downloaded from Zenodo (see the paper for the URL).
 
 **Detection, Pose:**
 ```
@@ -109,6 +109,6 @@ See [docs/keypoint_definition.md](../../docs/keypoint_definition.md) for keypoin
 
 ## Pretrained weights
 
-学習済みモデルは Zenodo からダウンロードできます（URL は論文参照）。
+The trained models can be downloaded from Zenodo (see the paper for the URL).
 
-ダウンロード後、`3D_digital_twin_marmoset_data/marmoset_keypoint_data/trained_model/` に配置してください。
+After downloading, place them in `3D_digital_twin_marmoset_data/marmoset_keypoint_data/trained_model/`.

@@ -1,11 +1,11 @@
-# strip — ファイル名マーカー除去ユーティリティ
+# strip - Utility for removing filename markers
 
-`work_` / `dailylife_` / `_points.csv_transformedtest` を含むファイル名を素の名前に戻す
-in-place リネームユーティリティ。既定は dry-run、`--execute` で実行。
+An in-place renaming utility that restores filenames containing `work_` / `dailylife_` / `_points.csv_transformedtest`
+to their plain names. Dry-run by default; `--execute` to apply.
 
-| 区分 | スクリプト | 入力 | 動作 |
+| Category | Script | Input | Action |
 |---|---|---|---|
-| run | `strip_marked_filenames.py` | `--input-dir DIR` | DIR 内のファイル名を書き換え |
+| run | `strip_marked_filenames.py` | `--input-dir DIR` | Rewrites filenames in DIR |
 
-`--input-dir / --output-dir / --session / --help` を受け付ける（in-place のため output-dir /
-session は未使用）。`--execute` / `--recursive` あり。
+Accepts `--input-dir / --output-dir / --session / --help` (output-dir /
+session are unused because it operates in place). `--execute` / `--recursive` are available.

@@ -1,127 +1,127 @@
-# Validation – 3D 環境モデルの幾何精度評価
+# Validation – Geometric Accuracy of the 3D Environment Model
 
-実験ケージの 3D モデル寸法を実測値と比較し、モデルの幾何的精度を評価します。  
-論文セクション対応: **Technical Validation – 3D環境モデルの幾何精度評価**
+Compares the dimensions of the 3D model of the experimental cage against measured values to evaluate the model's geometric accuracy.  
+Corresponding paper section: **Technical Validation – Geometric accuracy of the 3D environment model**
 
-## 概要
+## Overview
 
-計測スクリプトはここ（`06_validation/environment_accuracy/`）に置いていますが、  
-同じスクリプトはモデル構築ステップ（[`scripts/04_build_3d_environment/`](../../04_build_3d_environment/README.md)）でも使用します。  
-`04` のREADMEからもこちらを参照しています。
+The measurement scripts live here (`06_validation/environment_accuracy/`), but  
+the same scripts are also used in the model-building step ([`scripts/04_build_3d_environment/`](../../04_build_3d_environment/README.md)).  
+The `04` README also points here.
 
-## スクリプト
+## Scripts
 
-すべて **Blender の Scripting ワークスペース**（またはテキストエディタ）に貼り付けて実行します。  
-CLI からは `blender --background <file.blend> --python <script.py>` でも実行できます。
+All scripts are run by pasting them into Blender's **Scripting workspace** (or Text Editor).  
+They can also be run from the CLI with `blender --background <file.blend> --python <script.py>`.
 
-| スクリプト | 目的 |
+| Script | Purpose |
 |---|---|
-| `vertex.py` | Edit モードで選択した頂点のローカル・ワールド座標をコンソールに表示 |
-| `vertex.csv.py` | 選択頂点の座標を `selected_vertices.csv` に書き出す（mm 単位） |
-| `length.py` | Edit モードで選択したエッジのローカル・ワールド長をコンソールに表示 |
-| `object_dimensions.py` | 選択オブジェクトの MaxZ / MinZ を `height.csv` に書き出す（mm 単位） |
+| `vertex.py` | Prints the local and world coordinates of the vertices selected in Edit mode to the console |
+| `vertex.csv.py` | Writes the coordinates of the selected vertices to `selected_vertices.csv` (in mm) |
+| `length.py` | Prints the local and world lengths of the edges selected in Edit mode to the console |
+| `object_dimensions.py` | Writes MaxZ / MinZ of the selected objects to `height.csv` (in mm) |
 
-## Table 3 の自動生成（`make_table3.py`）
+## Automatic generation of Table 3 (`make_table3.py`)
 
-手作業（頂点を選んで CSV を出し、xlsx で引き算）をやめ、計測定義を
-`config/environment_table3.yaml` に書いて .blend から Table 3 を一発で出す。
-**標準の計測対象は公開デジタルツイン**（`3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend`）。
-レンダリングに使っている環境そのものを測るため。
+Instead of the manual workflow (select vertices, export CSV, subtract in xlsx), the measurement definitions are
+written in `config/environment_table3.yaml` and Table 3 is produced from the .blend in one step.
+**The default measurement target is the published digital twin** (`3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend`),
+so that the environment actually used for rendering is what gets measured.
 
-### 手順
+### Procedure
 
 ```bash
-# 1. 計測（既定 = 公開デジタルツイン）。約 30 秒
+# 1. Measure (default = published digital twin). Takes about 30 s
 .venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py
 
-# 2. 結果を見る
+# 2. View the results
 cat outputs/dev/environment_table3/digitaltwin/table3.md
 ```
 
-| 出力 | 中身 |
+| Output | Contents |
 |---|---|
-| `table3.csv` | 19 行。図面値・モデル値・誤差・符号付きの比・一致判定・測ったオブジェクト・注意フラグ |
-| `table3.md` | 上の表 + 要約統計（一致数、MAE、最大誤差、比の平均と範囲） |
-| `table3.tex` | 原稿 Table 3 と同じ形式の LaTeX 表（booktabs）。論文 No. 順、末尾に avg./max./min. 行。桁は mm が小数 2 桁（10^-3 mm 未満は `<10^{-3}`）、比が小数 3 桁で、比は符号付き（model / blueprint） |
-| `summary.json` | 要約統計 + 計測した .blend のパスと md5、Blender のバージョン |
-| `measured_raw.json` | Blender が返した生の値（オブジェクトの非表示・modifier・animation の情報つき） |
+| `table3.csv` | 19 rows. Blueprint value, model value, error, signed ratio, match flag, measured object, warning flags |
+| `table3.md` | The table above + summary statistics (number of matches, MAE, max error, mean and range of the ratio) |
+| `table3.tex` | LaTeX table (booktabs) in the same format as Table 3 in the manuscript. Ordered by paper No., with avg./max./min. rows at the end. mm values have 2 decimal places (below 10^-3 mm shown as `<10^{-3}`), ratios have 3 decimal places, and ratios are signed (model / blueprint) |
+| `summary.json` | Summary statistics + path and md5 of the measured .blend, Blender version |
+| `measured_raw.json` | Raw values returned by Blender (with object hidden / modifier / animation info) |
 
-ほかの版を測るとき:
+To measure other versions:
 
 ```bash
-.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend v250430   # 論文 Table 3 の元の版
-.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend dataset   # environment_measurement.blend（旧版）
+.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend v250430   # original version used for paper Table 3
+.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend dataset   # environment_measurement.blend (old version)
 .venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend /path/to/x.blend --output-dir outputs/dev/environment_table3/x
 ```
 
-### 仕組み
+### How it works
 
-- `make_table3.py`（.venv）が YAML を読み、`measure_blend.py` を `blender -b` で実行する
-  （Blender 同梱の Python に yaml が無いため 2 段構成）。.blend は読むだけで保存しない
-- 計測方法は 3 種類（測り方は既存の `object_dimensions.py` / `vertex.csv.py` と同じ）
-  - `bbox_extent`: ワールド座標の外接箱の長さ。`geometry: mesh` にすると modifier を通す前のメッシュで測る
-    （MIRROR で 2 枚組のドアから 1 枚ぶんを測るのに使う）
-  - `vertex_delta`: 2 頂点の座標の差
-  - `bbox_gap`: 2 つのオブジェクトの面と面の距離。`a: [Cube, min], b: [Cube.003, max]` なら
-    「Cube の下面 − Cube.003 の上面」（論文 No.13 のケージ内の高さ）
-  - `bbox_span`: 上のオブジェクトの最大 − 下のオブジェクトの最小
-- 版によってオブジェクト名が違う行は `by_blend` で上書きする（ドアの 4 行）
-- `blueprint_mm: null` の行は、計測値だけを表に出し、要約統計には入れない（図面値が未確定の項目を仮に入れておくとき用）
-- 比は符号付き（model / blueprint）。xlsx の J 列（`1 + ABS(1 - 比)`）は使わない
-- ワールド行列は `matrix_world` ではなく `matrix_basis` から計算し直す。非表示のオブジェクトは
-  評価されず `matrix_world` が古いままのことがある（250430 版の Cube.002 はスケール未反映で 3707 mm になる）
-- note 列の注意フラグ: `hidden`（レンダリングされない）、`matrix_world stale`、`animated`（action を持つ）。
-  デジタルツインの Cube.004 は `animated` が出るが、キーフレームは 1 つ（frame 72）で値も保存値と同じ。
-  1〜500 フレームで位置が変わらないことを確認済み
+- `make_table3.py` (.venv) reads the YAML and runs `measure_blend.py` with `blender -b`
+  (two-stage setup because Blender's bundled Python has no yaml). The .blend is only read, never saved
+- There are 3 measurement methods (measured the same way as the existing `object_dimensions.py` / `vertex.csv.py`)
+  - `bbox_extent`: length of the bounding box in world coordinates. With `geometry: mesh`, measures the mesh before modifiers are applied
+    (used to measure a single door out of a MIRROR-ed pair of doors)
+  - `vertex_delta`: difference between the coordinates of 2 vertices
+  - `bbox_gap`: face-to-face distance between 2 objects. `a: [Cube, min], b: [Cube.003, max]` means
+    "bottom face of Cube − top face of Cube.003" (height inside the cage, paper No.13)
+  - `bbox_span`: max of the upper object − min of the lower object
+- Rows whose object names differ between versions are overridden with `by_blend` (the 4 door rows)
+- Rows with `blueprint_mm: null` show only the measured value in the table and are excluded from summary statistics (for provisionally adding items whose blueprint value is not yet fixed)
+- The ratio is signed (model / blueprint). Column J of the xlsx (`1 + ABS(1 - ratio)`) is not used
+- The world matrix is recomputed from `matrix_basis` instead of `matrix_world`. Hidden objects
+  are not evaluated and their `matrix_world` may be stale (Cube.002 in the 250430 version has its scale unapplied and becomes 3707 mm)
+- Warning flags in the note column: `hidden` (not rendered), `matrix_world stale`, `animated` (has an action).
+  Cube.004 in the digital twin is flagged `animated`, but it has only one keyframe (frame 72) and its value equals the saved value.
+  Verified that its position does not change over frames 1-500
 
-### 計測項目の追加・変更
+### Adding or changing measurement items
 
-`config/environment_table3.yaml` の `rows` に 1 行足す。オブジェクト名と頂点番号は、Blender で対象を選んで
-`vertex.py`（頂点番号と座標を表示）や `object_dimensions.py` で確認する。
+Add one row to `rows` in `config/environment_table3.yaml`. Check object names and vertex indices by selecting the target in Blender
+and using `vertex.py` (prints vertex indices and coordinates) or `object_dimensions.py`.
 
 ```yaml
 - {label: 30, paper_no: null, part: "perch length", blueprint_mm: 850, method: bbox_extent, object: Cylinder.019, axis: y}
 ```
 
-### 版の違い（2026-10-30 確認）
+### Differences between versions (checked 2026-10-30)
 
-| 版 | 一致 | ドア高さ (#12/#21) | 側面高さ (#16) | 備考 |
+| Version | Matches | Door height (#12/#21) | Side height (#16) | Notes |
 |---|---|---|---|---|
-| `digitaltwin`（公開デジタルツイン） | 8/19 | 755.0 / 757.6 | 761.0 | 環境は 250430 版がもと |
-| `v250430`（論文 Table 3 の元） | 8/19 | 755.0 / 755.0 | 761.0 | ドアは非表示の旧オブジェクトを測っている |
-| `dataset`（`environment_measurement.blend` = 250124） | 6/19 | 710.1 / 710.1 | 715.5 | 床を下げる前の旧版 |
+| `digitaltwin` (published digital twin) | 8/19 | 755.0 / 757.6 | 761.0 | Environment is based on the 250430 version |
+| `v250430` (original for paper Table 3) | 8/19 | 755.0 / 755.0 | 761.0 | Doors are measured on hidden old objects |
+| `dataset` (`environment_measurement.blend` = 250124) | 6/19 | 710.1 / 710.1 | 715.5 | Old version before the floor was lowered |
 
-## 使い方（手作業スクリプト）
+## Usage (manual scripts)
 
-### Blender の Scripting ワークスペースから実行
+### Running from Blender's Scripting workspace
 
-1. Blender で `assets/env/cage_environment.blend` を開く
-2. 対象メッシュを選択し、必要に応じて Edit モードに入る
-3. 計測したい頂点・エッジ・オブジェクトを選択する
-4. Scripting ワークスペースでスクリプトを開いて実行する
+1. Open `assets/env/cage_environment.blend` in Blender
+2. Select the target mesh and enter Edit mode if needed
+3. Select the vertices, edges, or objects to measure
+4. Open the script in the Scripting workspace and run it
 
-### CLI から実行
+### Running from the CLI
 
 ```bash
 blender --background assets/env/cage_environment.blend --python scripts/06_validation/environment_accuracy/object_dimensions.py
 ```
 
-## 出力ファイル
+## Output files
 
-| ファイル | 内容 |
+| File | Contents |
 |---|---|
-| `selected_vertices.csv` | 頂点インデックス、ローカル座標、ワールド座標（mm） |
-| `height.csv` | オブジェクト名、MaxZ、MinZ（mm） |
+| `selected_vertices.csv` | Vertex index, local coordinates, world coordinates (mm) |
+| `height.csv` | Object name, MaxZ, MinZ (mm) |
 
-出力先は `.blend` ファイルと同じディレクトリです。
+Output is written to the same directory as the `.blend` file.
 
-## 評価手順
+## Evaluation procedure
 
-1. 上記スクリプトで 3D モデルの各部寸法を計測・CSV 出力する
-2. 3D Slicer 4.11（Markups モジュール）で実物ケージを計測した値と比較する
-3. 結果は論文 Table X に記載
+1. Measure the dimensions of each part of the 3D model with the scripts above and export them to CSV
+2. Compare with values measured on the physical cage in 3D Slicer 4.11 (Markups module)
+3. Results are reported in Table X of the paper
 
-## 参考
+## References
 
-- 物理計測の手順: 論文 Section 2.X
-- カメラ配置: [`docs/camera_mapping.md`](../../../docs/camera_mapping.md)
+- Physical measurement procedure: paper Section 2.X
+- Camera placement: [`docs/camera_mapping.md`](../../../docs/camera_mapping.md)

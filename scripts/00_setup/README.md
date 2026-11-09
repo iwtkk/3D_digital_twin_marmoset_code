@@ -1,16 +1,16 @@
 # 00 – Setup
 
-環境のセットアップとデータディレクトリの接続を行います。
+Set up the environment and connect the data directory.
 
-## 動作確認済み環境
+## Tested environment
 
-| 項目 | バージョン |
+| Item | Version |
 |---|---|
 | OS | Ubuntu 22.04 |
 | Python | 3.10.12 |
 | CUDA | 11.6 |
 
-## 1. Python 環境
+## 1. Python environment
 
 ```bash
 python -m venv .venv
@@ -18,17 +18,17 @@ source .venv/bin/activate
 bash scripts/00_setup/install.sh
 ```
 
-`install.sh` は以下を順番に実行します:
+`install.sh` runs the following in order:
 
-| ステップ | 内容 |
+| Step | Description |
 |---|---|
 | 1 | PyTorch 1.10.2 + torchvision 0.11.3 (CUDA 11.3) |
 | 2 | mmcv-full 1.6.2 |
-| 3 | mmdetection (サブモジュール) |
-| 4 | mmpose (サブモジュール) |
+| 3 | mmdetection (submodule) |
+| 4 | mmpose (submodule) |
 | 5 | `requirements.txt` |
 | 6 | `marmo3Dpose/requirements.txt` |
-| + | Blender 用 PyYAML → `third_party/` |
+| + | PyYAML for Blender → `third_party/` |
 
 ## 1.5 Extracting the dataset (after downloading)
 
@@ -50,16 +50,16 @@ python3 extract_dataset.py <download_dir> --session cj357_20221009_090000
 - The per-session `.blend` files are gzip-compressed. Blender opens them as they are; `--gunzip-blend` decompresses them.
 - On Windows, extract to a short path such as `C:\data` (paths inside the dataset are up to 123 characters; Windows limits a full path to 260).
 
-## 2. データリンクの作成
+## 2. Creating data links
 
-実データディレクトリとリポジトリをシンボリックリンクで接続します。
-一度だけ実行すれば、以降のスクリプトはすべて同じパスで動作します。
+Connect the actual data directory to the repository with symbolic links.
+Run this only once; after that, all scripts work with the same paths.
 
 ```bash
 bash scripts/00_setup/setup_data_links.sh /path/to/3D_digital_twin_marmoset_data
 ```
 
-`DATA_ROOT` には以下のサブディレクトリを持つディレクトリを指定してください:
+For `DATA_ROOT`, specify a directory containing the following subdirectories:
 
 ```
 <DATA_ROOT>/
@@ -71,30 +71,30 @@ bash scripts/00_setup/setup_data_links.sh /path/to/3D_digital_twin_marmoset_data
     └── digital_twin_marmoset.blend
 ```
 
-環境変数で指定することもできます:
+You can also specify it with an environment variable:
 
 ```bash
 export EZ2USE_DATA_ROOT=/path/to/3D_digital_twin_marmoset_data
 bash scripts/00_setup/setup_data_links.sh
 ```
 
-## 3. Blender 用 Python パッケージ（Blender を使う場合）
+## 3. Python packages for Blender (if you use Blender)
 
-Blender は独自の Python インタープリタを使用するため、通常の `pip install` では Blender からパッケージを参照できません。
-`third_party/` にインストールすることで `src/marmo3d/blender/render.py` が自動的に読み込みます。
+Blender uses its own Python interpreter, so packages installed with a normal `pip install` are not visible from Blender.
+Installing them into `third_party/` lets `src/marmo3d/blender/render.py` load them automatically.
 
 ```bash
 mkdir -p third_party
 pip install --target third_party PyYAML
 ```
 
-| パッケージ | 用途 |
+| Package | Purpose |
 |---|---|
-| `PyYAML` | render_spec.yaml / dataset_spec.yaml の読み込み（step 05, 06） |
+| `PyYAML` | Loading render_spec.yaml / dataset_spec.yaml (step 05, 06) |
 
-## 外部ツール要件
+## External tool requirements
 
-| ツール | インストール方法 | 使用ステップ |
+| Tool | Installation | Used in steps |
 |---|---|---|
-| **Blender** (4.5.0 推奨) | [blender.org](https://www.blender.org/download/) | 05, 06 |
+| **Blender** (4.5.0 recommended) | [blender.org](https://www.blender.org/download/) | 05, 06 |
 | **FFmpeg** (`ffmpeg`, `ffprobe`) | `apt install ffmpeg` | 03, 06 |

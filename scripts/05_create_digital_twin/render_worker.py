@@ -352,7 +352,7 @@ def run_warm_pool(jobs, slots, gpu_list, script, extra_args=(), cuda_path=DEFAUL
                           f"ありません（nvidia-smi の compute-apps に不在）。"
                           f"CPU レンダリングになっている可能性があります。", flush=True)
                 elif mem:
-                    print(f"[{worker.label}] GPU 使用を確認 (VRAM {mem})", flush=True)
+                    print(f"[{worker.label}] GPU in use (VRAM {mem})", flush=True)
 
             since_start += 1
             with lock:

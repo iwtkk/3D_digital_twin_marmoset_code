@@ -1,20 +1,20 @@
-# outliers — キーポイント位置の外れ値・bbox はみ出し解析
+# outliers - Analysis of keypoint position outliers and bbox overflow
 
-2 系統:
-1. **kp3d 外れ値** — 生 kp3d (mm) がグローバル inlier bbox の外に出る (frame,kp) を検出。
-2. **Blender bbox はみ出し** — 補正済み CSV（Blender m）が Blender bbox からどれだけ
-   はみ出すか／垂直方向のずれをセッション別にランク付け。
+Two strands:
+1. **kp3d outliers** — Detect (frame,kp) where raw kp3d (mm) falls outside the global inlier bbox.
+2. **Blender bbox overflow** — Rank, per session, how far the corrected CSV (Blender m) overflows the Blender bbox
+   and its vertical offset.
 
-全スクリプトは `--input-dir / --output-dir / --session / --help` を受け付ける
-（旧 `--csv-dir/--out-dir` も別名として残す）。
+All scripts accept `--input-dir / --output-dir / --session / --help`
+(the old `--csv-dir/--out-dir` are kept as aliases).
 
-## run/（→ outliers_files/）
-| スクリプト | 入力(既定) | 出力 |
+## run/ (-> outliers_files/)
+| Script | Input (default) | Output |
 |---|---|---|
 | `analyze_kp3d_outliers.py` | `outputs/3d` (pickle) | `{session}_outlier.json`, `outlier_summary.json` |
 
-## plot/（→ outliers_plot/）
-| スクリプト | 入力(既定) | 出力 |
+## plot/ (-> outliers_plot/)
+| Script | Input (default) | Output |
 |---|---|---|
 | `plot_kp_outlier_dist.py` | `outliers_files` (JSON) | `deviation_dist.png` |
 | `plot_bbox_deviation_dist.py` | `floorZ_files/corrected` (CSV) | `deviation_dist*.png`, `position_dist.png`, `position_hist.npz` |
@@ -22,6 +22,6 @@
 | `plot_vertical_offset_rank.py` | `floorZ_files/corrected` (CSV) | `vertical_offset_by_session.{csv,png}`, `vertical_dist_by_session.png` |
 | `plot_kp_position_dist.py` | `floorZ_files/corrected` (CSV) | `position_dist_{session}.png`, `position_dist_{animal}.png` |
 
-`plot_bbox_deviation_dist.py` が共有ヘルパー（bbox 定数・位置ヒスト集計）を提供し、
-`plot_kp_dist_before_after.py` と `plot_vertical_offset_rank.py` がそれを import する。
-bbox の評価方法は `README.md` 内の本節および各スクリプト docstring を参照。
+`plot_bbox_deviation_dist.py` provides shared helpers (bbox constants, position histogram aggregation),
+which `plot_kp_dist_before_after.py` and `plot_vertical_offset_rank.py` import.
+For how the bbox is evaluated, see this section of `README.md` and each script's docstring.

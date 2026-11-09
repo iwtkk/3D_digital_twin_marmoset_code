@@ -2,7 +2,7 @@
 
 Verify that rendered pseudo-view images are consistent with real camera images
 using SSIM and PSNR.
-Corresponds to paper section: **Technical Validation – 実験環境再現の一貫性の検証**
+Corresponds to paper section: **Technical Validation – Validation of consistency in reproducing the experimental environment**
 
 ## Scripts
 

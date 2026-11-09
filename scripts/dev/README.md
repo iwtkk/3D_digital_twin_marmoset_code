@@ -1,29 +1,29 @@
-# scripts/dev — 解析スクリプト
+# scripts/dev - Analysis scripts
 
-各 target は `docs/METHOD_SPEC.md` の規約に従い `run/`（アルゴリズム・データ生成）と
-`plot/`（可視化）に分かれる。全スクリプトは `--input-dir / --output-dir / --session /
---help` を受け付ける。既定の出力先は run が `scripts/dev/{target}_files/`、plot が
-`scripts/dev/{target}_plot/`。
+Each target follows the conventions in `docs/METHOD_SPEC.md` and is split into `run/` (algorithms and data generation) and
+`plot/` (visualization). All scripts accept `--input-dir / --output-dir / --session /
+--help`. The default output location is `scripts/dev/{target}_files/` for run and
+`scripts/dev/{target}_plot/` for plot.
 
-| target | 内容 | 詳細 |
+| target | Description | Details |
 |---|---|---|
-| `floorZ` | 床接地 KP の KDE+affine による垂直補正 | [README](floorZ/README.md) |
-| `teleport` | 物理的にあり得ないキーポイントの跳びの検出 (v1/v2) | [README](teleport/README.md) |
-| `kinematics` | 速度/加速度/ジャーク分布・PSD・ボーン長安定性 | [README](kinematics/README.md) |
-| `outliers` | kp3d / Blender bbox はみ出しと垂直ずれランキング | [README](outliers/README.md) |
-| `bbox` | 補正前 Blender bbox はみ出し集計 | [README](bbox/README.md) |
-| `quality_score` | kp3d_score / kp3d_err の分布把握 | [README](quality_score/README.md) |
-| `reproj_tail` | 再投影誤差 tail を作る KP / フレーム / セッションの特定と除外の感度分析 | [README](reproj_tail/README.md) |
-| `strip` | ファイル名マーカー除去ユーティリティ | [README](strip/README.md) |
-| `images_to_video` | 画像シーケンス → MP4 | [README](images_to_video/README.md) |
-| `pose2d` | 2D姿勢推定の生結果を実カメラ動画に重畳して目視確認 | [README](pose2d/README.md) |
-| `render_compare` | 実カメラ映像と Blender レンダーを左右に並べた比較動画 | [README](render_compare/README.md) |
-| `fur_ablation` | fur（hair-curve / simplified / なし）ごとの実画像との SSIM と fur の厚み | [README](fur_ablation/README.md) |
-| `consistency_roi` | デジタルツイン検証の PSNR/SSIM をマーモセット周辺 ROI で計算 | [README](consistency_roi/README.md) |
-| `consistency_camvar` | デジタルツイン検証の SSIM/PSNR がカメラ間でばらつく原因の切り分け | [README](consistency_camvar/README.md) |
-| `pose2d_error` | 学習データ上での2Dキーポイント推定誤差（キーポイント別バイオリン） | [README](pose2d_error/README.md) |
-| `benchmark` | パイプライン各段の処理速度（2D推論 / 3D再構成 / Blender）とリアルタイム可否 | [README](benchmark/README.md) |
+| `floorZ` | Vertical correction of floor-contact KPs via KDE+affine | [README](floorZ/README.md) |
+| `teleport` | Detection of physically implausible keypoint jumps (v1/v2) | [README](teleport/README.md) |
+| `kinematics` | Velocity/acceleration/jerk distributions, PSD, bone-length stability | [README](kinematics/README.md) |
+| `outliers` | kp3d / Blender bbox overflow and vertical-offset ranking | [README](outliers/README.md) |
+| `bbox` | Aggregation of pre-correction Blender bbox overflow | [README](bbox/README.md) |
+| `quality_score` | Distributions of kp3d_score / kp3d_err | [README](quality_score/README.md) |
+| `reproj_tail` | Identifying the KPs / frames / sessions that form the reprojection error tail, and sensitivity analysis of excluding them | [README](reproj_tail/README.md) |
+| `strip` | Utility for removing filename markers | [README](strip/README.md) |
+| `images_to_video` | Image sequence -> MP4 | [README](images_to_video/README.md) |
+| `pose2d` | Overlay raw 2D pose estimation results on real camera videos for visual inspection | [README](pose2d/README.md) |
+| `render_compare` | Comparison videos with real camera footage and the Blender render side by side | [README](render_compare/README.md) |
+| `fur_ablation` | SSIM against real images per fur variant (hair-curve / simplified / none) and fur thickness | [README](fur_ablation/README.md) |
+| `consistency_roi` | Compute digital twin validation PSNR/SSIM in an ROI around the marmoset | [README](consistency_roi/README.md) |
+| `consistency_camvar` | Isolating the causes of camera-to-camera variation in digital twin validation SSIM/PSNR | [README](consistency_camvar/README.md) |
+| `pose2d_error` | 2D keypoint estimation error on the training data (per-keypoint violins) | [README](pose2d_error/README.md) |
+| `benchmark` | Processing speed of each pipeline stage (2D inference / 3D reconstruction / Blender) and real-time feasibility | [README](benchmark/README.md) |
 
-典型的な流れは run でデータ（CSV/JSON/NPZ）を `{target}_files/` に生成し、plot がそれを
-読んで図を `{target}_plot/` に出力する。共有アルゴリズムは各 target の `run/*_core.py` /
-`*_common.py` に集約。
+In the typical flow, run generates data (CSV/JSON/NPZ) in `{target}_files/`, and plot
+reads it and writes figures to `{target}_plot/`. Shared algorithms are consolidated in each target's `run/*_core.py` /
+`*_common.py`.

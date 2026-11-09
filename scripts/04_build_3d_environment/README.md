@@ -1,34 +1,34 @@
-# 04 – 3D 環境モデルの構築
+# 04 – Building the 3D Environment Model
 
-実験ケージの 3D モデルを Blender で構築するステップです。  
-モデリング自体は **3D Slicer** と **Blender** を使用し、Python スクリプトは Blender 内部から実行します。
+This step builds the 3D model of the experimental cage in Blender.  
+Modeling itself uses **3D Slicer** and **Blender**, and the Python scripts are run from inside Blender.
 
-完成した Blender ファイルは `3D_digital_twin_marmoset_data/` 以下に格納されています。
-
----
-
-## Blender スクリプト
-
-頂点座標・エッジ長・オブジェクト高さを計測するスクリプトは、検証ステップと共用しています。
-
-**→ [`scripts/06_validation/environment_accuracy/`](../06_validation/environment_accuracy/README.md)**
-
-モデル構築中にケージ各部の寸法を確認・記録するためにも同スクリプトを使用します。
+The finished Blender files are stored under `3D_digital_twin_marmoset_data/`.
 
 ---
 
-## ワークフロー概要
+## Blender scripts
 
-1. **3D Slicer** でケージの実寸を計測する
-2. **Blender** でケージジオメトリをモデリングする
-3. `06_validation/environment_accuracy/` のスクリプトで頂点・エッジ・オブジェクトの座標を確認・記録する
-4. カメラを配置する（外部パラメータは `config/marmo_cj425m/cam_extrinsic_optim.h5` を参照）
+The scripts that measure vertex coordinates, edge lengths, and object heights are shared with the validation step.
 
-カメラのシリアル ID と配置については [docs/camera_mapping.md](../../docs/camera_mapping.md) を参照してください。
+**-> [`scripts/06_validation/environment_accuracy/`](../06_validation/environment_accuracy/README.md)**
+
+The same scripts are also used during model building to check and record the dimensions of each part of the cage.
 
 ---
 
-## 出力
+## Workflow overview
 
-- `3D_digital_twin_marmoset_data/environment_model/environment_measurement.blend` — 計測用環境モデル
-- `3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend` — マーモセット＋環境の合成シーン
+1. Measure the actual dimensions of the cage in **3D Slicer**
+2. Model the cage geometry in **Blender**
+3. Check and record the coordinates of vertices, edges, and objects with the scripts in `06_validation/environment_accuracy/`
+4. Place the cameras (for extrinsic parameters, see `config/marmo_cj425m/cam_extrinsic_optim.h5`)
+
+For camera serial IDs and placement, see [docs/camera_mapping.md](../../docs/camera_mapping.md).
+
+---
+
+## Output
+
+- `3D_digital_twin_marmoset_data/environment_model/environment_measurement.blend` — environment model for measurement
+- `3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend` — combined marmoset + environment scene

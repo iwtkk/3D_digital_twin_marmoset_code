@@ -1,11 +1,11 @@
-# bbox — 補正前 Blender bbox はみ出し分析
+# bbox - Analysis of pre-correction Blender bbox overflow
 
-補正前 (transformedcsv, global scale のみ適用済み) の Blender 座標が Blender bbox から
-どれだけはみ出すかをセッション別に集計する。上下 (z) と水平 (x,y) を分ける。
+Aggregates, per session, how far the pre-correction Blender coordinates (transformedcsv, with only the global scale applied) overflow
+the Blender bbox. Vertical (z) and horizontal (x,y) are treated separately.
 
-| 区分 | スクリプト | 入力(既定) | 出力 |
+| Category | Script | Input (default) | Output |
 |---|---|---|---|
 | run | `analyze_bbox_overflow.py` | `../ez2use/.../transformedcsv` | `bbox_overflow.csv` → `bbox_files/` |
 | plot | `plot_bbox_overflow.py` | `bbox_files/bbox_overflow.csv` | `bbox_overflow_top.png` → `bbox_plot/` |
 
-全スクリプトは `--input-dir / --output-dir / --session / --help` 対応。
+All scripts support `--input-dir / --output-dir / --session / --help`.

@@ -7,7 +7,7 @@ pseudo-first-person-view videos.
 
 - Blender 4.5.0
 - Blender scene file: `3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend`
-- NVIDIA GPU（CUDA対応）— レンダリングは CYCLES エンジン + CUDA で実行されます（動作確認環境: NVIDIA A100-SXM4-40GB × 7, CUDA 12.7）
+- NVIDIA GPU (CUDA-capable) — rendering runs on the CYCLES engine + CUDA (tested environment: NVIDIA A100-SXM4-40GB × 7, CUDA 12.7)
 
 ## Input
 
@@ -16,16 +16,16 @@ pseudo-first-person-view videos.
 ## Step 1 – Convert pickle to CSV
 
 ```bash
-# 全セッション一括
+# All sessions at once
 python scripts/05_create_digital_twin/kp3d_to_blender_csv.py --all
 
-# 1セッションのみ
+# A single session only
 python scripts/05_create_digital_twin/kp3d_to_blender_csv.py dailylife_cj611_20230227_100000
 ```
 
 ## Step 2 – Apply keypoints to Blender rig
 
-Blender の Scripting ワークスペースで `blender_animation.py` を開いて実行するか、CLI で実行します:
+Open and run `blender_animation.py` in Blender's Scripting workspace, or run it from the CLI:
 
 ```bash
 blender 3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend \
@@ -35,14 +35,14 @@ blender 3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin
   outputs/animate_temp/transformedcsv/{session}.csv
 ```
 
-`--` 以降のオプション:
+Options after `--`:
 
-| 引数 | デフォルト | 説明 |
+| Argument | Default | Description |
 |---|---|---|
-| `<csv_path>` | （必須） | Step 1 で生成した CSV ファイルのパス |
-| `--armature <name>` | `NF_Armature` | Blender シーン内のアーマチュアオブジェクト名 |
+| `<csv_path>` | (required) | Path to the CSV file generated in Step 1 |
+| `--armature <name>` | `NF_Armature` | Name of the armature object in the Blender scene |
 
-別のアーマチュアを使う場合:
+To use a different armature:
 
 ```bash
 blender scene.blend \
@@ -55,7 +55,7 @@ blender scene.blend \
 
 ## Step 3 – Render pseudo-view
 
-Blender の Scripting ワークスペースで `allcamrender.py` を実行するか、並列レンダリングスクリプトを使います:
+Run `allcamrender.py` in Blender's Scripting workspace, or use the parallel rendering script:
 
 ```bash
 python scripts/05_create_digital_twin/render_parallel.py \
@@ -68,54 +68,54 @@ python scripts/05_create_digital_twin/render_parallel.py \
   --max_jobs 4
 ```
 
-### warm 運用（デフォルト）
+### Warm mode (default)
 
-レンダリング系スクリプトは **blender を常駐させる warm 運用** が既定です。
-GPU スロット数だけ blender を立ち上げ、チャンクを stdin 経由で流し込みます
-（プロトコルは `render_ipc.py`、ディスパッチャは `render_worker.py`）。
+The rendering scripts default to **warm mode, which keeps blender resident**.
+One blender is started per GPU slot, and chunks are fed in via stdin
+(protocol in `render_ipc.py`, dispatcher in `render_worker.py`).
 
-- `.blend` のロード / CUDA・OptiX コンテキスト初期化 / BVH 構築 / シェーダコンパイルは
-  **ワーカーあたり1回**。従来はチャンクごとに払っていた。
-- `use_persistent_data` はプロセス内でしか効かないため、warm ではチャンクをまたいで効く。
-- カメラ切り替えとフレーム範囲の変更はプロセス内で完結する。`render_sessions.py` では
-  ワーカーは自分がロード済みの `.blend` のジョブを優先して取り、**セッションをまたぐ時だけ**
-  blender を起動し直す。
-- 実測（A100, 320x320, samples=16）: 1枚目 70s → 2枚目 20s → 以降 12〜15s/枚。
-  cold 運用ではチャンクごとにこの初回コストを払い直していた。
-- 問題が起きたら `--cold` で従来の「1チャンク=1プロセス」方式に戻せる。
+- Loading the `.blend` / initializing the CUDA/OptiX context / building the BVH / compiling shaders happens
+  **once per worker**. Previously this was paid for every chunk.
+- `use_persistent_data` only takes effect within a process, so in warm mode it takes effect across chunks.
+- Switching cameras and changing the frame range are done within the process. In `render_sessions.py`,
+  workers prefer jobs for the `.blend` they have already loaded, and restart blender **only when moving
+  to another session**.
+- Measured (A100, 320x320, samples=16): 1st image 70s → 2nd image 20s → then 12-15s/image.
+  In cold mode this initial cost was paid again for every chunk.
+- If problems occur, `--cold` reverts to the previous "1 chunk = 1 process" mode.
 
-`blender_render/tools/` の検証結果に基づく設定も渡せます:
+Settings based on the test results in `blender_render/tools/` can also be passed:
 
-| オプション | 内容 |
+| Option | Description |
 |---|---|
-| `--optimize` | デノイザーOptiX・Simplify+テクスチャ上限・indirect clamp・adaptive threshold・ガラスの影オフをまとめて適用（**画が変わる**のでオプトイン） |
-| `--samples N` | Cycles サンプル数の上書き。**カラーの既定は 32**（depth は 1）。`0` 以下で .blend の設定をそのまま使う。値は `blender_render/tools/run_sample_sweep.sh` で検証する |
-| `--denoiser {OPTIX,OPENIMAGEDENOISE,NONE}` | デノイザー指定 |
-| `--allow-cpu-fallback` | GPU を有効化できなくても CPU で続行（既定はエラー停止） |
-| `--threads N` | blender 1本あたりの CPU スレッド数（`blender -t`）。**既定は自動（コア数÷スロット数×2、上限16）**。`0` で無制限。下記の実測表のとおりスループットへの影響が最も大きいパラメータ |
-| `--restart-every N` | ワーカーが N ジョブ処理したら blender を再起動（長時間運用の保険） |
-| `--job-timeout SEC` | チャンクが固まったらワーカーを作り直して再試行 |
-| `--progress` | フレーム単位の所要時間を表示 |
-| `--blender-arg X` | `render_range*.py` へ任意の引数を素通し |
+| `--optimize` | Applies OptiX denoiser, Simplify + texture limit, indirect clamp, adaptive threshold and disabling glass shadows together (opt-in because **the image changes**) |
+| `--samples N` | Overrides the Cycles sample count. **Default for color is 32** (1 for depth). `0` or less uses the .blend settings as is. Validate the value with `blender_render/tools/run_sample_sweep.sh` |
+| `--denoiser {OPTIX,OPENIMAGEDENOISE,NONE}` | Denoiser selection |
+| `--allow-cpu-fallback` | Continue on CPU even if the GPU cannot be enabled (default is to stop with an error) |
+| `--threads N` | CPU threads per blender instance (`blender -t`). **Default is automatic (cores ÷ slots × 2, max 16)**. `0` means unlimited. As the measurement table below shows, this is the parameter with the largest effect on throughput |
+| `--restart-every N` | Restart blender after the worker processes N jobs (a safeguard for long runs) |
+| `--job-timeout SEC` | If a chunk hangs, recreate the worker and retry |
+| `--progress` | Show the time taken per frame |
+| `--blender-arg X` | Pass arbitrary arguments through to `render_range*.py` |
 
-GPU が有効化できないと Cycles は**無言で CPU にフォールバックして数十倍遅くなる**ため、
-既定ではエラーで停止します（`blender_render/tools/README.md` §0）。
+If the GPU cannot be enabled, Cycles **silently falls back to the CPU and becomes tens of times slower**, so
+by default it stops with an error (`blender_render/tools/README.md` §0).
 
-### GPU が本当に使われているかの確認方法
+### How to check that the GPU is actually used
 
-Cycles は「GPU を選んだつもりで実は CPU」という状態になりやすい（デスクトップで発生）。
-本パイプラインには3段の検出を入れてある:
+Cycles easily ends up in a state where "you think you selected the GPU but it is actually the CPU" (this happens on desktops).
+This pipeline has three levels of detection:
 
-1. **起動時**: `prefs.get_devices_for_type(backend)` で*実在する*デバイスを取り、
-   `prefs.has_active_device()` が False なら起動を中止する（`--allow-cpu-fallback` で続行可）。
-   `prefs.devices` は過去にそのマシンで見えたデバイスが userpref に残り続けるので当てにならない
-   （GPU1枚しか見えない状況で13件並ぶことを実測）。ログには実在デバイスだけを出す。
-2. **1枚目のレンダー後**: ディスパッチャが `nvidia-smi --query-compute-apps` に
-   ワーカーPID（およびその子プロセス）が載っているかを確認し、
-   `GPU 使用を確認 (VRAM 4272MiB)` か警告を出す。CUDA コンテキストはレンダー開始時に
-   作られるので、起動直後では判定できない。
-3. **手動での確定診断**: `check_gpu_device.py` がサンプル数を振って所要時間の伸びを見る。
-   GPU で回っていればサンプルを増やしても時間はほとんど増えない。
+1. **At startup**: Get the devices that *actually exist* with `prefs.get_devices_for_type(backend)`,
+   and abort startup if `prefs.has_active_device()` is False (`--allow-cpu-fallback` to continue).
+   `prefs.devices` is unreliable because devices that were once visible on that machine remain in the userpref
+   (measured: 13 entries listed when only one GPU was visible). Only the existing devices are logged.
+2. **After the first render**: The dispatcher checks whether the worker PID (and its child processes)
+   appear in `nvidia-smi --query-compute-apps`,
+   and prints `GPU in use (VRAM 4272MiB)` or a warning. The CUDA context is created when rendering
+   starts, so this cannot be determined right after startup.
+3. **Manual definitive diagnosis**: `check_gpu_device.py` varies the sample count and looks at the increase in time taken.
+   If it runs on the GPU, increasing the samples barely increases the time.
 
    ```bash
    blender outputs/blender/work_{session}.blend -b \
@@ -123,89 +123,89 @@ Cycles は「GPU を選んだつもりで実は CPU」という状態になり�
      --camera Camera_C --res 1000x1000 --frame 3000 --samples 32,256
    ```
 
-   実測（1000×1000・空きGPU・デノイズOFF）:
+   Measured (1000×1000, idle GPU, denoising OFF):
 
-   | device | samples=32 | samples=256 | 追加224サンプル分 |
+   | device | samples=32 | samples=256 | for the additional 224 samples |
    |---|---|---|---|
-   | GPU | 27.4s | 22.1s | ほぼ 0（1枚目の初期化コストの方が大きい）|
-   | CPU（256コア）| 15.4s | 79.9s | +64.5s（288 ms/サンプル）|
+   | GPU | 27.4s | 22.1s | almost 0 (the first-image initialization cost is larger) |
+   | CPU (256 cores) | 15.4s | 79.9s | +64.5s (288 ms/sample) |
 
-   この差（GPU は samples に対してほぼ平坦）が GPU 稼働の証拠になる。レンダー中は
-   `nvidia-smi` の GPU 使用率も 99〜100% に達する。
+   This difference (GPU is almost flat with respect to samples) is evidence that the GPU is running. During rendering,
+   GPU utilization in `nvidia-smi` also reaches 99-100%.
 
-**注意**: samples=32 のような低サンプルだと、A100 より 256コアEPYC の方が1枚は速い
-（15.4s vs 22.1s）。GPU が遊んでいるように見えても異常ではなく、1枚の時間が
-GPU パストレースではなく CPU 側処理（シーン同期・転送・film・PNG書き出し）で
-決まっているだけ。本番の samples=500 では GPU が圧倒的に速い。
+**Note**: At low sample counts such as samples=32, a 256-core EPYC is faster per image than an A100
+(15.4s vs 22.1s). Even if the GPU appears idle this is not abnormal; the time per image is
+simply determined by CPU-side processing (scene sync, transfer, film, PNG writing) rather than
+GPU path tracing. At the production samples=500, the GPU is overwhelmingly faster.
 
-### 性能特性（実測 / A100・1000×1000・本番 blend `work_*.blend`）
+### Performance characteristics (measured / A100, 1000×1000, production blend `work_*.blend`)
 
-| 条件 | 1枚あたり wall | 1枚あたり CPU | 起動コスト(CPU) |
+| Condition | wall per image | CPU per image | Startup cost (CPU) |
 |---|---|---|---|
-| samples=500（blend既定）| 42〜45s | – | – |
-| samples=128 | 13〜19s | – | – |
-| samples=32（現在の既定）| 10〜12s | 153 core-s | 453 core-s |
-| samples=32 + `--pin-cpu`(6コア) | 43s | 70 core-s | 30 core-s |
+| samples=500 (blend default) | 42-45s | – | – |
+| samples=128 | 13-19s | – | – |
+| samples=32 (current default) | 10-12s | 153 core-s | 453 core-s |
+| samples=32 + `--pin-cpu` (6 cores) | 43s | 70 core-s | 30 core-s |
 
-`--threads`（blender `-t`）別（500×500・samples=32・1ワーカー・1枚あたり）:
+By `--threads` (blender `-t`) (500×500, samples=32, 1 worker, per image):
 
-| 設定 | wall/枚 | CPU/枚 | 平均コア占有 | 起動CPU | 256コアで収容できるワーカー数 | 総スループット |
+| Setting | wall/image | CPU/image | Mean cores occupied | Startup CPU | Workers that fit in 256 cores | Total throughput |
 |---|---|---|---|---|---|---|
-| 0（無制限）| 15.9s | 130.8 core-s | 8.2 | 163.8s | 31 | 7,100枚/時 |
-| 64 | 14.6s | 145.7 core-s | 9.9 | 48.2s | 26 | 6,400枚/時 |
-| **16** | 17.4s | 78.6 core-s | 4.5 | 18.8s | 57 | **11,800枚/時** |
-| 4 | 28.9s | 69.4 core-s | 2.4 | 16.4s | 107 | 13,300枚/時 |
-| 4 + `--pin-cpu` | 24.3s | 67.2 core-s | 2.8 | 15.7s | 91 | 13,500枚/時 |
-| 16 + `--pin-cpu` | 19.5s | 94.1 core-s | 4.8 | 20.6s | 53 | 9,800枚/時 |
+| 0 (unlimited) | 15.9s | 130.8 core-s | 8.2 | 163.8s | 31 | 7,100 images/h |
+| 64 | 14.6s | 145.7 core-s | 9.9 | 48.2s | 26 | 6,400 images/h |
+| **16** | 17.4s | 78.6 core-s | 4.5 | 18.8s | 57 | **11,800 images/h** |
+| 4 | 28.9s | 69.4 core-s | 2.4 | 16.4s | 107 | 13,300 images/h |
+| 4 + `--pin-cpu` | 24.3s | 67.2 core-s | 2.8 | 15.7s | 91 | 13,500 images/h |
+| 16 + `--pin-cpu` | 19.5s | 94.1 core-s | 4.8 | 20.6s | 53 | 9,800 images/h |
 
-- `-t` を絞ると **1枚あたり CPU がほぼ半減**（131→70 core-s）。起動コストも 164→16 core-s。
-  そのぶんワーカーを増やせるので、ノード全体のスループットは 1.7〜1.9倍になる。
-- 小さすぎると1枚の wall が伸びる（4 は 16 の1.7倍）。**16 前後が最良バランス**。
-- 64 や無制限は無制限とほぼ同じで、CPU を無駄に食うだけ。
-- `--pin-cpu` の追加効果は `-t` 併用時には小さい（wall −16%, CPU −3%）。効くのは `-t` の方。
-- 既定値は「コア数÷スロット数 ×2、上限16」（実占有コアは `-t` の約1/3のため）。
+- Limiting `-t` **almost halves the CPU per image** (131→70 core-s). The startup cost also drops 164→16 core-s.
+  More workers can run accordingly, so the node-wide throughput becomes 1.7-1.9×.
+- Too small makes the wall time per image longer (4 is 1.7× of 16). **Around 16 is the best balance**.
+- 64 is about the same as unlimited and just wastes CPU.
+- The additional effect of `--pin-cpu` is small when combined with `-t` (wall −16%, CPU −3%). It is `-t` that matters.
+- The default is "cores ÷ slots × 2, max 16" (because the actually occupied cores are about 1/3 of `-t`).
 
-解像度別（samples=32、1000×1000 → 500×500 → 320×320）:
+By resolution (samples=32, 1000×1000 → 500×500 → 320×320):
 
-| 解像度 | CPU/枚（無制限）| CPU/枚（6コアpin）| wall/枚（6コアpin）| PNG 1枚 |
+| Resolution | CPU/image (unlimited) | CPU/image (6-core pin) | wall/image (6-core pin) | PNG per image |
 |---|---|---|---|---|
-| 1000×1000 | 153 core-s | 70 core-s | 43.0s | 約1.2MB |
-| 500×500 | 144 core-s | 73 core-s | **25.4s** | 約238KB |
-| 320×320 | 132 core-s | – | – | 約157KB |
+| 1000×1000 | 153 core-s | 70 core-s | 43.0s | approx. 1.2MB |
+| 500×500 | 144 core-s | 73 core-s | **25.4s** | approx. 238KB |
+| 320×320 | 132 core-s | – | – | approx. 157KB |
 
-読み方:
+How to read this:
 
-- **samples を 500→32 にしても速くなるのは約4倍が上限**。1枚には samples に依らない
-  固定コスト（シーン評価・出力）があるため。
-- **CPU が律速**。8ワーカー/GPU で回すと GPU 使用率は 12% しかなく、blender 1本が
-  約17コア（775スレッド）を掴む。解像度を 1/9.8（320×320）にしても CPU は
-  153→132 core-s にしか下がらない ＝ ピクセルではなく**シーン評価（リグ＋43万ポリゴンの
-  depsgraph 同期）が主因**。
-- CPU を絞ると 1枚あたり CPU が半減し（153→70 core-s、うち sys 時間は 302→15 秒）、
-  無駄なスピン待ちが消える。ワーカー単体の wall は伸びるが、多数のワーカーを並べた
-  ときの総スループットは上がる。**効くのは `--threads`（blender -t）で、`--pin-cpu`
-  は併用しても追加効果は小さい**（上の表を参照）。
-- **解像度を下げる効果はスレッド無制限だとほぼ無い**（1000²→500² で CPU は 6% 減）。
-  一方 `--pin-cpu` 併用時は 1枚 43s→25.4s（1.7倍）になる。コアを絞ると CPU 側の
-  ピクセル処理（film変換・PNG圧縮・デノイズ）が律速に回るため。
-  出力サイズは 1.2MB→238KB（1/5）で、後段の I/O にも効く。
-- ワーカーを増やす前に `--pin-cpu` と `--workers_per_gpu` を実測で決めること。
-  VRAM（1本 約1.7GB）より先に CPU が先に飽和する。
+- **Going from samples 500→32 gives at most about a 4× speedup**. Each image has a fixed cost independent
+  of samples (scene evaluation, output).
+- **The CPU is the bottleneck**. With 8 workers/GPU, GPU utilization is only 12%, and one blender
+  grabs about 17 cores (775 threads). Even reducing the resolution to 1/9.8 (320×320), CPU only
+  drops 153→132 core-s = the main cause is not pixels but **scene evaluation (depsgraph sync of the rig + 430k
+  polygons)**.
+- Limiting the CPU halves the CPU per image (153→70 core-s, of which sys time drops 302→15 s),
+  and wasteful spin-waiting disappears. The wall time of a single worker increases, but total throughput when
+  many workers run side by side goes up. **What matters is `--threads` (blender -t); `--pin-cpu`
+  adds little even when combined** (see the table above).
+- **Lowering the resolution has almost no effect with unlimited threads** (1000²→500² reduces CPU by 6%).
+  On the other hand, with `--pin-cpu` it goes from 43s→25.4s per image (1.7×). When cores are limited, CPU-side
+  pixel processing (film conversion, PNG compression, denoising) becomes the bottleneck.
+  The output size goes from 1.2MB→238KB (1/5), which also helps downstream I/O.
+- Before adding workers, determine `--pin-cpu` and `--workers_per_gpu` by measurement.
+  The CPU saturates before VRAM (approx. 1.7GB per instance).
 
-またはシェルスクリプトを使います:
+Or use the shell scripts:
 
 ```bash
-# Step 2 + Step 3 を逐次実行（デフォルト: NF_Armature）
+# Run Step 2 + Step 3 sequentially (default: NF_Armature)
 bash scripts/05_create_digital_twin/run_all.sh
 
-# Step 2 のみ並列実行（処理済み .blend はスキップ）
+# Run only Step 2 in parallel (already processed .blend files are skipped)
 bash scripts/05_create_digital_twin/run_animate_parallel.sh
 
-# アーマチュア名を指定する場合
+# To specify the armature name
 bash scripts/05_create_digital_twin/run_all.sh --armature MyArmature
 bash scripts/05_create_digital_twin/run_animate_parallel.sh --armature MyArmature
 
-# blend ファイルも合わせて指定する場合
+# To also specify the blend file
 bash scripts/05_create_digital_twin/run_all.sh --blend custom.blend --armature MyArmature
 bash scripts/05_create_digital_twin/run_animate_parallel.sh --blend custom.blend --armature MyArmature
 ```
@@ -216,18 +216,18 @@ bash scripts/05_create_digital_twin/run_animate_parallel.sh --blend custom.blend
 |---|---|
 | `blender_animation.py` | Apply 3D keypoints to IK rig |
 | `allcamrender.py` | Render from all camera positions (Blender script) |
-| `render_sessions.py` | 全セッション×全カメラを1本のキューにして GPU 並列レンダリング（`run_render.sh` の実体） |
-| `render_parallel.py` | 1 blend / 1カメラのフレーム範囲を分割して並列レンダリング |
-| `render_range.py` | Blender 側ワーカー（PNG）。`--serve` で warm 常駐、無指定で従来の1回実行 |
-| `render_parallel_depth.py` | `render_parallel.py` の Depth(Z) 版 |
-| `render_range_depth.py` | Blender 側ワーカー（Depth EXR）。`--serve` 対応 |
-| `render_worker.py` | warm ワーカーのプロセス管理・blend 単位のジョブスケジューラ（ディスパッチャ側） |
-| `render_ipc.py` | warm ワーカーとの行JSONプロトコル定義 |
-| `check_gpu_device.py` | Cycles が実際に GPU でレンダリングしているかを判定する診断（Blender スクリプト） |
+| `render_sessions.py` | Puts all sessions × all cameras into a single queue for GPU-parallel rendering (the implementation behind `run_render.sh`) |
+| `render_parallel.py` | Splits the frame range of 1 blend / 1 camera and renders in parallel |
+| `render_range.py` | Blender-side worker (PNG). `--serve` for warm resident mode; without it, the previous single run |
+| `render_parallel_depth.py` | Depth (Z) version of `render_parallel.py` |
+| `render_range_depth.py` | Blender-side worker (Depth EXR). Supports `--serve` |
+| `render_worker.py` | Process management for warm workers and per-blend job scheduler (dispatcher side) |
+| `render_ipc.py` | Line-JSON protocol definition for warm workers |
+| `check_gpu_device.py` | Diagnostic that determines whether Cycles is actually rendering on the GPU (Blender script) |
 | `kp3d_to_blender_csv.py` | Convert kp3d pickle to Blender-ready CSV |
-| `run_all.sh` | Step 2 + Step 3 を逐次実行（1CSV ずつ順番に） |
-| `run_animate_parallel.sh` | Step 2 のみを並列実行（最大 `MAX_JOBS` 同時、処理済みはスキップ） |
-| `run_render.sh` | Step 3 のみ実行 |
+| `run_all.sh` | Runs Step 2 + Step 3 sequentially (one CSV at a time) |
+| `run_animate_parallel.sh` | Runs only Step 2 in parallel (up to `MAX_JOBS` at once, skips already processed) |
+| `run_render.sh` | Runs only Step 3 |
 
 ## See also
 

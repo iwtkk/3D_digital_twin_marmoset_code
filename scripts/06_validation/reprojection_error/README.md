@@ -1,7 +1,7 @@
 # Validation – Reprojection Error
 
 Quantify 3D reconstruction accuracy via reprojection error.
-Corresponds to paper section: **Technical Validation – 再投影誤差**
+Corresponds to paper section: **Technical Validation – Reprojection error**
 
 ## Scripts
 

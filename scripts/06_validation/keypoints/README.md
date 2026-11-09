@@ -1,7 +1,7 @@
 # Validation – Keypoint Quality
 
 Visualize and inspect estimated 2D/3D keypoints.
-Corresponds to paper section: **Technical Validation – 推定された2D・3Dキーポイント**
+Corresponds to paper section: **Technical Validation – Estimated 2D and 3D keypoints**
 
 ## Scripts
 

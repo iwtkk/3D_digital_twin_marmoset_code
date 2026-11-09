@@ -1,9 +1,9 @@
-# images_to_video — 画像シーケンス → MP4
+# images_to_video - Image sequence -> MP4
 
-セッションディレクトリ内のカメラ別 PNG シーケンスを ffmpeg で MP4 化する。
+Converts the per-camera PNG sequences in a session directory to MP4 with ffmpeg.
 
-| 区分 | スクリプト | 入力 | 出力 |
+| Category | Script | Input | Output |
 |---|---|---|---|
-| run | `images_to_video.sh` | `--input-dir`（セッションディレクトリ） | `output_{session}_{cam}.mp4` → `images_to_video_files/` |
+| run | `images_to_video.sh` | `--input-dir` (session directory) | `output_{session}_{cam}.mp4` → `images_to_video_files/` |
 
-`--input-dir / --output-dir / --session / --help` を受け付ける。`--framerate N`（既定 24）あり。
+Accepts `--input-dir / --output-dir / --session / --help`. `--framerate N` (default 24) is available.
