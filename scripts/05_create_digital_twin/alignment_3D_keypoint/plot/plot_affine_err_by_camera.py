@@ -33,7 +33,7 @@ Outputs:
     figure:
         type: png (300 dpi) + pdf
         path: {output-dir}/affine_err_by_camera.{png,pdf}
-        content: x = camera, two boxes per camera (initial / affine fit), y = per-session median
+        content: x = camera (cam1..cam8, CAM_NAMES), two boxes per camera (initial / affine fit), y = per-session median
                  distance [px] on a log axis
 
 Registry:
@@ -66,8 +66,12 @@ N_KP = 20
 # fit frames of affine_align.build_targets (must match the run that produced affine_log.npz)
 FIT_SEED, FIT_N, FIT_THR, FIT_MIN_KP = 1, 300, 0.4, 16
 
-COL_INIT = "#eb6834"   # categorical slot 2 (orange)
-COL_FIT = "#2a78d6"    # categorical slot 1 (blue)
+COL_INIT = "#2a78d6"   # blue
+COL_FIT = "#d63a2a"    # red
+
+# paper camera names (cam1..cam8) -> camera serial; the figure is ordered and labelled by these names
+CAM_NAMES = {"cam1": "23506226", "cam2": "23511607", "cam3": "23506214", "cam4": "23506236",
+             "cam5": "23511614", "cam6": "23506237", "cam7": "23511613", "cam8": "23506239"}
 
 _W = {}
 
@@ -152,8 +156,9 @@ def plot(df, cam_ids, out_png, out_pdf):
                                        markeredgecolor="none", alpha=0.6))
     ax.set_yscale("log")
     ax.set_xticks(range(len(cam_ids)))
-    ax.set_xticklabels(cam_ids)
-    ax.set_xlabel("Camera ID")
+    serial2name = {v: k for k, v in CAM_NAMES.items()}
+    ax.set_xticklabels([serial2name.get(c, c) for c in cam_ids])
+    ax.set_xlabel("Camera")
     ax.set_ylabel("Real vs. digital-twin projection\nper-session median distance [px]")
     ax.set_xlim(-0.6, len(cam_ids) - 0.4)
     ax.grid(axis="y", which="major", color="#dddddd", linewidth=0.6)
@@ -204,7 +209,9 @@ def main():
         df.to_csv(csv_path, index=False)
     df = pd.read_csv(csv_path, dtype={"camera_id": str})
 
-    plot(df, cam_ids, out / "affine_err_by_camera.png", out / "affine_err_by_camera.pdf")
+    order = list(CAM_NAMES.values())
+    assert sorted(order) == sorted(cam_ids), "CAM_NAMES must cover the config cameras"
+    plot(df, order, out / "affine_err_by_camera.png", out / "affine_err_by_camera.pdf")
     summ = df.groupby("camera_id")[["init_median_px", "fit_median_px"]].median().reindex(cam_ids)
     print(summ.round(2).to_string())
     print(f"sessions: {df['session'].nunique()}  output: {out}")
