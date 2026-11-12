@@ -228,6 +228,7 @@ bash scripts/05_create_digital_twin/run_animate_parallel.sh --blend custom.blend
 | `run_all.sh` | Runs Step 2 + Step 3 sequentially (one CSV at a time) |
 | `run_animate_parallel.sh` | Runs only Step 2 in parallel (up to `MAX_JOBS` at once, skips already processed) |
 | `run_render.sh` | Runs only Step 3 |
+| `alignment_3D_keypoint/` | Per-session affine alignment of the 3D keypoints to the digital twin by reprojection error (`run/affine_align.py`), NPZ/CSV export, and evaluation plots. See [its README](alignment_3D_keypoint/README.md) |
 
 ## See also
 
