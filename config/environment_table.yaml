@@ -1,0 +1,68 @@
+# Measurement definitions for the environment accuracy table (geometric accuracy of the environment model)
+# Read by make_table.py and passed to measure_blend.py (inside Blender).
+# The measurement methods copy the formulas in cagesize_compare_iwatamod_250430.xlsx (Sheet1).
+#   bbox_extent : length along axis of the object's world-coordinate bounding box
+#                 (same as the world-coordinate version of object_dimensions.py)
+#   vertex_delta: axis component of vertex a - vertex b (world coordinates; same as vertex.csv.py)
+#   bbox_gap    : face of a's bbox - face of b's bbox. a, b = [object, min|max] (e.g. ceiling bottom - floor top)
+#   bbox_span   : bbox max of the top object - bbox min of the bottom object
+#                 (same as height.csv of object_dimensions.py)
+# geometry for bbox_extent:
+#   evaluated (default): including modifiers. Parts with MIRROR give the length of both sides (2 parts)
+#   mesh               : mesh before modifiers. One side of MIRROR (a single part)
+# by_blend: {blend name: {...}} overrides the definition for that version only (object names differ between versions)
+# All units are mm (Blender m x 1000).
+
+blender_bin: "blender"   # blender on PATH (checked with /snap/bin/blender, 5.2.2)
+
+# .blend files to measure. Select by name with --blend (default: default_blend)
+blends:
+  # Public digital twin (path_registry.models.digitaltwin_marmoset_blend). The environment used for rendering
+  digitaltwin: "/data/iwata/3D_digital_twin_marmoset_data/3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend"
+  # Environment-only .blend in the public dataset (path_registry.data.environment_measurement_blend)
+  # md5 matches cagesize_compare/..._iwatamod_mesured_250124.blend
+  dataset: "/data/iwata/3D_digital_twin_marmoset_data/3D_environmental_body/environment_measurement.blend"
+  # The version used to make the xlsx (250430) for the paper table (path_registry.data.cagesize_compare_dir)
+  v250430: "/data/iwata/cagesize_compare/20240322_Cage_Room_With_Marmoset_V3_iwatamod_250430.blend"
+default_blend: digitaltwin
+
+output_dir: "outputs/dev/environment_table"   # path_registry.outputs.environment_table
+
+# Counted as a "match" if |blender - blueprint| is below this [mm]
+match_tol_mm: 0.01
+
+# The old doors Cube.002 / Cube.012, hidden in the 250430 version, are replaced in the digital twin by
+# Cube.002.1 (front) / Cube.012.1 (back) (a pair via MIRROR; measure one leaf with geometry: mesh).
+# In the digital twin, Cube.002 is something else (a beam) and Cube.012 does not exist.
+# label = label in xlsx column A (figure number in the blueprint pptx). Different from the paper No.
+# paper_no is the No. in the manuscript table (checked against the manuscript on 2026-11-02; paper No.13 is not in the xlsx and is row P13)
+# In the manuscript the blueprint value of No.10 is 858 and No.18 is 844, but the blueprint (pptx) says 856 and
+# the manuscript errors are also computed with 856 -> keep 856
+rows:
+  - {label: 1,  paper_no: 1, part: "room size x",               blueprint_mm: 2220, method: vertex_delta, a: [Cube.035, 2],  b: [Cube.030, 83], axis: x}
+  - {label: 2,  paper_no: 2, part: "room beam (Cube.009)",      blueprint_mm: 2100, method: bbox_extent,  object: Cube.009, axis: x}
+  - {label: 3,  paper_no: 3, part: "room pillar height",        blueprint_mm: 2200, method: vertex_delta, a: [Cube.031, 1],  b: [Cube.035, 28], axis: z}
+  - {label: 4,  paper_no: 4, part: "room height z",             blueprint_mm: 2260, method: bbox_extent,  object: Cube.010, axis: z}
+  - {label: 5,  paper_no: 5, part: "room size y",               blueprint_mm: 2220, method: vertex_delta, a: [Cube.010, 56], b: [Cube.030, 31], axis: y}
+  - {label: 6,  paper_no: 6, part: "room beam (Cube.021)",      blueprint_mm: 2100, method: bbox_extent,  object: Cube.021, axis: y}
+  - {label: 7,  paper_no: 7, part: "cage outer y",              blueprint_mm: 900,  method: bbox_extent,  object: Cube.004, axis: y}
+  - {label: 8,  paper_no: 8, part: "cage inner y",              blueprint_mm: 856,  method: bbox_extent,  object: Cube,     axis: y}
+  - {label: 9,  paper_no: 9, part: "cage outer x",              blueprint_mm: 900,  method: bbox_extent,  object: Cube.004, axis: x}
+  - {label: 10, paper_no: 10, part: "cage inner x",              blueprint_mm: 856,  method: bbox_extent,  object: Cube,     axis: x}
+  - {label: 25, paper_no: 18, part: "cage inner x (Cube.004)",   blueprint_mm: 856,  method: vertex_delta, a: [Cube.004, 60], b: [Cube.004, 84], axis: x}
+  - {label: 12, paper_no: 12, part: "door height (Cube.012)",    blueprint_mm: 755,  method: bbox_extent,  object: Cube.012, axis: z,
+     by_blend: {digitaltwin: {part: "door height (back)", object: Cube.012.1, geometry: mesh}}}
+  - {label: 14, paper_no: 11, part: "door width (Cube.012)",     blueprint_mm: 405,  method: bbox_extent,  object: Cube.012, axis: x,
+     by_blend: {digitaltwin: {part: "door width (back, 1 leaf)", object: Cube.012.1, geometry: mesh}}}
+  - {label: 15, paper_no: 16, part: "side inner (Cube.004)",     blueprint_mm: 850,  method: vertex_delta, a: [Cube.004, 43], b: [Cube.004, 97], axis: y}
+  - {label: 16, paper_no: 17, part: "side height (Cube.007)",    blueprint_mm: 761,  method: bbox_extent,  object: Cube.007, axis: z}
+  - {label: 21, paper_no: 20, part: "door height (Cube.002)",    blueprint_mm: 750,  method: bbox_extent,  object: Cube.002, axis: z,
+     by_blend: {digitaltwin: {part: "door height (front)", object: Cube.002.1, geometry: mesh}}}
+  - {label: 22, paper_no: 19, part: "door width (Cube.002)",     blueprint_mm: 412,  method: bbox_extent,  object: Cube.002, axis: x,
+     by_blend: {digitaltwin: {part: "door width (front, 1 leaf)", object: Cube.002.1, geometry: mesh}}}
+  - {label: 13, paper_no: 14, part: "cage + base total height",  blueprint_mm: 1515, method: bbox_span,    top: Cube.001, bottom: Cylinder.009, axis: z}
+  - {label: 18, paper_no: 15, part: "cage base (Cube.027)",      blueprint_mm: 910,  method: bbox_extent,  object: Cube.027, axis: x}
+  # Paper No.13 (not in the xlsx). Cage inner height = bottom of ceiling grid Cube - top of floor Cube.003
+  # Blueprint value 765 is the value of No.13 in the manuscript table (confirmed by the user on 2026-11-02)
+  - {label: P13, paper_no: 13,  part: "cage inner height (Cube bottom - Cube.003 top)", blueprint_mm: 765,
+     method: bbox_gap, a: [Cube, min], b: [Cube.003, max], axis: z}

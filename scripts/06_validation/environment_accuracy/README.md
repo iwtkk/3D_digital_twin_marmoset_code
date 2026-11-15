@@ -21,10 +21,10 @@ They can also be run from the CLI with `blender --background <file.blend> --pyth
 | `length.py` | Prints the local and world lengths of the edges selected in Edit mode to the console |
 | `object_dimensions.py` | Writes MaxZ / MinZ of the selected objects to `height.csv` (in mm) |
 
-## Automatic generation of Table 3 (`make_table3.py`)
+## Automatic generation of the environment accuracy table (`make_table.py`)
 
 Instead of the manual workflow (select vertices, export CSV, subtract in xlsx), the measurement definitions are
-written in `config/environment_table3.yaml` and Table 3 is produced from the .blend in one step.
+written in `config/environment_table.yaml` and the table is produced from the .blend in one step.
 **The default measurement target is the published digital twin** (`3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend`),
 so that the environment actually used for rendering is what gets measured.
 
@@ -32,31 +32,31 @@ so that the environment actually used for rendering is what gets measured.
 
 ```bash
 # 1. Measure (default = published digital twin). Takes about 30 s
-.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py
+.venv/bin/python scripts/06_validation/environment_accuracy/make_table.py
 
 # 2. View the results
-cat outputs/dev/environment_table3/digitaltwin/table3.md
+cat outputs/dev/environment_table/digitaltwin/table.md
 ```
 
 | Output | Contents |
 |---|---|
-| `table3.csv` | 19 rows. Blueprint value, model value, error, signed ratio, match flag, measured object, warning flags |
-| `table3.md` | The table above + summary statistics (number of matches, MAE, max error, mean and range of the ratio) |
-| `table3.tex` | LaTeX table (booktabs) in the same format as Table 3 in the manuscript. Ordered by paper No., with avg./max./min. rows at the end. mm values have 2 decimal places (below 10^-3 mm shown as `<10^{-3}`), ratios have 3 decimal places, and ratios are signed (model / blueprint) |
+| `table.csv` | One row per config row (currently 20). Blueprint value, model value, error, signed ratio, match flag, measured object, warning flags |
+| `table.md` | The table above + summary statistics (number of matches, MAE, max error, mean and range of the ratio) |
+| `table.tex` | LaTeX table (booktabs) in the same format as the table in the manuscript. Ordered by paper No., with avg./max./min. rows at the end. mm values have 2 decimal places (below 10^-3 mm shown as `<10^{-3}`), ratios have 3 decimal places, and ratios are signed (model / blueprint) |
 | `summary.json` | Summary statistics + path and md5 of the measured .blend, Blender version |
 | `measured_raw.json` | Raw values returned by Blender (with object hidden / modifier / animation info) |
 
 To measure other versions:
 
 ```bash
-.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend v250430   # original version used for paper Table 3
-.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend dataset   # environment_measurement.blend (old version)
-.venv/bin/python scripts/06_validation/environment_accuracy/make_table3.py --blend /path/to/x.blend --output-dir outputs/dev/environment_table3/x
+.venv/bin/python scripts/06_validation/environment_accuracy/make_table.py --blend v250430   # original version used for the paper table
+.venv/bin/python scripts/06_validation/environment_accuracy/make_table.py --blend dataset   # environment_measurement.blend (old version)
+.venv/bin/python scripts/06_validation/environment_accuracy/make_table.py --blend /path/to/x.blend --output-dir outputs/dev/environment_table/x
 ```
 
 ### How it works
 
-- `make_table3.py` (.venv) reads the YAML and runs `measure_blend.py` with `blender -b`
+- `make_table.py` (.venv) reads the YAML and runs `measure_blend.py` with `blender -b`
   (two-stage setup because Blender's bundled Python has no yaml). The .blend is only read, never saved
 - There are 3 measurement methods (measured the same way as the existing `object_dimensions.py` / `vertex.csv.py`)
   - `bbox_extent`: length of the bounding box in world coordinates. With `geometry: mesh`, measures the mesh before modifiers are applied
@@ -76,7 +76,7 @@ To measure other versions:
 
 ### Adding or changing measurement items
 
-Add one row to `rows` in `config/environment_table3.yaml`. Check object names and vertex indices by selecting the target in Blender
+Add one row to `rows` in `config/environment_table.yaml`. Check object names and vertex indices by selecting the target in Blender
 and using `vertex.py` (prints vertex indices and coordinates) or `object_dimensions.py`.
 
 ```yaml
@@ -88,7 +88,7 @@ and using `vertex.py` (prints vertex indices and coordinates) or `object_dimensi
 | Version | Matches | Door height (#12/#21) | Side height (#16) | Notes |
 |---|---|---|---|---|
 | `digitaltwin` (published digital twin) | 8/19 | 755.0 / 757.6 | 761.0 | Environment is based on the 250430 version |
-| `v250430` (original for paper Table 3) | 8/19 | 755.0 / 755.0 | 761.0 | Doors are measured on hidden old objects |
+| `v250430` (original for the paper table) | 8/19 | 755.0 / 755.0 | 761.0 | Doors are measured on hidden old objects |
 | `dataset` (`environment_measurement.blend` = 250124) | 6/19 | 710.1 / 710.1 | 715.5 | Old version before the floor was lowered |
 
 ## Usage (manual scripts)
