@@ -29,7 +29,7 @@
 % which it reproduces exactly.
 
 %% ------------------------------------------------------------------ Inputs
-ctFile     = '20221020_173232BFbBs003a003.nii';            % micro-CT, HU
+ctFile     = 'CT_scan_data.nii';            % micro-CT, HU
 fovFile    = 'body_sample.nii.gz';                         % field-of-view template
 holderFile = 'tst2Segmentation-Segment_1-label.nii.gz';    % cylindrical holder tube
 outFile    = 'test_body2.nii.gz';                          % binary body label
