@@ -1,0 +1,34 @@
+% Dataset overview table for Data Records.
+% Counts/sizes: docs/dataset_layout.yaml (scan 2026-11-18; 28,023 files, 1,050.1 GB, decimal GB).
+% The Figure/Section column is a provisional guess except Fig. 2E, Fig. 3, Fig. 8a and Table 3; check before submission.
+% Requires \usepackage{booktabs}.
+\begin{table*}[t]
+\centering
+\caption{Overview of the dataset. Each top-level folder is distributed as zip archives (each $<$2.5\,GB) with a manifest file; the script \texttt{extract\_dataset.py} restores the folder layout shown here.}
+\label{tab:dataset_overview}
+\small
+\begin{tabular}{@{}p{2.5cm}p{3.7cm}p{5.2cm}p{2.5cm}p{2.0cm}r@{}}
+\toprule
+Top-level folder & Subfolder & Contents & File format & Figure / Section & Size \\
+\midrule
+\texttt{marmoset\_keypoint\_data} & \texttt{video\_data} & Synchronized videos from 8 cameras, 222 sessions (24\,fps, 2048$\times$1536\,px), with per-frame numbers and timestamps & .mp4, .npz, .h5, .yaml & Fig.~1, Methods & 776\,GB \\
+ & \texttt{training\_data} & Training set for the detector and pose estimator (3,382 images, COCO annotations, pretrained weights); manually labeled 3D ground truth (1--3 animals) & .png, .json, .pth, .h5, .npz, .mat & Fig.~2E, Methods & 4.3\,GB \\
+ & \texttt{trained\_model} & Trained bounding-box detector (YOLOX), 20-keypoint pose estimator (HRNet-W48) and individual identification model & .pth & Fig.~2, Methods & 1.6\,GB \\
+ & \texttt{2D\_temporal\_keypoint\_data} & 2D detections per video chunk (bounding box, 20 keypoints with confidence, ID label) & .json & Fig.~2, Methods & 76\,GB \\
+ & \texttt{3D\_temporal\_keypoint\_data} & 3D keypoints per session (aligned keypoints in Blender world coordinates and raw keypoints in mm, confidence, reprojection error, head orientation) & .npz & Fig.~2, Technical Validation & 9.4\,GB \\
+\midrule
+\texttt{3D\_marmoset\_body} & \texttt{3dmarmoset.blend}, \texttt{3dmarmoset\_simplified.blend} & Rigged marmoset body model and its simplified version & .blend & Fig.~3, Methods & 0.4\,GB \\
+ & \texttt{CT\_scan\_data} & CT volume, body-surface and segmentation masks and meshes used to build the body model & .nii, .nii.gz, .seg.nrrd, .stl & Fig.~3, Methods & 0.9\,GB \\
+\midrule
+\texttt{3D\_environmental\_body} & \texttt{environment\_measurement.blend} & Home-cage environment model with measured dimensions & .blend & Table~3, Technical Validation & 0.6\,GB \\
+\midrule
+\texttt{3D\_digital\_twin\_data} & Base scenes (2 files) & Environment and marmoset model combined (full and simplified model) & .blend & Fig.~4, Methods & 0.4\,GB \\
+ & \texttt{3D\_digitaltwin\_marmoset\_blender\_files} & Digital twin per session (detailed model), posed with the aligned keypoints & .blend & Fig.~4, Methods & 70\,GB \\
+ & \texttt{3D\_digitaltwin\_simplified\_marmoset} & Digital twin per session (simplified model), posed with the aligned keypoints & .blend & Fig.~4, Methods & 104\,GB \\
+ & \texttt{rendered\_environmental\_images} & PSNR/SSIM (full image and animal region) and bounding-box IoU between real and rendered images (2,400 pairs, 3 body models) and the frame list; renders are reproduced with the code repository & .json, .csv, .md & Fig.~8a, Technical Validation & $<$0.01\,GB \\
+ & \texttt{rendered\_pseudo\_egocentric\_video\_data} & Pseudo first-person videos from the eyes of the animal (one session; equidistant fisheye 200$^\circ$ and pinhole 91$^\circ$) & .mp4, .md & Technical Validation & 2.9\,GB \\
+\midrule
+\multicolumn{5}{@{}l}{Total (28,023 files)} & 1,050\,GB \\
+\bottomrule
+\end{tabular}
+\end{table*}
