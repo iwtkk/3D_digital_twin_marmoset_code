@@ -1,5 +1,5 @@
 """
-Unit tests for scripts/06_validation/consistency/ and
+Unit tests for scripts/dev/consistency_legacy/ (the pre-2026-11 whole-image pipeline) and
 src/marmo3d/validation/utils.py.
 
 Covered:
@@ -182,7 +182,7 @@ class TestRunPipelinePaths(unittest.TestCase):
     def _import_build_pipeline(self):
         import importlib.util
         script_path = (
-            _PROJECT_ROOT / "scripts" / "06_validation" / "consistency" / "run_pipeline.py"
+            _PROJECT_ROOT / "scripts" / "dev" / "consistency_legacy" / "run_pipeline.py"
         )
         spec = importlib.util.spec_from_file_location("run_pipeline", script_path)
         mod = importlib.util.module_from_spec(spec)

@@ -95,7 +95,7 @@ from marmo3d.blender import render_setting
 ```
 
 影響ファイル（主なもの）:
-- `scripts/06_validation/consistency/run_pipeline.py`
+- `scripts/dev/consistency_legacy/run_pipeline.py` (moved from `scripts/06_validation/consistency/` on 2026-11-18)
 - `class_blueprint/blender/run_render.py`
 - `class_blueprint/rendering_parallelized.py`
 

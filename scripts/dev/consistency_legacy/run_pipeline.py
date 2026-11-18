@@ -225,7 +225,7 @@ def build_pipeline(config: PipelineConfig) -> List[PipelineStep]:
     # Step 5: visualize
     step5_cmd = [
         sys.executable,
-        str(validation_dir / "visualize.py"),
+        str(project_root / "scripts" / "06_validation" / "consistency" / "visualize.py"),
         "--metrics", str(metrics_json),
         "--output-dir", str(figures_dir),
         "--valid-config", str(valid_config_path),
