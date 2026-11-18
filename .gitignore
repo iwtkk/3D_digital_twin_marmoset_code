@@ -31,3 +31,6 @@ work_dirs/
 .*/
 vid/
 CLAUDE.md
+
+# Local development / analysis scripts (not part of the public repository)
+scripts/dev/

@@ -1,5 +1,6 @@
 """
 floorZ 共有ライブラリ（アルゴリズム本体）。
+(moved from scripts/dev/floorZ/run/floorz_core.py, 2026-11-18)
 
 run/ と plot/ の両方から import される。CLI は持たない。
 
@@ -31,13 +32,13 @@ from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
 from scipy.optimize import linear_sum_assignment
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # _config.py (same directory)
 import _config as cfg  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "src"))
 from marmo3d.kp3d_io import load_kp3d, resolve_kp3d  # noqa: E402,F401
 
 # ── 定数 ──────────────────────────────────────────────────────────────────────
-# 物理キャリブレーション・骨格・座標変換は docs/method.yaml (= cfg) を単一ソースとする。
+# 物理キャリブレーション・骨格・座標変換は alignment_3D_keypoint/method.yaml (= cfg) を単一ソースとする。
 
 KP_NAMES = cfg.KP_NAMES_CANONICAL    # "L eye" 形 (sanitize でキー化する設計)
 

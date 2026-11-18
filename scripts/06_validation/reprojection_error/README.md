@@ -20,7 +20,7 @@ Corresponds to paper section: **Technical Validation – Reprojection error**
 ## Usage
 
 Regenerate everything (raw error, and the error of the reprojection-affine-aligned keypoints computed by
-`scripts/dev/reproj_tail/run/compute_aligned_reproj_err.py`):
+an internal script that is not part of the public repository):
 
 ```bash
 bash run_all.sh /data/iwata/3D_digital_twin_marmoset_data/marmoset_keypoint_data/3D_temporal_keypoint_data \

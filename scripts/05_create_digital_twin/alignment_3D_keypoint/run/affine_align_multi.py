@@ -51,9 +51,7 @@ import numpy as np
 import yaml
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "scripts/dev"))
 sys.path.insert(0, str(ROOT / "scripts/05_create_digital_twin/alignment_3D_keypoint/run"))
-sys.path.insert(0, str(ROOT / "scripts/dev/floorZ/run"))
 
 import affine_align as aa          # noqa: E402  再利用: fit / _residual / _floorz_init / apply_affine
 import align as _al                # noqa: E402  _omnidir_projectors

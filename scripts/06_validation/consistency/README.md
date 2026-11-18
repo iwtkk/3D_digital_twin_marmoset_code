@@ -89,5 +89,5 @@ absolute difference <= 0.04 grey levels).
 
 ## Legacy
 
-The earlier whole-image pipeline (`run_pipeline.py`, `calculate_metrics.py`, ...) is in
-`scripts/dev/consistency_legacy/`.
+The earlier whole-image pipeline (`run_pipeline.py`, `calculate_metrics.py`, ...) was replaced by this folder
+on 2026-11-18 and is not part of the public repository.

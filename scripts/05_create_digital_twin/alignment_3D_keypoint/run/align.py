@@ -36,9 +36,7 @@ import yaml
 from scipy.optimize import least_squares
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "scripts/dev"))
 sys.path.insert(0, str(ROOT / "scripts/05_create_digital_twin/alignment_3D_keypoint/run"))
-sys.path.insert(0, str(ROOT / "scripts/dev/floorZ/run"))
 import _config as cfg                       # noqa: E402
 from blender_fisheye import load_cameras     # noqa: E402
 import floorz_core as fz                     # noqa: E402

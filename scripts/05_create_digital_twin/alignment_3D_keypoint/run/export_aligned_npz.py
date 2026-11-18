@@ -44,9 +44,7 @@ import numpy as np
 import yaml
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "scripts/dev"))
 sys.path.insert(0, str(ROOT / "scripts/05_create_digital_twin/alignment_3D_keypoint/run"))
-sys.path.insert(0, str(ROOT / "scripts/dev/floorZ/run"))
 import affine_align as aa                    # noqa: E402
 import floorz_core as fz                     # noqa: E402
 

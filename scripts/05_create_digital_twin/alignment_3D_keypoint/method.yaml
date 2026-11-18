@@ -1,10 +1,10 @@
-# scripts/dev 共通設定。
+# Shared settings of the keypoint alignment (moved from scripts/dev/docs/method.yaml on 2026-11-18).
 #
-# ここに置くのは「物理キャリブレーション・骨格・座標変換・フレームレート」など
-# target 横断で同一の事実(=A〜D・F)。アルゴリズムのチューニング値
-# (KDE/affine パラメータ=E、各 target の検出しきい値=G) は各スクリプト側に残す。
+# Facts that are the same for every script: physical calibration, skeleton, coordinate transform and frame rates
+# (A-D, F). Algorithm tuning values (KDE / affine parameters = E, detection thresholds = G) stay in the scripts.
 #
-# 読み込みは scripts/dev/_config.py 経由。値を変えたいときはこのファイルだけ編集する。
+# Read through run/_config.py. To change a value, edit only this file.
+# run/floorz_core.py rewrites the coordinate_transform.kp3d_global_norm block (percentile cache).
 
 # ── A. kp3d(mm) → Blender(m) 座標変換 ────────────────────────────────────────
 coordinate_transform:

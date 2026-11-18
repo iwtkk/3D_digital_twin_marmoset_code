@@ -1,16 +1,12 @@
 """
-scripts/dev 共通設定ローダ。
+Shared settings of the keypoint alignment: physical calibration, skeleton, coordinate transform and frame rates
+(sections A-D and F of ../method.yaml). Moved from scripts/dev/_config.py on 2026-11-18.
 
-docs/method.yaml を読み、物理キャリブレーション・骨格・座標変換・フレームレート
-(A〜D・F) を提供する。各 target の run/plot からは次のいずれかで参照する:
-
-    import sys
-    from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # scripts/dev
+    sys.path.insert(0, str(ROOT / "scripts/05_create_digital_twin/alignment_3D_keypoint/run"))
     import _config as cfg
 
-アルゴリズムのチューニング値(KDE/affine=E、検出しきい値=G)はここには置かず、
-各スクリプト側に残す。
+Algorithm tuning values (KDE / affine = E, detection thresholds = G) stay in the scripts that use them.
+I/O ledger: scripts/05_create_digital_twin/alignment_3D_keypoint/io.md
 """
 from __future__ import annotations
 
@@ -20,8 +16,8 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-_YAML_PATH = Path(__file__).resolve().parent / "docs" / "method.yaml"
-METHOD_YAML_PATH = _YAML_PATH   # 書き戻し (global norm キャッシュ等) で参照する public パス
+_YAML_PATH = Path(__file__).resolve().parents[1] / "method.yaml"
+METHOD_YAML_PATH = _YAML_PATH   # floorz_core writes the global-norm cache back here
 with open(_YAML_PATH) as _f:
     _CFG = yaml.safe_load(_f)
 
