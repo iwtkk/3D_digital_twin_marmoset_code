@@ -71,9 +71,10 @@ EYE_SRC = {
 
 
 def parse_blender_args():
+    """Input is a Blender-ready NPZ ({session}.npz from export_aligned_npz.py / Dataverse) or CSV."""
     argv = sys.argv
     if "--" not in argv:
-        raise ValueError("Pass the CSV path as -- <path>")
+        raise ValueError("Pass the NPZ/CSV path as -- <path>")
     idx = argv.index("--")
     rest = argv[idx + 1:]
     csv_path = None
@@ -90,18 +91,43 @@ def parse_blender_args():
         else:
             i += 1
     if csv_path is None:
-        raise ValueError("CSV path not specified.")
+        raise ValueError("NPZ/CSV path not specified.")
     return csv_path, armature_name
 
 
+def load_npz_table(path):
+    """Blender-ready NPZ -> (pts (T, n_col), cols {name: index}) with the same columns as the CSV.
+
+    Uses kp3d (T, K, 3) [Blender m], kp_names (K,) and head_euler_xyz (T, 3) [rad]; the head
+    orientation goes to the pts_{l_cam,r_cam,center_eye}_r{x,y,z} columns, as in the CSV.
+    """
+    with np.load(path) as z:
+        kp3d = np.asarray(z["kp3d"], float)
+        names = [str(n) for n in z["kp_names"]]
+        head = np.asarray(z["head_euler_xyz"], float)
+    names_out, arrays = [], []
+    for k, name in enumerate(names):
+        for a, axis in enumerate("xyz"):
+            names_out.append(f"pts_{name}_{axis}")
+            arrays.append(kp3d[:, k, a])
+    for prefix in ("pts_l_cam_", "pts_r_cam_", "pts_center_eye_"):
+        for a, axis in enumerate("xyz"):
+            names_out.append(f"{prefix}r{axis}")
+            arrays.append(head[:, a])
+    return np.stack(arrays, axis=1), {n: i for i, n in enumerate(names_out)}
+
+
 CSV_PATH, ARMATURE_NAME = parse_blender_args()
-print("Using CSV:", CSV_PATH)
+print("Using input:", CSV_PATH)
 print("Using Armature:", ARMATURE_NAME)
 
-pts = np.loadtxt(CSV_PATH, delimiter=",", dtype=str)
-cols_list = pts[0]
-cols = {i: k for k, i in enumerate(cols_list)}
-pts = pts[1:].astype(float)
+if CSV_PATH.endswith(".npz"):
+    pts, cols = load_npz_table(CSV_PATH)
+else:
+    pts = np.loadtxt(CSV_PATH, delimiter=",", dtype=str)
+    cols_list = pts[0]
+    cols = {i: k for k, i in enumerate(cols_list)}
+    pts = pts[1:].astype(float)
 
 bone_pts = {
     "Base": "pts_base_",

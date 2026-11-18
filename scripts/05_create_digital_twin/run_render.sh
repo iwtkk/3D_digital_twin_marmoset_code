@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd "$(git rev-parse --show-toplevel)"
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."   # repository root (does not need git)
 # set -euo pipefail
 
 # Expects animated work_*.blend files

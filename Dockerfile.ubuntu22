@@ -2,6 +2,7 @@
 #
 #   git submodule update --init          # mmdetection / mmpose / marmo3Dpose must be checked out
 #   docker build -t marmoset-dt .
+#   (with Blender for Step 3: add --build-arg INSTALL_BLENDER=1)
 #   (rootless podman without /etc/subuid: add --build-arg ROOTLESS_NO_SUBUID=1)
 #   docker run --gpus all -it --rm -v $PWD:/workspace -v /path/to/data:/data marmoset-dt
 #
@@ -39,6 +40,7 @@ RUN if [ "$ROOTLESS_NO_SUBUID" = "1" ]; then \
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates curl git build-essential ninja-build \
         ffmpeg libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 tzdata \
+        xz-utils libx11-6 libxi6 libxxf86vm1 libxfixes3 libxkbcommon0 libegl1 libglu1-mesa \
         python3.10 python3.10-dev python3.10-venv \
     && rm -rf /var/lib/apt/lists/*
 
@@ -83,6 +85,10 @@ RUN pip install -e scripts/02_train/mmpose
 # ---- [5/6] requirements.txt ----------------------------------------------
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
+# cv2.omnidir (3D keypoint alignment -> NPZ) is only in the contrib build; same as install.sh.
+RUN pip install --no-deps opencv-contrib-python==4.6.0.66
+# The repository is bind-mounted with the host user's UID; let git work on it as root.
+RUN git config --global --add safe.directory '*'
 
 # ---- [6/6] marmo3Dpose requirements (commented out in install.sh) --------
 # RUN pip install -r scripts/03_run_marmo3dpose/marmo3Dpose/requirements.txt
@@ -91,6 +97,23 @@ RUN pip install -r requirements.txt
 # Installed outside /workspace so a bind mount of the repo does not hide it;
 # symlinked into place below.
 RUN pip install --target /opt/third_party PyYAML
+
+# ---- [+] Blender (optional, for Step 3: animate / render) ---------------
+# docker build --build-arg INSTALL_BLENDER=1 [--build-arg BLENDER_VERSION=5.2.2] ...
+# Official Linux build from download.blender.org, installed in /opt/blender and linked to
+# /usr/local/bin/blender. Cycles renders on the GPU with `docker run --gpus all`
+# (NVIDIA_DRIVER_CAPABILITIES must include compute; set below).
+ARG INSTALL_BLENDER=0
+ARG BLENDER_VERSION=5.2.2
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
+RUN if [ "$INSTALL_BLENDER" = "1" ]; then \
+        v="$BLENDER_VERSION" && mm="${v%.*}" \
+        && curl -fsSL "https://download.blender.org/release/Blender${mm}/blender-${v}-linux-x64.tar.xz" \
+             | tar -xJ -C /opt \
+        && mv "/opt/blender-${v}-linux-x64" /opt/blender \
+        && ln -s /opt/blender/blender /usr/local/bin/blender \
+        && blender --version | head -n 1; \
+    fi
 
 # ---- Rest of the repository ----------------------------------------------
 COPY . .

@@ -12,6 +12,7 @@ animate/pickle/
 *Cage_Room*
 *.csv
 *.json
+!config/marmo_cj425m/blender_cam.json
 .venv/
 render
 third_party
