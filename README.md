@@ -121,6 +121,7 @@ format of the 3D keypoints (`marmoset_keypoint_data/3D_temporal_keypoint_data/`)
 
 ```bash
 # Download the dataset from AWS S3 (no sign-in required)
+# (no aws command: pip install awscli)
 aws s3 --no-sign-request cp --recursive s3://digitaltwin-marmoset/ ./3D_digital_twin_marmoset_data
 # (Harvard Dataverse: download the zip files and restore the layout with
 #  python extract_dataset.py --dst ./3D_digital_twin_marmoset_data --gunzip-blend)
@@ -128,13 +129,41 @@ aws s3 --no-sign-request cp --recursive s3://digitaltwin-marmoset/ ./3D_digital_
 # Clone the repository
 git clone --recurse-submodules https://github.com/iwtkk/3D_digital_twin_marmoset_code.git
 cd 3D_digital_twin_marmoset_code
+```
 
-# Create a virtual environment and install dependencies
+Then set up the environment in one of two ways.
+
+**Option A – virtual environment**
+
+```bash
 python3.10 -m venv .venv
 source .venv/bin/activate
 bash scripts/00_setup/install.sh
 bash scripts/00_setup/setup_data_links.sh /path/to/3D_digital_twin_marmoset_data
 ```
+
+**Option B – Docker** (NVIDIA GPU + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/))
+
+```bash
+# Build (mmcv-full is compiled from source: tens of minutes).
+# INSTALL_BLENDER=1 adds Blender (5.2.2) for Step 3; omit it if Blender runs elsewhere.
+docker build --build-arg INSTALL_BLENDER=1 -t marmoset-dt .
+# Ubuntu 22.04 / CUDA 11.7 variant: docker build -f Dockerfile.ubuntu22 --build-arg INSTALL_BLENDER=1 -t marmoset-dt .
+
+# Start a shell with the repository at /workspace and the dataset at /data
+docker run --gpus all -it --rm --shm-size=8g \
+  -v "$PWD":/workspace \
+  -v /path/to/3D_digital_twin_marmoset_data:/data \
+  marmoset-dt
+
+# Inside the container (the Python environment is already active)
+bash scripts/00_setup/setup_data_links.sh /data
+```
+
+Run Steps 2 and 3 below inside the container. The repository is bind-mounted, so the outputs stay in
+`outputs/` on the host. The links made by `setup_data_links.sh` point to `/data/...` and only resolve
+inside the container; run it again with the host path when working outside.
+(Rootless podman without `/etc/subuid`: add `--build-arg ROOTLESS_NO_SUBUID=1` to the build.)
 
 `setup_data_links.sh` creates these links:
 
