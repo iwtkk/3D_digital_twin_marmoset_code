@@ -165,6 +165,14 @@ Run Steps 2 and 3 below inside the container. The repository is bind-mounted, so
 inside the container; run it again with the host path when working outside.
 (Rootless podman without `/etc/subuid`: add `--build-arg ROOTLESS_NO_SUBUID=1` to the build.)
 
+Rootless podman on cluster nodes without a systemd user session (no `/run/user/<uid>`) needs a
+runtime directory and the non-systemd backends:
+
+```bash
+export XDG_RUNTIME_DIR=${TMPDIR:-/tmp}/podman-run-$(id -u); mkdir -p -m 700 "$XDG_RUNTIME_DIR"
+podman --cgroup-manager=cgroupfs --events-backend=file build --build-arg INSTALL_BLENDER=1 -t marmoset-dt .
+```
+
 `setup_data_links.sh` creates these links:
 
 | Link | Target in the dataset |
