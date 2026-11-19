@@ -12,6 +12,7 @@ animate/pickle/
 *Cage_Room*
 *.csv
 *.json
+!config/marmo_cj425m/blender_cam.json
 .venv/
 render
 third_party
@@ -30,3 +31,6 @@ work_dirs/
 .*/
 vid/
 CLAUDE.md
+
+# Local development / analysis scripts (not part of the public repository)
+scripts/dev/

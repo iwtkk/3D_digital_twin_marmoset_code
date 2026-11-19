@@ -33,7 +33,7 @@ Usage: $(basename "$0") [OPTIONS]
 run_render.sh と同じ要領で、Cycles の Depth(Z) パスを EXR 出力します。
 
 Options:
-  --cam <name>        カメラ名（複数指定可、デフォルト: Camera_C Camera_L Camera_R）
+  --cam <name>        カメラ名（複数指定可、デフォルト: Camera_Eqdst_70 Camera_Pinhole_orig）
   --count <n>         処理するCSV数の上限（デフォルト: 1）
   --all-csv           すべてのCSVを処理
   --frame-start <n>   開始フレーム（デフォルト: 1）
@@ -81,7 +81,7 @@ EOF
 done
 
 if [[ ${#CAM_NAMES[@]} -eq 0 ]]; then
-  CAM_NAMES=("Camera_C" "Camera_L" "Camera_R")
+  CAM_NAMES=("Camera_Eqdst_70" "Camera_Pinhole_orig")
 fi
 
 cnt=0

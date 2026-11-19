@@ -24,6 +24,9 @@ pip install -e scripts/02_train/mmpose
 # 4. requirements.txt
 echo ">>> [5/6] requirements.txt"
 pip install -r requirements.txt
+# cv2.omnidir (used by the 3D keypoint alignment) is only in the contrib build.
+# --no-deps keeps numpy 1.22.4; installed after opencv-python so its cv2 files take precedence.
+pip install --no-deps opencv-contrib-python==4.6.0.66
 
 # 5. marmo3Dpose dependencies
 echo ">>> [6/6] marmo3Dpose requirements"

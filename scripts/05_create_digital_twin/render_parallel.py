@@ -29,7 +29,7 @@ def build_blender_cmd(
 ):
     """blender command for cold mode (1 chunk = 1 process)."""
     cmd = [
-        "blender", blend, "-b",
+        os.environ.get("BLENDER", "blender"), blend, "-b",
         *(["-t", str(threads)] if threads else []),
         "-P", script, "--",
         "--camera", camera,

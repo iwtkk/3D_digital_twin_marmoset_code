@@ -39,7 +39,11 @@ from render_worker import auto_threads, resolve_gpu_list, run_warm_pool  # noqa:
 
 
 def count_frames(csv_path):
-    """CSVのデータ行数（=全フレーム数）を返す。ヘッダー1行を除く。"""
+    """Number of frames: kp3d length for an NPZ, data rows (header excluded) for a CSV."""
+    if csv_path.endswith(".npz"):
+        import numpy as np
+        with np.load(csv_path) as z:
+            return int(z["kp3d"].shape[0])
     with open(csv_path) as f:
         n = sum(1 for _ in f)
     return n - 1
@@ -51,7 +55,7 @@ def parse_args():
                     "（デフォルトは blender 常駐の warm 運用）"
     )
     p.add_argument("--cam", action="append", default=None,
-                   help="カメラ名（複数指定可、デフォルト: Camera_C Camera_L Camera_R）")
+                   help="Camera name (repeatable; default: Camera_Eqdst_70 Camera_Pinhole_orig)")
     p.add_argument("--count", type=int, default=1, help="処理するCSV数の上限（デフォルト: 1）")
     p.add_argument("--all-csv", action="store_true", help="すべてのCSVを処理")
     p.add_argument("--frame-start", type=int, default=1, help="開始フレーム（デフォルト: 1）")
@@ -59,6 +63,8 @@ def parse_args():
     p.add_argument("--all-frames", action="store_true",
                    help="CSVの全フレームを処理（--frame-start/--frame-end を上書き）")
     p.add_argument("--csv-dir", default="outputs/animate_temp/transformedcsv")
+    p.add_argument("--npz-dir", default=None,
+                   help="Directory of {session}.npz used to animate (replaces --csv-dir)")
     p.add_argument("--blend-dir", default="outputs/blender")
     p.add_argument("--output-dir", default="outputs/render")
     p.add_argument("--resolution", default=None, help="解像度 WxH（例: 1920x1080）")
@@ -83,13 +89,16 @@ def parse_args():
 
 def build_targets(args):
     """選択されたセッションごとに (name, blend, frame_start, frame_end) を返す。"""
-    csvs = sorted(glob.glob(os.path.join(args.csv_dir, "*.csv")))
+    if args.npz_dir:
+        csvs = sorted(glob.glob(os.path.join(args.npz_dir, "*.npz")))
+    else:
+        csvs = sorted(glob.glob(os.path.join(args.csv_dir, "*.csv")))
     if not args.all_csv:
         csvs = csvs[: args.count]
 
     targets = []
     for csv in csvs:
-        name = os.path.basename(csv)[:-4]  # 末尾 .csv を除去
+        name = os.path.splitext(os.path.basename(csv))[0]
         blend = os.path.join(args.blend_dir, f"work_{name}.blend")
         if not os.path.exists(blend):
             print(f"[SKIP] blend が見つかりません: {blend}")
@@ -150,7 +159,7 @@ def missing_frames(job):
 
 def main():
     args = parse_args()
-    cams = args.cam if args.cam else ["Camera_C", "Camera_L", "Camera_R"]
+    cams = args.cam if args.cam else ["Camera_Eqdst_70", "Camera_Pinhole_orig"]
 
     gpu_list = resolve_gpu_list(args.gpu)
     gpu_count = len(gpu_list)

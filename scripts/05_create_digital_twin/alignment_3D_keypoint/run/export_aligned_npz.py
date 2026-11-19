@@ -44,15 +44,15 @@ import numpy as np
 import yaml
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "scripts/dev"))
 sys.path.insert(0, str(ROOT / "scripts/05_create_digital_twin/alignment_3D_keypoint/run"))
-sys.path.insert(0, str(ROOT / "scripts/dev/floorZ/run"))
 import affine_align as aa                    # noqa: E402
 import floorz_core as fz                     # noqa: E402
 
 CFG = ROOT / "config/marmo_cj425m/config.yaml"
-# path_registry.data.marmo3dpose_step1_results (same run as outputs/3d; frame_num.npy only survives here)
-STEP1_RESULTS_DIR = "/data/iwata/iwtkmarmo/results/3d_v0p8_dark_fix_20_all_det"
+# The released NPZ files were written with --frame-num-dir set to
+# path_registry.data.marmo3dpose_step1_results (/data/iwata/iwtkmarmo/results/3d_v0p8_dark_fix_20_all_det),
+# the only copy of step1's frame_num.npy for the released kp3d. The default is now --input-dir,
+# which holds frame_num.npy when the input is the output of Step 2 (marmo3Dpose).
 FPS = 24
 N_MEASURED = 20
 
@@ -215,8 +215,9 @@ def main():
     ap.add_argument("--csv-dir", default=str(ROOT / "outputs/reproj_eval/aligned_csv"),
                     help="CSVs compared by --check-csv")
     ap.add_argument("--output-dir", default=str(ROOT / "outputs/reproj_eval/aligned_npz"))
-    ap.add_argument("--frame-num-dir", default=STEP1_RESULTS_DIR,
-                    help="3D results root holding step1's {session}/<cam>/frame_num.npy; '' to only reconstruct")
+    ap.add_argument("--frame-num-dir", default=None,
+                    help="3D results root holding step1's {session}/<cam>/frame_num.npy "
+                         "(default: --input-dir); '' to only reconstruct from the video metadata")
     ap.add_argument("--no-frame-num", action="store_true", help="do not write frame_num")
     ap.add_argument("--check-csv", action="store_true", help="check that coordinates match the existing CSV")
     ap.add_argument("--resume", action="store_true", help="skip sessions that are already written")
@@ -240,6 +241,8 @@ def main():
     if not sessions:
         print("nothing to do"); return
 
+    if args.frame_num_dir is None:
+        args.frame_num_dir = args.input_dir
     cam_ids = [str(c) for c in yaml.safe_load(open(CFG))["camera_id"]]
     w = dict(params=params, input_dir=args.input_dir, vid_dir=args.vid_dir, cam_ids=cam_ids,
              with_frame_num=not args.no_frame_num, frame_num_dir=args.frame_num_dir,

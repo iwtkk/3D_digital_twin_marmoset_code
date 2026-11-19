@@ -107,62 +107,190 @@ See [docs/dataset_correspondence.md](docs/dataset_correspondence.md) for which s
 
 ## Quick start
 
+Paths below are relative to the repository root unless a step says `cd`.
+
 ### Step 1 – Set up dataset and environment
+
+The dataset is distributed in two places with the same folder layout. They differ only in the
+format of the 3D keypoints (`marmoset_keypoint_data/3D_temporal_keypoint_data/`):
+
+| Source | 3D keypoints | Use |
+|---|---|---|
+| AWS S3 `s3://digitaltwin-marmoset/` | `{session}/kp3d_fxdJointLen.pickle` (raw triangulation) | videos, models, Step 2 |
+| Harvard Dataverse (doi:10.7910/DVN/HZVBH1) | `{session}.npz` (aligned to the digital twin, ready for Blender) | Step 3 directly |
 
 ```bash
 # Download the dataset from AWS S3 (no sign-in required)
-aws s3 --no-sign-request cp --recursive s3://digitaltwin-marmoset/ ./3D_digital_twin_marmoset_data 
+# (no aws command: pip install awscli)
+aws s3 --no-sign-request cp --recursive s3://digitaltwin-marmoset/ ./3D_digital_twin_marmoset_data
+# (Harvard Dataverse: download the zip files and restore the layout with
+#  python extract_dataset.py --dst ./3D_digital_twin_marmoset_data --gunzip-blend)
 
-# Clone the repository 
+# Clone the repository
 git clone --recurse-submodules https://github.com/iwtkk/3D_digital_twin_marmoset_code.git
 cd 3D_digital_twin_marmoset_code
+```
 
-# Create a virtual environment and install dependencies
-python -m venv .venv
+Then set up the environment in one of two ways.
+
+**Option A – virtual environment**
+
+```bash
+python3.10 -m venv .venv
 source .venv/bin/activate
 bash scripts/00_setup/install.sh
 bash scripts/00_setup/setup_data_links.sh /path/to/3D_digital_twin_marmoset_data
 ```
 
-### Step 2 – 2D + 3D pose estimation
-
-Run the full pipeline (2D inference → 3D reconstruction → visualization) for a session:
+**Option B – Docker** (NVIDIA GPU + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/))
 
 ```bash
-bash scripts/03_run_marmo3dpose/run_marmo3d.sh \
-  --device cuda:0 \
-  --sessions dailylife_cj611_20230227_100000
+# Build (mmcv-full is compiled from source: tens of minutes).
+# INSTALL_BLENDER=1 adds Blender (5.2.2) for Step 3; omit it if Blender runs elsewhere.
+docker build --build-arg INSTALL_BLENDER=1 -t marmoset-dt .
+# Ubuntu 22.04 / CUDA 11.7 variant: docker build -f Dockerfile.ubuntu22 --build-arg INSTALL_BLENDER=1 -t marmoset-dt .
+
+# Start a shell with the repository at /workspace and the dataset at /data
+docker run --gpus all -it --rm --shm-size=8g \
+  -v "$PWD":/workspace \
+  -v /path/to/3D_digital_twin_marmoset_data:/data \
+  marmoset-dt
+
+# Inside the container (the Python environment is already active)
+bash scripts/00_setup/setup_data_links.sh /data
 ```
 
-Results are written to `outputs/2d/`, `outputs/3d/`, and `outputs/video/3d/`.
+Run Steps 2 and 3 below inside the container. The repository is bind-mounted, so the outputs stay in
+`outputs/` on the host. The links made by `setup_data_links.sh` point to `/data/...` and only resolve
+inside the container; run it again with the host path when working outside.
+(Rootless podman without `/etc/subuid`: add `--build-arg ROOTLESS_NO_SUBUID=1` to the build.)
 
-For parallel processing across multiple GPUs:
+Rootless podman on cluster nodes without a systemd user session (no `/run/user/<uid>`) needs a
+runtime directory and the non-systemd backends:
 
 ```bash
-# Split sessions across 2 GPUs (run each command on a separate terminal)
-bash scripts/03_run_marmo3dpose/run_marmo3d_multi.sh --device cuda:0 --splits 2 --split_id 1
-bash scripts/03_run_marmo3dpose/run_marmo3d_multi.sh --device cuda:1 --splits 2 --split_id 2
+export XDG_RUNTIME_DIR=${TMPDIR:-/tmp}/podman-run-$(id -u); mkdir -p -m 700 "$XDG_RUNTIME_DIR"
+podman --cgroup-manager=cgroupfs --events-backend=file build --build-arg INSTALL_BLENDER=1 -t marmoset-dt .
 ```
+
+`setup_data_links.sh` creates these links:
+
+| Link | Target in the dataset |
+|---|---|
+| `vid` | `marmoset_keypoint_data/video_data/` |
+| `outputs/2d` | `marmoset_keypoint_data/2D_temporal_keypoint_data/` |
+| `outputs/3d` | `marmoset_keypoint_data/3D_temporal_keypoint_data/` |
+| `outputs/digitaltwin` | `3D_digital_twin_data/` |
+
+Session names are `{animal}_{YYYYMMDD}_{HHMMSS}` (e.g. `cj611_20230227_100000`); the video of each
+camera is in `vid/{session}.{camera_id}/`.
+
+### Step 2 – 2D + 3D pose estimation (marmo3Dpose)
+
+Steps 2-1 to 2-4 produce from the videos the same NPZ files as those on Harvard Dataverse.
+If you use the Dataverse NPZ files, go to Step 3.
+
+**2-1. Link the trained models** (once). marmo3Dpose loads them from `weight/` under its own directory:
+
+```bash
+M=scripts/03_run_marmo3dpose/marmo3Dpose
+mkdir -p $M/weight
+ln -sfn "$(readlink -f vid)/../trained_model/detection.pth"               $M/weight/detection.pth
+ln -sfn "$(readlink -f vid)/../trained_model/id.pth"                      $M/weight/id.pth
+ln -sfn "$(readlink -f vid)/../trained_model/pose_marmo20_best_epoch.pth" $M/weight/marmo20_pose.pth
+```
+
+**2-2. Choose the sessions.** `all.sh` processes every session found in the video directory it is given.
+To process only some sessions, link them into a separate directory:
+
+```bash
+mkdir -p outputs/vid_selected
+ln -sf "$PWD"/vid/cj611_20230227_100000.* outputs/vid_selected/
+```
+
+(Pass `$PWD/vid` instead of `outputs/vid_selected` below to process all sessions.)
+
+**2-3. Run 2D inference → 3D reconstruction → visualization.** `all.sh` takes positional arguments
+`<video dir> <calibration config> <output dir> <device>` and must be run from the marmo3Dpose directory:
+
+```bash
+ROOT=$PWD
+cd scripts/03_run_marmo3dpose/marmo3Dpose
+NUMBA_NUM_THREADS=1 bash all.sh \
+  $ROOT/outputs/vid_selected \
+  ./calib/marmo_cj425m/config.yaml \
+  $ROOT/outputs/marmo3d \
+  cuda:0
+cd $ROOT
+```
+
+`NUMBA_NUM_THREADS=1` keeps the triangulation from slowing down on many-core machines.
+To use several GPUs, split the sessions into several directories in 2-2 and run one `all.sh` per GPU
+(`cuda:0`, `cuda:1`, ...) with the same output directory.
+
+Outputs (in `outputs/marmo3d/`):
+
+| Path | Content |
+|---|---|
+| `2d_v0p8_Dark_fix_20_all/{session}/{session}_{camera_id}_{chunk}.json` | 2D detections and keypoints per video chunk |
+| `3d_v0p8_dark_fix_20_all/{session}/kp3d_fxdJointLen.pickle` | 3D keypoints (same format as `outputs/3d` from S3) |
+| `3d_v0p8_dark_fix_20_all/{session}/{camera_id}/frame_num.npy` | video frame of each 3D frame |
+| `video/3d_v0p8_dark_fix_20_all/` | 3D keypoints drawn on camera 6 |
+
+**2-4. Align the 3D keypoints to the digital twin and write NPZ.** For each session an affine transform
+from the triangulation frame to the Blender scene is fitted by minimising the reprojection error between
+the real cameras and the Blender cameras, and the result is written as `{session}.npz`
+(same content as the Dataverse NPZ; see `scripts/05_create_digital_twin/alignment_3D_keypoint/`).
+
+```bash
+IN=outputs/marmo3d/3d_v0p8_dark_fix_20_all   # or outputs/3d for the pickle files from S3
+python scripts/05_create_digital_twin/alignment_3D_keypoint/run/affine_align.py \
+  --all --input-dir $IN --output-dir outputs/alignment --jobs 8
+python scripts/05_create_digital_twin/alignment_3D_keypoint/run/export_aligned_npz.py \
+  --all --input-dir $IN --affine-log outputs/alignment/affine_log.npz --output-dir outputs/npz --jobs 8
+```
+
+Use `--session <name>` instead of `--all` for a single session. `outputs/npz/{session}.npz` contains:
+
+| Key | Shape | Content |
+|---|---|---|
+| `kp3d` | (T, 23, 3) | Blender world coordinates [m] (20 keypoints + shoulder_mid, base, center_eye) |
+| `kp_names` | (23,) | keypoint names |
+| `head_euler_xyz` | (T, 3) | head orientation, Euler XYZ [rad] |
+| `kp3d_mm`, `kp3d_score`, `kp3d_err` | (T, 20, ...) | raw triangulation [mm], 2D score, reprojection error [px] |
+| `affine_A`, `affine_t`, `rot` | | `kp3d[:, :20] = ((kp3d_mm @ rot.T) / 1000) @ affine_A.T + affine_t` |
+| `frame_num`, `frame_min`, `camera_id` | (8, T), (8,), (8,) | video frame of each kp3d frame per camera |
 
 ### Step 3 – Apply pose to Blender and render
 
-```bash
-#blender 3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend \
-# --background \
-# --python scripts/05_create_digital_twin/blender_animation.py -- \
-# outputs/animate_temp/transformedcsv/session.csv
+Blender (checked with 5.2.2; the released `.blend` files are saved by Blender 5.0) must be on `PATH`, or set
+`BLENDER=/path/to/blender`. The Docker image includes it when built with `--build-arg INSTALL_BLENDER=1`.
+The input is a directory of `{session}.npz`: `outputs/npz` from Step 2, or `outputs/3d` if the dataset
+was restored from Harvard Dataverse.
 
+```bash
+# Keyframe the pose on a copy of the digital twin: outputs/blender/work_{session}.blend
 bash scripts/05_create_digital_twin/run_animate_.sh \
-  --blend 3D_digital_twin_marmoset_data/3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend \
+  --blend outputs/digitaltwin/3D_digitaltwin_marmoset_blender.blend \
+  --npz-dir outputs/npz \
   --output-dir outputs/blender \
   --all
 
+# Render (outputs/render/{session}/{camera}/{session}_{camera}_{frame:05d}.png)
 bash scripts/05_create_digital_twin/run_render.sh \
+  --npz-dir outputs/npz \
   --blend-dir outputs/blender \
-  --all-csv \
-  --all-frames \
+  --all-csv --frame-start 1 --frame-end 240 \
   --gpu 0
 ```
+
+- `--session <name>` (repeatable) in `run_animate_.sh` limits the sessions; without `--all` only the first one is processed.
+- Blender output of each session is saved in `outputs/blender/logs/work_{session}.log`.
+- Cameras: by default `Camera_Eqdst_70` and `Camera_Pinhole_orig` (pseudo first-person views that follow
+  the head). Others can be chosen with `--cam` (repeatable): `Camera_Eqdst_100`, `Camera_Pinhole_x2`, and
+  `Camera.{camera_id}` (the 8 real cameras).
+- Blend frame `i + 1` corresponds to `kp3d[i]`. Use `--all-frames` instead of `--frame-start/--frame-end`
+  to render the whole session.
 
 ---
 

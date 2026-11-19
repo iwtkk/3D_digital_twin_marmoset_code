@@ -35,7 +35,7 @@
 # =============================================================================
 
 set -euo pipefail
-cd "$(git rev-parse --show-toplevel)"
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."   # repository root (does not need git)
 
 DATA_ROOT="${1:-${DATA_DIR_ROOT:?'Specify DATA_DIR_ROOT as the first argument or the DATA_DIR_ROOT environment variable'}}"
 DATA_ROOT="${DATA_ROOT%/}"  # Strip trailing slash

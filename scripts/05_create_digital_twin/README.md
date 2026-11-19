@@ -5,41 +5,44 @@ pseudo-first-person-view videos.
 
 ## Requirements
 
-- Blender 4.5.0
-- Blender scene file: `3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend`
+- Blender 5.x (checked with 5.2.2; the released .blend files are saved by 5.0); set `BLENDER=/path/to/blender` if it is not on `PATH`
+- Blender scene file: `outputs/digitaltwin/3D_digitaltwin_marmoset_blender.blend`
+  (link made by `scripts/00_setup/setup_data_links.sh`)
 - NVIDIA GPU (CUDA-capable) — rendering runs on the CYCLES engine + CUDA (tested environment: NVIDIA A100-SXM4-40GB × 7, CUDA 12.7)
 
 ## Input
 
-- `kp3d_fxdJointLen.pickle` from step 03 (`outputs/3d/{session}/kp3d_fxdJointLen.pickle`)
+Blender-ready `{session}.npz` (keys `kp3d`, `kp_names`, `head_euler_xyz`; see the main README):
 
-## Step 1 – Convert pickle to CSV
+- Harvard Dataverse: `marmoset_keypoint_data/3D_temporal_keypoint_data/{session}.npz` (`outputs/3d` after restoring)
+- From `kp3d_fxdJointLen.pickle` (Step 2 output or AWS S3): `alignment_3D_keypoint/run/affine_align.py`
+  then `alignment_3D_keypoint/run/export_aligned_npz.py` → `outputs/npz/{session}.npz`
+
+The older CSV route (`kp3d_to_blender_csv.py`, fixed transform without the per-session alignment) is still
+accepted by the scripts below (`--csv-dir`).
+
+## Step 1 – Apply keypoints to Blender rig
 
 ```bash
-# All sessions at once
-python scripts/05_create_digital_twin/kp3d_to_blender_csv.py --all
-
-# A single session only
-python scripts/05_create_digital_twin/kp3d_to_blender_csv.py dailylife_cj611_20230227_100000
+bash scripts/05_create_digital_twin/run_animate_.sh --npz-dir outputs/npz --all
 ```
 
-## Step 2 – Apply keypoints to Blender rig
-
-Open and run `blender_animation.py` in Blender's Scripting workspace, or run it from the CLI:
+or for one session from the CLI:
 
 ```bash
-blender 3D_digital_twin_marmoset_data/3D_digital_twin_marmoset_data/digital_twin_marmoset.blend \
+cp outputs/digitaltwin/3D_digitaltwin_marmoset_blender.blend outputs/blender/work_{session}.blend
+blender outputs/blender/work_{session}.blend \
   --background \
   --python scripts/05_create_digital_twin/blender_animation.py \
   -- \
-  outputs/animate_temp/transformedcsv/{session}.csv
+  outputs/npz/{session}.npz
 ```
 
 Options after `--`:
 
 | Argument | Default | Description |
 |---|---|---|
-| `<csv_path>` | (required) | Path to the CSV file generated in Step 1 |
+| `<path>` | (required) | `{session}.npz` (or a CSV from `kp3d_to_blender_csv.py`) |
 | `--armature <name>` | `NF_Armature` | Name of the armature object in the Blender scene |
 
 To use a different armature:
@@ -53,7 +56,7 @@ blender scene.blend \
   --armature MyArmature
 ```
 
-## Step 3 – Render pseudo-view
+## Step 2 – Render pseudo-view
 
 Run `allcamrender.py` in Blender's Scripting workspace, or use the parallel rendering script:
 

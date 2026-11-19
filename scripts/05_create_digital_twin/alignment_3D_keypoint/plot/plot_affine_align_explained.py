@@ -33,9 +33,7 @@ import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
 
 ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "scripts/dev"))
 sys.path.insert(0, str(ROOT / "scripts/05_create_digital_twin/alignment_3D_keypoint/run"))
-sys.path.insert(0, str(ROOT / "scripts/dev/floorZ/run"))
 import align as _al                            # noqa: E402
 import affine_align as aa                      # noqa: E402
 from blender_fisheye import load_cameras       # noqa: E402

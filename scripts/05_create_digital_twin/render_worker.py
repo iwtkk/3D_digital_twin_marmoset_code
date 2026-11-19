@@ -124,7 +124,7 @@ class WarmWorker:
         # スレッドプールを作り続け（実測 775 スレッド / 1フレームあたり 600 CPU秒、
         # うち半分が sys = スピン待ち）、ワーカーを並べると CPU を食い潰す。
         pin = ["taskset", "-c", self.cpu_set] if self.cpu_set else []
-        return pin + ["blender", self.blend, "-b"] + thr \
+        return pin + [os.environ.get("BLENDER", "blender"), self.blend, "-b"] + thr \
             + ["-P", self.script, "--", "--serve"] + self.extra_args
 
     def start(self):

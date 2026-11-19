@@ -1,11 +1,9 @@
 """
-Unit tests for scripts/06_validation/consistency/ and
-src/marmo3d/validation/utils.py.
+Unit tests for src/marmo3d/validation/utils.py and config/consistency.yaml.
 
 Covered:
   - helper functions in marmo3d.validation.utils
   - path templates in config/consistency.yaml contain consistency/
-  - build_pipeline in run_pipeline.py produces the correct output paths
 """
 import math
 import sys
@@ -172,42 +170,6 @@ class TestConsistencyYamlPaths(unittest.TestCase):
         resolved = expand_path_template(template, _PROJECT_ROOT)
         self.assertIn("consistency", str(resolved))
         self.assertTrue(str(resolved).endswith("render") or "render" in str(resolved))
-
-
-# ---------------------------------------------------------------------------
-# run_pipeline.build_pipeline output paths contain consistency/
-# ---------------------------------------------------------------------------
-
-class TestRunPipelinePaths(unittest.TestCase):
-    def _import_build_pipeline(self):
-        import importlib.util
-        script_path = (
-            _PROJECT_ROOT / "scripts" / "06_validation" / "consistency" / "run_pipeline.py"
-        )
-        spec = importlib.util.spec_from_file_location("run_pipeline", script_path)
-        mod = importlib.util.module_from_spec(spec)
-        # Must register in sys.modules before exec, or dataclass type resolution fails
-        sys.modules["run_pipeline"] = mod
-        spec.loader.exec_module(mod)
-        return mod
-
-    def test_output_dir_contains_consistency(self):
-        mod = self._import_build_pipeline()
-        config = mod.PipelineConfig()
-        steps = mod.build_pipeline(config)
-        # Check the --output-root argument of Step 3 (extract_frames)
-        extract_step = next(s for s in steps if "Extract" in s.name)
-        cmd = " ".join(extract_step.command)
-        self.assertIn("consistency", cmd, f"extract step should output to consistency/: {cmd}")
-
-    def test_render_output_contains_consistency(self):
-        mod = self._import_build_pipeline()
-        config = mod.PipelineConfig()
-        steps = mod.build_pipeline(config)
-        # Check the --output-root argument of Step 2 (render)
-        render_step = next(s for s in steps if "Render" in s.name)
-        cmd = " ".join(render_step.command)
-        self.assertIn("consistency", cmd, f"render step should output to consistency/: {cmd}")
 
 
 if __name__ == "__main__":
