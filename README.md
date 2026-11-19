@@ -356,9 +356,9 @@ See [docs/bone_mapping.md](docs/bone_mapping.md) for the full correspondence bet
 ## License
 
 - **Code**: MIT License (see [LICENSE](LICENSE))
-- **Data**: CC BY 4.0
-- **Blender models / rendered assets**: CC BY 4.0
-- **Trained model weights**: CC BY 4.0
+- **Data**: CC0-1.0
+- **Blender models / rendered assets**: CC0-1.0
+- **Trained model weights**: CC0-1.0
 
 ---
 
