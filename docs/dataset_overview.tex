@@ -1,5 +1,5 @@
 % Dataset overview table for Data Records.
-% Counts/sizes: docs/dataset_layout.yaml (scan 2026-11-18; 28,023 files, 1,050.1 GB, decimal GB).
+% Counts/sizes: docs/dataset_layout.yaml (scan 2026-11-25; 30,425 files, 1,058.8 GB, decimal GB).
 % The Figure/Section column is a provisional guess except Fig. 2E, Fig. 3, Fig. 8a and Table 3; check before submission.
 % Requires \usepackage{booktabs}.
 \begin{table*}[t]
@@ -25,10 +25,10 @@ Top-level folder & Subfolder & Contents & File format & Figure / Section & Size 
 \texttt{3D\_digital\_twin\_data} & Base scenes (2 files) & Environment and marmoset model combined (full and simplified model) & .blend & Fig.~4, Methods & 0.4\,GB \\
  & \texttt{3D\_digitaltwin\_marmoset\_blender\_files} & Digital twin per session (detailed model), posed with the aligned keypoints & .blend & Fig.~4, Methods & 70\,GB \\
  & \texttt{3D\_digitaltwin\_simplified\_marmoset} & Digital twin per session (simplified model), posed with the aligned keypoints & .blend & Fig.~4, Methods & 104\,GB \\
- & \texttt{rendered\_environmental\_images} & PSNR/SSIM (full image and animal region) and bounding-box IoU between real and rendered images (2,400 pairs, 3 body models) and the frame list; renders are reproduced with the code repository & .json, .csv, .md & Fig.~8a, Technical Validation & $<$0.01\,GB \\
+ & \texttt{rendered\_environmental\_images} & PSNR/SSIM (full image and animal region) and bounding-box IoU between real and rendered images (2,400 pairs, 3 body models), the frame list, the 2,400 renders of the detailed model with fur and an example full-image SSIM map & .png, .json, .csv, .md & Fig.~8a, Technical Validation & 8.7\,GB \\
  & \texttt{rendered\_pseudo\_egocentric\_video\_data} & Pseudo first-person videos from the eyes of the animal (one session; equidistant fisheye 200$^\circ$ and pinhole 91$^\circ$) & .mp4, .md & Technical Validation & 2.9\,GB \\
 \midrule
-\multicolumn{5}{@{}l}{Total (28,023 files)} & 1,050\,GB \\
+\multicolumn{5}{@{}l}{Total (30,425 files)} & 1,059\,GB \\
 \bottomrule
 \end{tabular}
 \end{table*}
