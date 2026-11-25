@@ -2,9 +2,9 @@
 
 Reproduces the Fig. 8a image-similarity values from the Published dataset alone: renders of the digital twin are
 compared with the real camera images on the **Full image** and the **Animal region** (terms: `GLOSSARY.md`).
-The dataset distributes only the metrics and the frame list
-(`3D_digital_twin_data/rendered_environmental_images/`, docs/adr/0002-fig8a-metrics-without-render-images.md);
-this folder regenerates the renders and checks the reproduced values against those files.
+The dataset distributes the metrics, the frame list and the renders of the Detailed model with fur
+(`3D_digital_twin_data/rendered_environmental_images/`, docs/adr/0003-release-fig8a-detailed-fur-renders.md);
+this folder regenerates the renders of all body models and checks the reproduced values against those files.
 
 Paper section: **Technical Validation – Validation of consistency in reproducing the experimental environment**.
 

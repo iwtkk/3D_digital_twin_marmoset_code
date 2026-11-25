@@ -1,27 +1,35 @@
 # Dataset layout
 
-`/data/iwata/3D_digital_twin_marmoset_data_work_npz` (28023 files, 1050.1 GB, scanned 2026-11-18T12:09:05)
+`/data/iwata/3D_digital_twin_marmoset_data_work_npz` (30425 files, 1058.8 GB, scanned 2026-11-25T10:13:05)
 
 Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 
 ## Tree
 
 ```
-├── 3D_digital_twin_data/  (14 patterns, 177.5 GB)
+├── 3D_digital_twin_data/  (17 patterns, 186.2 GB)
 │   ├── 3D_digitaltwin_marmoset_blender.blend  ×1, 0.15 GB
 │   ├── 3D_digitaltwin_marmoset_blender_files/  (1 patterns, 69.7 GB)
 │   │   └── {session}.blend  ×222, 69.74 GB
 │   ├── 3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend  ×1, 0.29 GB
 │   ├── 3D_digitaltwin_simplified_marmoset/  (1 patterns, 104.5 GB)
 │   │   └── {session}.blend  ×222, 104.46 GB
-│   ├── rendered_environmental_images/  (7 patterns, 0.0 GB)
+│   ├── rendered_environmental_images/  (10 patterns, 8.7 GB)
 │   │   ├── README.md  ×1, 0.0 GB
 │   │   ├── camera_summary.csv  ×1, 0.0 GB
+│   │   ├── example/  (2 patterns, 0.0 GB)
+│   │   │   ├── ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png  ×1, 0.0 GB
+│   │   │   └── ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png  ×1, 0.0 GB
 │   │   ├── frames.csv  ×1, 0.0 GB
 │   │   ├── metrics_animal_detailed_fur.json  ×1, 0.0 GB
 │   │   ├── metrics_animal_detailed_nofur.json  ×1, 0.0 GB
 │   │   ├── metrics_animal_simplified_fur.json  ×1, 0.0 GB
-│   │   └── pair_metrics.csv  ×1, 0.0 GB
+│   │   ├── pair_metrics.csv  ×1, 0.0 GB
+│   │   └── render/  (1 patterns, 8.7 GB)
+│   │       └── detailed_fur/  (1 patterns, 8.7 GB)
+│   │           └── {session}/  (1 patterns, 8.7 GB)
+│   │               └── Camera.{cam}/  (1 patterns, 8.7 GB)
+│   │                   └── {frame}.png  ×2400, 8.68 GB
 │   └── rendered_pseudo_egocentric_video_data/  (3 patterns, 2.9 GB)
 │       ├── README.md  ×1, 0.0 GB
 │       ├── {session}_Eqdst.mp4  ×1, 1.38 GB
@@ -111,11 +119,14 @@ Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 | `3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend` | 222 | 104.46 | Digital twin per session (Simplified model), posed with the Aligned keypoints; Blend frame = 3D frame + 1 |
 | `3D_digital_twin_data/rendered_environmental_images/README.md` | 1 | 0.0 | Description of the Fig. 8a image-similarity files (regions, keys, real frames) |
 | `3D_digital_twin_data/rendered_environmental_images/camera_summary.csv` | 1 | 0.0 | Mean / std of pair_metrics.csv per Camera ID x body model |
+| `3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png` | 1 | 0.0 | Example full-image SSIM map of one pair (detailed_fur, ID A, Cam 1), grayscale 255 = SSIM 1 |
+| `3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png` | 1 | 0.0 | The example SSIM map with a colorbar and its mean |
 | `3D_digital_twin_data/rendered_environmental_images/frames.csv` | 1 | 0.0 | Fig. 8a pairs: Session, Camera ID, 3D frame, Blend frame, Video frame index of the real image |
 | `3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_fur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Detailed model with fur (Aligned pose, Fig. 8a) |
 | `3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_nofur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Detailed model without fur (Aligned pose) |
 | `3D_digital_twin_data/rendered_environmental_images/metrics_animal_simplified_fur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Simplified model with fur (Aligned pose) |
 | `3D_digital_twin_data/rendered_environmental_images/pair_metrics.csv` | 1 | 0.0 | Full-image and Animal-region PSNR/SSIM and bbox IoU per pair x body model |
+| `3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png` | 2400 | 8.68 | Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536 RGB) |
 | `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md` | 1 | 0.0 | Description of the pseudo first-person videos (cameras, frame mapping, encoding) |
 | `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4` | 1 | 1.38 | Pseudo first-person video from the eyes, equidistant fisheye 200 deg (Camera_Eqdst_100), 1000x1000, 24 fps |
 | `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4` | 1 | 1.48 | Pseudo first-person video from the eyes, pinhole 91 deg (Camera_Pinhole_x2), 1000x1000, 24 fps |

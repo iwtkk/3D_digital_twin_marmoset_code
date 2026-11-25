@@ -11,10 +11,10 @@
 
 dataset_root: /data/iwata/3D_digital_twin_marmoset_data_work_npz
 removed_backup: /data/iwata/3D_digital_twin_marmoset_data_work_npz_removed
-snapshot_at: '2026-11-18T12:09:05'
+snapshot_at: '2026-11-25T10:13:05'
 total:
-  files: 28023
-  size_gb: 1050.1
+  files: 30425
+  size_gb: 1058.8
 entries:
 - current: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend
   path: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend
@@ -58,6 +58,20 @@ entries:
   size_gb: 0.0
   example: 3D_digital_twin_data/rendered_environmental_images/camera_summary.csv
   description: Mean / std of pair_metrics.csv per Camera ID x body model
+- current: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png
+  path: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png
+  remove: false
+  count: 1
+  size_gb: 0.0
+  example: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_cj611_20230211_150000_f0022467.png
+  description: Example full-image SSIM map of one pair (detailed_fur, ID A, Cam 1), grayscale 255 = SSIM 1
+- current: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png
+  path: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png
+  remove: false
+  count: 1
+  size_gb: 0.0
+  example: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_cj611_20230211_150000_f0022467_colorbar.png
+  description: The example SSIM map with a colorbar and its mean
 - current: 3D_digital_twin_data/rendered_environmental_images/frames.csv
   path: 3D_digital_twin_data/rendered_environmental_images/frames.csv
   remove: false
@@ -93,6 +107,13 @@ entries:
   size_gb: 0.0
   example: 3D_digital_twin_data/rendered_environmental_images/pair_metrics.csv
   description: Full-image and Animal-region PSNR/SSIM and bbox IoU per pair x body model
+- current: 3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png
+  path: 3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png
+  remove: false
+  count: 2400
+  size_gb: 8.68
+  example: 3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/cj357_20221009_090000/Camera.23506214/0000074.png
+  description: Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536 RGB)
 - current: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md
   path: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md
   remove: false

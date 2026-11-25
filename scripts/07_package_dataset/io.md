@@ -204,7 +204,8 @@ Tool: export_fig8a_release   (export_fig8a_release.py)
 Purpose:
     Write the Fig. 8a files of the Release tree (3D_digital_twin_data/rendered_environmental_images/) from the
     validation outputs: Aligned-pose rows of the pose x model study and the real frames that study used.
-    Only metrics are released (docs/adr/0002-fig8a-metrics-without-render-images.md).
+    Metrics, frame list, the detailed_fur renders and one example SSIM map are released
+    (docs/adr/0003-release-fig8a-detailed-fur-renders.md).
 
 Inputs:
     roi_csv: path_registry.outputs.consistency_roi_files/{run}/metrics_roi.csv
@@ -213,7 +214,10 @@ Inputs:
         rows pose == "affine"
     npz_dir: path_registry.data.dataset_work_npz/marmoset_keypoint_data/3D_temporal_keypoint_data/{session}.npz
         frame_num (C, T) int64, frame_min (C,) int64, camera_id (C,) str
-    args: --roi-csv --pose-fur-csv --npz-dir --out-dir
+    render_dir: path_registry.outputs.consistency_affine_files/render/detailed_fur/{run session_id}/Camera.{cam}/{frame_3d:07d}.png
+        [1536, 2048, 3] uint8 RGB PNG; run session_id may carry the dailylife_ prefix
+    example: export_ssim_map_gray.py output (path_registry.outputs.consistency_affine_plot/ssim_map_gray_affine_*.png)
+    args: --roi-csv --pose-fur-csv --npz-dir [--render-dir] [--example ...] --out-dir
 
 Outputs (--out-dir, path_registry.outputs.fig8a_release):
     frames.csv          2400 rows: session_id, camera_id, frame_3d, blend_frame (= frame_3d + 1), video_frame_index,
@@ -222,6 +226,9 @@ Outputs (--out-dir, path_registry.outputs.fig8a_release):
                         real_bbox, bbox_iou, psnr_full, ssim_full, psnr_animal, ssim_animal
     camera_summary.csv  24 rows (camera x model): camera_label, n_pairs, mean / std of the 5 metrics
     metrics_animal_{detailed_fur,detailed_nofur,simplified_fur}.json
+    render/detailed_fur/{session}/Camera.{camera_id}/{frame_3d:07d}.png   2400 hard links to render_dir (stops if one is missing)
+    example/ssim_map_{model}_{region}_Cam{n}_{session}_f{frame:07d}[_colorbar].png   copies of --example
+        (ssim_map_*.png: [h-6, w-6] uint8 = 255 * clip(local SSIM, 0, 1))
     (README.md of the folder is written by hand.)
 
 Side effects:
