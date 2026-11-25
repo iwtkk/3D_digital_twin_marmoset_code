@@ -75,9 +75,11 @@ def main():
             if extra or unused:
                 print(f"WARNING {r['paths'][0]}: not listed {extra}, listed but absent {unused}")
             folder = rf"\texttt{{{g['folder'].replace('_', chr(92) + '_')}}}" if ri == 0 else ""
+            # long folder names: allow a line break after every underscore in the two name columns
+            folder, sub = (s.replace("\\_", "\\_\\allowbreak{}") for s in (folder, r["subfolder"]))
             if ri:
                 body.append(r"\cmidrule[0.2pt](l){2-6}")
-            body.append(f" {folder} & {r['subfolder']} & {' '.join(r['contents'].split())} & "
+            body.append(f" {folder} & {sub} & {' '.join(r['contents'].split())} & "
                         f"{', '.join(r['formats'])} & {r['figure']} & {fmt_gb(size)}\\,GB \\\\")
 
     all_files = [(q, s) for q, s in walk(a.dataset_root)]

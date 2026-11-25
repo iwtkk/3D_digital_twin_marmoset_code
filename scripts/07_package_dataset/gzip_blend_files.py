@@ -6,8 +6,8 @@ Blender で開き直して保存しないので、ファイル形式のバージ
 
 使い方:
   .venv/bin/python scripts/07_package_dataset/gzip_blend_files.py \
-      --src-dir <dataset_work>/3D_digital_twin_data/3D_digitaltwin_simplified_marmoset \
-      --dst-dir <dataset_upload>/3D_digital_twin_data/3D_digitaltwin_simplified_marmoset \
+      --src-dir <dataset_work>/3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset \
+      --dst-dir <dataset_upload>/3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset \
       --workers 32 --verify
 
 入出力台帳: scripts/07_package_dataset/io.md#gzip_blend_files

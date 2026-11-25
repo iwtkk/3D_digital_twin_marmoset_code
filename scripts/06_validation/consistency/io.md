@@ -1,7 +1,7 @@
 """
 I/O ledger: 06_validation/consistency (Fig. 8a reproduction)
 
-Reproduces the released Fig. 8a metrics (3D_digital_twin_data/rendered_environmental_images/) from the Published
+Reproduces the released Fig. 8a metrics (3D_digital_twin_marmoset_data/rendered_environmental_images/) from the Published
 dataset only. DATASET = extracted Published dataset (path_registry.data.dataset_work_npz has the same layout),
 WORK = --work-dir (path_registry.outputs.consistency_fig8a). Nothing under DATASET is written.
 
@@ -24,8 +24,8 @@ Tool: render_pairs   (render_pairs.py, drives render_pairs_blender.py)
 Purpose:
     Render every pair of frames.csv for each body model (detailed_fur, detailed_nofur, simplified_fur).
 Inputs:
-    DATASET/3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/{session}.blend   (Aligned pose)
-    DATASET/3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend     (simplified_fur only:
+    DATASET/3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/{session}.blend   (Aligned pose)
+    DATASET/3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend     (simplified_fur only:
         collection NF_Marmoset_lowpoly is appended into the Detailed scene)
     args: --dataset-root --work-dir [--frames-csv] [--models] [--session] --gpu [--samples 500] --blender [--dry-run]
 Outputs:

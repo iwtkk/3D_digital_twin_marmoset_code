@@ -13,54 +13,54 @@ caption: >-
 label: tab:dataset_overview
 
 groups:
-  - folder: 3D_digital_twin_data
+  - folder: 3D_digital_twin_marmoset_data
     rows:
       - subfolder: Base scenes (2 files)
-        paths: [3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend,
-                3D_digital_twin_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend]
+        paths: [3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend,
+                3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend]
         contents: Environment and marmoset model combined (full and simplified model)
         formats: [.blend]
         figure: Fig.~1b, Methods
       - subfolder: \texttt{3D\_digitaltwin\_marmoset\_blender\_files}
-        paths: [3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files]
+        paths: [3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files]
         contents: Digital twin per session, animated with the 3D keypoints
         formats: [.blend]
         figure: Fig.~1b, Methods
-      - subfolder: \texttt{3D\_digitaltwin\_simplified\_marmoset}
-        paths: [3D_digital_twin_data/3D_digitaltwin_simplified_marmoset]
+      - subfolder: \texttt{3D\_digitaltwin\_marmoset\_blender\_simplified\_marmoset}
+        paths: [3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset]
         contents: Digital twin per session with the simplified marmoset model
         formats: [.blend]
         figure: Fig.~1b, Methods
       - subfolder: \texttt{rendered\_environmental\_images}
-        paths: [3D_digital_twin_data/rendered_environmental_images]
+        paths: [3D_digital_twin_marmoset_data/rendered_environmental_images]
         contents: >-
           Renders from the 8 camera views (2,400 images, detailed model with fur), PSNR/SSIM and bounding-box IoU
           against the real images for 3 body models, the frame list and an example SSIM map
         formats: [.png, .csv, .json]
         figure: Fig.~8, Technical Validation
       - subfolder: \texttt{rendered\_pseudo\_egocentric\_video\_data}
-        paths: [3D_digital_twin_data/rendered_pseudo_egocentric_video_data]
+        paths: [3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data]
         contents: >-
           Pseudo first-person videos from the eyes of the animal (one session; equidistant fisheye 140$^\circ$ and
           pinhole 82$^\circ$)
         formats: [.mp4]
         figure: Technical Validation
-  - folder: 3D_marmoset_body
+  - folder: 3D_marmoset_body_data
     rows:
-      - subfolder: \texttt{3dmarmoset.blend}, \texttt{3dmarmoset\_simplified.blend}
-        paths: [3D_marmoset_body/3dmarmoset.blend, 3D_marmoset_body/3dmarmoset_simplified.blend]
-        contents: Rigged marmoset body model and its simplified version
+      - subfolder: \texttt{3D\_marmoset\_body\_Blender}
+        paths: [3D_marmoset_body_data/3D_marmoset_body_Blender]
+        contents: Rigged marmoset body model and its simplified version (\texttt{3dmarmoset.blend}, \texttt{3dmarmoset\_simplified.blend})
         formats: [.blend]
         figure: Fig.~2, Methods
       - subfolder: \texttt{CT\_scan\_data}
-        paths: [3D_marmoset_body/CT_scan_data]
+        paths: [3D_marmoset_body_data/CT_scan_data]
         contents: CT volume, body-surface and segmentation masks and meshes used to build the body model
         formats: [.nii, .nii.gz, .seg.nrrd, .stl]
         figure: Fig.~2, Methods
-  - folder: 3D_environmental_body
+  - folder: 3D_environmental_data
     rows:
       - subfolder: \texttt{environment\_measurement.blend}
-        paths: [3D_environmental_body/environment_measurement.blend]
+        paths: [3D_environmental_data/environment_measurement.blend]
         contents: Home-cage environment model with measured dimensions
         formats: [.blend]
         figure: Table~5, Technical Validation

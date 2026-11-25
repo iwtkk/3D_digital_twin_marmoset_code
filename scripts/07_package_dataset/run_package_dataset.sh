@@ -56,9 +56,9 @@ PACKS=(
   "marmoset_keypoint_data/training_data               training_data  marmoset_keypoint_data/training_data/3dkp_gt"
   "marmoset_keypoint_data/training_data/3dkp_gt     training_data_3dkp_gt"
   "marmoset_keypoint_data/trained_model               trained_model"
-  "3D_digital_twin_data/rendered_environmental_images rendered_environmental_images"
-  "3D_digital_twin_data/rendered_pseudo_egocentric_video_data rendered_pseudo_egocentric_video_data"
-  "3D_marmoset_body/CT_scan_data                      CT_scan_data"
+  "3D_digital_twin_marmoset_data/rendered_environmental_images rendered_environmental_images"
+  "3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data rendered_pseudo_egocentric_video_data"
+  "3D_marmoset_body_data/CT_scan_data                 CT_scan_data"
 )
 for row in "${PACKS[@]}"; do
   # optional 3rd column: a nested component packed separately (added to Dataverse later without changing the outer zips)
@@ -67,19 +67,19 @@ for row in "${PACKS[@]}"; do
 done
 
 # 2) gzip the per-session .blend files into STAGING_DIR, then store them in zips
-for d in 3D_digitaltwin_marmoset_blender_files 3D_digitaltwin_simplified_marmoset; do
-  "$PY" "$TOOLS/gzip_blend_files.py" --src-dir "$DATASET_ROOT/3D_digital_twin_data/$d" \
-    --dst-dir "$STAGING_DIR/3D_digital_twin_data/$d" --workers "$WORKERS" --verify
-  pack --dataset-root "$STAGING_DIR" --component "3D_digital_twin_data/$d" --prefix "$d" --store --workers "$WORKERS"
+for d in 3D_digitaltwin_marmoset_blender_files 3D_digitaltwin_marmoset_blender_simplified_marmoset; do
+  "$PY" "$TOOLS/gzip_blend_files.py" --src-dir "$DATASET_ROOT/3D_digital_twin_marmoset_data/$d" \
+    --dst-dir "$STAGING_DIR/3D_digital_twin_marmoset_data/$d" --workers "$WORKERS" --verify
+  pack --dataset-root "$STAGING_DIR" --component "3D_digital_twin_marmoset_data/$d" --prefix "$d" --store --workers "$WORKERS"
 done
 
 # 3) single model files to a zip
 pack --dataset-root "$DATASET_ROOT" --prefix 3D_models --workers 4 --files \
-  3D_marmoset_body/3dmarmoset.blend \
-  3D_marmoset_body/3dmarmoset_simplified.blend \
-  3D_environmental_body/environment_measurement.blend \
-  3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend \
-  3D_digital_twin_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
+  3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset.blend \
+  3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset_simplified.blend \
+  3D_environmental_data/environment_measurement.blend \
+  3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend \
+  3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
 
 # 4) put the extraction script for users at the top (the repository copy is the master; overwritten every run)
 cp scripts/00_setup/extract_dataset.py "$UPLOAD_DIR/extract_dataset.py"

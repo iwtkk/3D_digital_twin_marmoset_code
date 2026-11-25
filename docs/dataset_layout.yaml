@@ -11,193 +11,193 @@
 
 dataset_root: /data/iwata/3D_digital_twin_marmoset_data_work_npz
 removed_backup: /data/iwata/3D_digital_twin_marmoset_data_work_npz_removed
-snapshot_at: '2026-11-25T20:52:38'
+snapshot_at: '2026-11-25T21:25:14'
 total:
   files: 30425
   size_gb: 1058.7
 entries:
-- current: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend
-  path: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend
+- current: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend
+  path: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend
   remove: false
   count: 1
   size_gb: 0.15
-  example: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend
+  example: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend
   description: Base digital twin scene (environment + marmoset model)
-- current: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/{session}.blend
-  path: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/{session}.blend
+- current: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/{session}.blend
+  path: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/{session}.blend
   remove: false
   count: 222
   size_gb: 69.74
-  example: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/cj357_20221009_090000.blend
+  example: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/cj357_20221009_090000.blend
   description: Digital twin per session (Detailed model), posed with the Aligned keypoints; Blend frame = 3D frame + 1
-- current: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
-  path: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
+- current: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
+  path: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
   remove: false
   count: 1
   size_gb: 0.29
-  example: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
+  example: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend
   description: Base scene with the simplified marmoset model
-- current: 3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend
-  path: 3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend
+- current: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend
+  path: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend
   remove: false
   count: 222
   size_gb: 104.46
-  example: 3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/cj357_20221009_090000.blend
+  example: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/cj357_20221009_090000.blend
   description: Digital twin per session (Simplified model), posed with the Aligned keypoints; Blend frame = 3D frame + 1
-- current: 3D_digital_twin_data/rendered_environmental_images/README.md
-  path: 3D_digital_twin_data/rendered_environmental_images/README.md
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/README.md
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/README.md
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/README.md
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/README.md
   description: Description of the Fig. 8a image-similarity files (regions, keys, real frames)
-- current: 3D_digital_twin_data/rendered_environmental_images/camera_summary.csv
-  path: 3D_digital_twin_data/rendered_environmental_images/camera_summary.csv
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/camera_summary.csv
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/camera_summary.csv
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/camera_summary.csv
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/camera_summary.csv
   description: Mean / std of pair_metrics.csv per Camera ID x body model
-- current: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png
-  path: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_cj611_20230211_150000_f0022467.png
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_cj611_20230211_150000_f0022467.png
   description: Example full-image SSIM map of one pair (detailed_fur, ID A, Cam 1), grayscale 255 = SSIM 1
-- current: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png
-  path: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_cj611_20230211_150000_f0022467_colorbar.png
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_cj611_20230211_150000_f0022467_colorbar.png
   description: The example SSIM map with a colorbar and its mean
-- current: 3D_digital_twin_data/rendered_environmental_images/frames.csv
-  path: 3D_digital_twin_data/rendered_environmental_images/frames.csv
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/frames.csv
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/frames.csv
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/frames.csv
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/frames.csv
   description: 'Fig. 8a pairs: Session, Camera ID, 3D frame, Blend frame, Video frame index of the real image'
-- current: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_fur.json
-  path: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_fur.json
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_fur.json
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_fur.json
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_fur.json
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_fur.json
   description: Animal-region PSNR/SSIM per pair, Detailed model with fur (Aligned pose, Fig. 8a)
-- current: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_nofur.json
-  path: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_nofur.json
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_nofur.json
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_nofur.json
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_nofur.json
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_nofur.json
   description: Animal-region PSNR/SSIM per pair, Detailed model without fur (Aligned pose)
-- current: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_simplified_fur.json
-  path: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_simplified_fur.json
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_simplified_fur.json
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_simplified_fur.json
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/metrics_animal_simplified_fur.json
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_simplified_fur.json
   description: Animal-region PSNR/SSIM per pair, Simplified model with fur (Aligned pose)
-- current: 3D_digital_twin_data/rendered_environmental_images/pair_metrics.csv
-  path: 3D_digital_twin_data/rendered_environmental_images/pair_metrics.csv
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/pair_metrics.csv
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/pair_metrics.csv
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_environmental_images/pair_metrics.csv
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/pair_metrics.csv
   description: Full-image and Animal-region PSNR/SSIM and bbox IoU per pair x body model
-- current: 3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png
-  path: 3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png
+- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png
+  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png
   remove: false
   count: 2400
   size_gb: 8.68
-  example: 3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/cj357_20221009_090000/Camera.23506214/0000074.png
+  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/render/detailed_fur/cj357_20221009_090000/Camera.23506214/0000074.png
   description: Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536
     RGB)
-- current: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md
-  path: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md
+- current: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/README.md
+  path: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/README.md
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md
+  example: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/README.md
   description: Description of the pseudo first-person videos (cameras, frame mapping, encoding)
-- current: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4
-  path: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4
+- current: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4
+  path: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4
   remove: false
   count: 1
   size_gb: 1.26
-  example: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/cj611_20230226_110000_Eqdst.mp4
+  example: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/cj611_20230226_110000_Eqdst.mp4
   description: Pseudo first-person video from the eyes, equidistant fisheye 140 deg (Camera_Eqdst_70), 1000x1000, 24 fps
-- current: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4
-  path: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4
+- current: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4
+  path: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4
   remove: false
   count: 1
   size_gb: 1.45
-  example: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/cj611_20230226_110000_Pinhole.mp4
+  example: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/cj611_20230226_110000_Pinhole.mp4
   description: Pseudo first-person video from the eyes, pinhole 82 deg (Camera_Pinhole_orig), 1000x1000, 24 fps
-- current: 3D_environmental_body/environment_measurement.blend
-  path: 3D_environmental_body/environment_measurement.blend
+- current: 3D_environmental_data/environment_measurement.blend
+  path: 3D_environmental_data/environment_measurement.blend
   remove: false
   count: 1
   size_gb: 0.62
-  example: 3D_environmental_body/environment_measurement.blend
+  example: 3D_environmental_data/environment_measurement.blend
   description: Home-cage environment model (with measured dimensions)
-- current: 3D_marmoset_body/3dmarmoset.blend
-  path: 3D_marmoset_body/3dmarmoset.blend
+- current: 3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset.blend
+  path: 3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset.blend
   remove: false
   count: 1
   size_gb: 0.18
-  example: 3D_marmoset_body/3dmarmoset.blend
+  example: 3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset.blend
   description: Rigged marmoset model
-- current: 3D_marmoset_body/3dmarmoset_simplified.blend
-  path: 3D_marmoset_body/3dmarmoset_simplified.blend
+- current: 3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset_simplified.blend
+  path: 3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset_simplified.blend
   remove: false
   count: 1
   size_gb: 0.21
-  example: 3D_marmoset_body/3dmarmoset_simplified.blend
+  example: 3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset_simplified.blend
   description: Simplified marmoset model
-- current: 3D_marmoset_body/CT_scan_data/CT_scan_data.nii
-  path: 3D_marmoset_body/CT_scan_data/CT_scan_data.nii
+- current: 3D_marmoset_body_data/CT_scan_data/CT_scan_data.nii
+  path: 3D_marmoset_body_data/CT_scan_data/CT_scan_data.nii
   remove: false
   count: 1
   size_gb: 0.7
-  example: 3D_marmoset_body/CT_scan_data/CT_scan_data.nii
+  example: 3D_marmoset_body_data/CT_scan_data/CT_scan_data.nii
   description: CT volume
-- current: 3D_marmoset_body/CT_scan_data/Marmoset_surface.seg.nrrd
-  path: 3D_marmoset_body/CT_scan_data/Marmoset_surface.seg.nrrd
+- current: 3D_marmoset_body_data/CT_scan_data/Marmoset_surface.seg.nrrd
+  path: 3D_marmoset_body_data/CT_scan_data/Marmoset_surface.seg.nrrd
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_marmoset_body/CT_scan_data/Marmoset_surface.seg.nrrd
+  example: 3D_marmoset_body_data/CT_scan_data/Marmoset_surface.seg.nrrd
   description: Body surface segmentation (3D Slicer)
-- current: 3D_marmoset_body/CT_scan_data/Marmoset_surface.stl
-  path: 3D_marmoset_body/CT_scan_data/Marmoset_surface.stl
+- current: 3D_marmoset_body_data/CT_scan_data/Marmoset_surface.stl
+  path: 3D_marmoset_body_data/CT_scan_data/Marmoset_surface.stl
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_marmoset_body/CT_scan_data/Marmoset_surface.stl
+  example: 3D_marmoset_body_data/CT_scan_data/Marmoset_surface.stl
   description: Body surface mesh
-- current: 3D_marmoset_body/CT_scan_data/Segmentation.nii.gz
-  path: 3D_marmoset_body/CT_scan_data/Segmentation.nii.gz
+- current: 3D_marmoset_body_data/CT_scan_data/Segmentation.nii.gz
+  path: 3D_marmoset_body_data/CT_scan_data/Segmentation.nii.gz
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_marmoset_body/CT_scan_data/Segmentation.nii.gz
+  example: 3D_marmoset_body_data/CT_scan_data/Segmentation.nii.gz
   description: Segmentation (NIfTI)
-- current: 3D_marmoset_body/CT_scan_data/Segmentation.seg.nrrd
-  path: 3D_marmoset_body/CT_scan_data/Segmentation.seg.nrrd
+- current: 3D_marmoset_body_data/CT_scan_data/Segmentation.seg.nrrd
+  path: 3D_marmoset_body_data/CT_scan_data/Segmentation.seg.nrrd
   remove: false
   count: 1
   size_gb: 0.0
-  example: 3D_marmoset_body/CT_scan_data/Segmentation.seg.nrrd
+  example: 3D_marmoset_body_data/CT_scan_data/Segmentation.seg.nrrd
   description: Segmentation (3D Slicer)
-- current: 3D_marmoset_body/CT_scan_data/Segmentation.stl
-  path: 3D_marmoset_body/CT_scan_data/Segmentation.stl
+- current: 3D_marmoset_body_data/CT_scan_data/Segmentation.stl
+  path: 3D_marmoset_body_data/CT_scan_data/Segmentation.stl
   remove: false
   count: 1
   size_gb: 0.17
-  example: 3D_marmoset_body/CT_scan_data/Segmentation.stl
+  example: 3D_marmoset_body_data/CT_scan_data/Segmentation.stl
   description: Segmentation mesh
 - current: marmoset_keypoint_data/2D_temporal_keypoint_data/{session}/{session}_{cam}_{chunk}.json
   path: marmoset_keypoint_data/2D_temporal_keypoint_data/{session}/{session}_{cam}_{chunk}.json

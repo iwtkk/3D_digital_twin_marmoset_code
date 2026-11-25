@@ -25,7 +25,7 @@ They can also be run from the CLI with `blender --background <file.blend> --pyth
 
 Instead of the manual workflow (select vertices, export CSV, subtract in xlsx), the measurement definitions are
 written in `config/environment_table.yaml` and the table is produced from the .blend in one step.
-**The default measurement target is the published digital twin** (`3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend`),
+**The default measurement target is the published digital twin** (`3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend`),
 so that the environment actually used for rendering is what gets measured.
 
 ### Procedure

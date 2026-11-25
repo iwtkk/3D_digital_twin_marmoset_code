@@ -3,8 +3,8 @@
 I/O ledger: scripts/06_validation/consistency/io.md#render_pairs_blender
 
   blender -b -P render_pairs_blender.py -- --model detailed_fur \\
-      --blend {root}/3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/{session}.blend --jobs jobs.json
-  simplified_fur also needs --simplified-blend {root}/3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend
+      --blend {root}/3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/{session}.blend --jobs jobs.json
+  simplified_fur also needs --simplified-blend {root}/3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend
 
 Body models (the Detailed-model scene is always the base, so environment, lights and cameras are the same):
   detailed_fur   : the published scene as it is (posed with the Aligned keypoints).

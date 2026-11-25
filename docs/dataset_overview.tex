@@ -12,31 +12,31 @@
 \toprule
 Top-level folder & Subfolder & Contents & File format & Figure / Section & Size \\
 \midrule
- \texttt{3D\_digital\_twin\_data} & Base scenes (2 files) & Environment and marmoset model combined (full and simplified model) & .blend & Fig.~1b, Methods & 0.4\,GB \\
+ \texttt{3D\_\allowbreak{}digital\_\allowbreak{}twin\_\allowbreak{}marmoset\_\allowbreak{}data} & Base scenes (2 files) & Environment and marmoset model combined (full and simplified model) & .blend & Fig.~1b, Methods & 0.4\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{3D\_digitaltwin\_marmoset\_blender\_files} & Digital twin per session, animated with the 3D keypoints & .blend & Fig.~1b, Methods & 70\,GB \\
+  & \texttt{3D\_\allowbreak{}digitaltwin\_\allowbreak{}marmoset\_\allowbreak{}blender\_\allowbreak{}files} & Digital twin per session, animated with the 3D keypoints & .blend & Fig.~1b, Methods & 70\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{3D\_digitaltwin\_simplified\_marmoset} & Digital twin per session with the simplified marmoset model & .blend & Fig.~1b, Methods & 104\,GB \\
+  & \texttt{3D\_\allowbreak{}digitaltwin\_\allowbreak{}marmoset\_\allowbreak{}blender\_\allowbreak{}simplified\_\allowbreak{}marmoset} & Digital twin per session with the simplified marmoset model & .blend & Fig.~1b, Methods & 104\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{rendered\_environmental\_images} & Renders from the 8 camera views (2,400 images, detailed model with fur), PSNR/SSIM and bounding-box IoU against the real images for 3 body models, the frame list and an example SSIM map & .png, .csv, .json & Fig.~8, Technical Validation & 8.7\,GB \\
+  & \texttt{rendered\_\allowbreak{}environmental\_\allowbreak{}images} & Renders from the 8 camera views (2,400 images, detailed model with fur), PSNR/SSIM and bounding-box IoU against the real images for 3 body models, the frame list and an example SSIM map & .png, .csv, .json & Fig.~8, Technical Validation & 8.7\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{rendered\_pseudo\_egocentric\_video\_data} & Pseudo first-person videos from the eyes of the animal (one session; equidistant fisheye 140$^\circ$ and pinhole 82$^\circ$) & .mp4 & Technical Validation & 2.7\,GB \\
+  & \texttt{rendered\_\allowbreak{}pseudo\_\allowbreak{}egocentric\_\allowbreak{}video\_\allowbreak{}data} & Pseudo first-person videos from the eyes of the animal (one session; equidistant fisheye 140$^\circ$ and pinhole 82$^\circ$) & .mp4 & Technical Validation & 2.7\,GB \\
 \midrule
- \texttt{3D\_marmoset\_body} & \texttt{3dmarmoset.blend}, \texttt{3dmarmoset\_simplified.blend} & Rigged marmoset body model and its simplified version & .blend & Fig.~2, Methods & 0.4\,GB \\
+ \texttt{3D\_\allowbreak{}marmoset\_\allowbreak{}body\_\allowbreak{}data} & \texttt{3D\_\allowbreak{}marmoset\_\allowbreak{}body\_\allowbreak{}Blender} & Rigged marmoset body model and its simplified version (\texttt{3dmarmoset.blend}, \texttt{3dmarmoset\_simplified.blend}) & .blend & Fig.~2, Methods & 0.4\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{CT\_scan\_data} & CT volume, body-surface and segmentation masks and meshes used to build the body model & .nii, .nii.gz, .seg.nrrd, .stl & Fig.~2, Methods & 0.9\,GB \\
+  & \texttt{CT\_\allowbreak{}scan\_\allowbreak{}data} & CT volume, body-surface and segmentation masks and meshes used to build the body model & .nii, .nii.gz, .seg.nrrd, .stl & Fig.~2, Methods & 0.9\,GB \\
 \midrule
- \texttt{3D\_environmental\_body} & \texttt{environment\_measurement.blend} & Home-cage environment model with measured dimensions & .blend & Table~5, Technical Validation & 0.6\,GB \\
+ \texttt{3D\_\allowbreak{}environmental\_\allowbreak{}data} & \texttt{environment\_\allowbreak{}measurement.blend} & Home-cage environment model with measured dimensions & .blend & Table~5, Technical Validation & 0.6\,GB \\
 \midrule
- \texttt{marmoset\_keypoint\_data} & \texttt{video\_data} & Synchronized videos from 8 cameras, 222 sessions (24\,fps, 2048$\times$1536\,px), with per-frame numbers and timestamps & .mp4, .npz, .h5, .yaml & Fig.~3a, Methods & 776\,GB \\
+ \texttt{marmoset\_\allowbreak{}keypoint\_\allowbreak{}data} & \texttt{video\_\allowbreak{}data} & Synchronized videos from 8 cameras, 222 sessions (24\,fps, 2048$\times$1536\,px), with per-frame numbers and timestamps & .mp4, .npz, .h5, .yaml & Fig.~3a, Methods & 776\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{training\_data} & Training set for the detector and pose estimator (3,382 images, COCO annotations, pretrained weights); manually labeled 3D ground truth (1--3 animals) with its 800 camera images & .png, .json, .pth, .h5, .npz, .mat, .csv, .yaml & Fig.~7, Technical Validation & 7.4\,GB \\
+  & \texttt{training\_\allowbreak{}data} & Training set for the detector and pose estimator (3,382 images, COCO annotations, pretrained weights); manually labeled 3D ground truth (1--3 animals) with its 800 camera images & .png, .json, .pth, .h5, .npz, .mat, .csv, .yaml & Fig.~7, Technical Validation & 7.4\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{trained\_model} & Trained bounding-box detector (YOLOX), 20-keypoint pose estimator (HRNet-W48) and individual identification model & .pth & Fig.~7, Technical Validation & 1.6\,GB \\
+  & \texttt{trained\_\allowbreak{}model} & Trained bounding-box detector (YOLOX), 20-keypoint pose estimator (HRNet-W48) and individual identification model & .pth & Fig.~7, Technical Validation & 1.6\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{2D\_temporal\_keypoint\_data} & 2D detections per video chunk (bounding box, 20 keypoints with confidence, ID label) & .json & Fig.~7, Technical Validation & 76\,GB \\
+  & \texttt{2D\_\allowbreak{}temporal\_\allowbreak{}keypoint\_\allowbreak{}data} & 2D detections per video chunk (bounding box, 20 keypoints with confidence, ID label) & .json & Fig.~7, Technical Validation & 76\,GB \\
 \cmidrule[0.2pt](l){2-6}
-  & \texttt{3D\_temporal\_keypoint\_data} & 3D keypoints per session (Blender and metric coordinates, confidence, reprojection error, head orientation) & .npz & Fig.~7, Technical Validation & 9.4\,GB \\
+  & \texttt{3D\_\allowbreak{}temporal\_\allowbreak{}keypoint\_\allowbreak{}data} & 3D keypoints per session (Blender and metric coordinates, confidence, reprojection error, head orientation) & .npz & Fig.~7, Technical Validation & 9.4\,GB \\
 \midrule
 \multicolumn{5}{@{}l}{Total (30,425 files)} & 1,059\,GB \\
 \bottomrule

@@ -3,15 +3,15 @@
 Reproduces the Fig. 8a image-similarity values from the Published dataset alone: renders of the digital twin are
 compared with the real camera images on the **Full image** and the **Animal region** (terms: `GLOSSARY.md`).
 The dataset distributes the metrics, the frame list and the renders of the Detailed model with fur
-(`3D_digital_twin_data/rendered_environmental_images/`, docs/adr/0003-release-fig8a-detailed-fur-renders.md);
+(`3D_digital_twin_marmoset_data/rendered_environmental_images/`, docs/adr/0003-release-fig8a-detailed-fur-renders.md);
 this folder regenerates the renders of all body models and checks the reproduced values against those files.
 
 Paper section: **Technical Validation – Validation of consistency in reproducing the experimental environment**.
 
 ## Requirements
 
-- The extracted Published dataset (`scripts/00_setup/extract_dataset.py`), at least: `3D_digital_twin_data/`
-  (`rendered_environmental_images/`, `3D_digitaltwin_marmoset_blender_files/`, `3D_digitaltwin_simplified_marmoset/`
+- The extracted Published dataset (`scripts/00_setup/extract_dataset.py`), at least: `3D_digital_twin_marmoset_data/`
+  (`rendered_environmental_images/`, `3D_digitaltwin_marmoset_blender_files/`, `3D_digitaltwin_marmoset_blender_simplified_marmoset/`
   for `simplified_fur`), and `marmoset_keypoint_data/` (`video_data/`, `2D_temporal_keypoint_data/`,
   `3D_temporal_keypoint_data/`) for the 108 Sessions listed in `frames.csv`.
 - **Blender 5.2.x** with a CUDA GPU (other versions render slightly different pixels; 5.1 vs 5.2 differ by
@@ -45,7 +45,7 @@ inputs and outputs of each script are listed in `io.md`.
 - Scene: `3D_digitaltwin_marmoset_blender_files/{session}.blend` (posed with the Aligned keypoints), camera
   `Camera.{camera_id}`, at the **Blend frame** = 3D frame + 1. Cycles, 500 samples, 2048x1536.
 - `detailed_fur`: the scene as distributed. `detailed_nofur`: hair curves hidden.
-  `simplified_fur`: the animal collection of `3D_digitaltwin_simplified_marmoset/{session}.blend` appended into the
+  `simplified_fur`: the animal collection of `3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend` appended into the
   same scene (the Simplified-model scenes use a different environment build, so only the animal is taken).
 - `background`: the same scene with the animal collections excluded (empty cage), one image per camera. The
   render silhouette is `|render - background| > 25`; the environment is identical in every Session, so the result

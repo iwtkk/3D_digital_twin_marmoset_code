@@ -73,7 +73,7 @@ Inputs:
     src_dir:
         type: directory
         path_source: path_registry.data.dataset_work_npz
-        file_pattern: "3D_digital_twin_data/{3D_digitaltwin_marmoset_blender_files|3D_digitaltwin_simplified_marmoset}/{session}.blend"
+        file_pattern: "3D_digital_twin_marmoset_data/{3D_digitaltwin_marmoset_blender_files|3D_digitaltwin_marmoset_blender_simplified_marmoset}/{session}.blend"
 
 Outputs:
     gz_blend:
@@ -99,18 +99,18 @@ Outputs (upload_dir; every file directly in it, no sub-folders, for Harvard Data
         (rendered_environmental_images_{animal,env} = real vs render PSNR/SSIM per pair in the animal / environment
          region + 1 example image each; pair_metrics.csv and camera_summary.csv are in _env)
     rendered_pseudo_egocentric_video_data_part001.zip + manifest
-        (3D_digital_twin_data/rendered_pseudo_egocentric_video_data: pseudo first-person videos of cj611_20230226_110000,
+        (3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data: pseudo first-person videos of cj611_20230226_110000,
          {Eqdst,Pinhole}.mp4 + README.md; mp4 stored uncompressed)
     training_data_3dkp_gt_part001.zip + manifest
         (marmoset_keypoint_data/training_data/3dkp_gt: 3D keypoint ground truth and the Fig. 2E matched
          keypoints SingleAnimal_20; packed separately, training_data_* leaves it out with --exclude)
-    {3D_digitaltwin_marmoset_blender_files,3D_digitaltwin_simplified_marmoset}_part{NNN}.zip + manifest
+    {3D_digitaltwin_marmoset_blender_files,3D_digitaltwin_marmoset_blender_simplified_marmoset}_part{NNN}.zip + manifest
         (contain the gzipped {session}.blend, stored with --store)
     3D_models_part001.zip + manifest   (3dmarmoset*.blend, environment_measurement.blend, base digital twin .blend files)
     extract_dataset.py                 (copied from scripts/00_setup; restores the folder layout from the zip paths)
     every path inside the zips is relative to dataset_root
 Staging (staging_dir = path_registry.outputs.dataset_upload_npz_staging):
-    3D_digital_twin_data/{...}/{session}.blend (gzip), the source of the .blend zips.
+    3D_digital_twin_marmoset_data/{...}/{session}.blend (gzip), the source of the .blend zips.
 
 Validation:
     - check prints RESULT: OK (files <= 1000, every file < 2.5e9, manifest == zip contents == source data)
@@ -202,7 +202,7 @@ Side effects:
 Tool: export_fig8a_release   (export_fig8a_release.py)
 ================================================================================
 Purpose:
-    Write the Fig. 8a files of the Release tree (3D_digital_twin_data/rendered_environmental_images/) from the
+    Write the Fig. 8a files of the Release tree (3D_digital_twin_marmoset_data/rendered_environmental_images/) from the
     validation outputs: Aligned-pose rows of the pose x model study and the real frames that study used.
     Metrics, frame list, the detailed_fur renders and one example SSIM map are released
     (docs/adr/0003-release-fig8a-detailed-fur-renders.md).

@@ -41,7 +41,8 @@ DATA_ROOT="${1:-${DATA_DIR_ROOT:?'Specify DATA_DIR_ROOT as the first argument or
 DATA_ROOT="${DATA_ROOT%/}"  # Strip trailing slash
 
 MKP="${DATA_ROOT}/marmoset_keypoint_data"
-DTW="${DATA_ROOT}/3D_digital_twin_data"
+DTW="${DATA_ROOT}/3D_digital_twin_marmoset_data"                       # Published dataset
+[[ -d "$DTW" ]] || DTW="${DATA_ROOT}/3D_digital_twin_data"             # older layout (original dataset)
 
 echo "DATA_ROOT    : ${DATA_ROOT}"
 echo "PROJECT_ROOT : $(pwd)"

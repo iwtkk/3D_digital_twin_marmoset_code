@@ -8,9 +8,9 @@ given by --gpu. Renders that already exist are skipped, so an interrupted run re
 Use Blender 5.2.x: other versions render slightly different pixels (README.md, "Tolerance").
 
 Inputs (read only, --dataset-root = extracted Published dataset):
-  3D_digital_twin_data/rendered_environmental_images/frames.csv
-  3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/{session}.blend
-  3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend   (simplified_fur)
+  3D_digital_twin_marmoset_data/rendered_environmental_images/frames.csv
+  3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/{session}.blend
+  3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend   (simplified_fur)
 Outputs (--work-dir):
   render/{model}/{session}/Camera.{camera_id}/{frame_3d:07d}.png   [1536, 2048, 3] uint8
   render/background/Camera.{camera_id}.png   empty cage (animals excluded), one per camera, [1536, 2048, 3] uint8

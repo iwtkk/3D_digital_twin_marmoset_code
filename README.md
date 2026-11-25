@@ -37,7 +37,7 @@ The dataset consists of four parts:
 | `3D_marmoset_body_data` | 3D body model files (Blender) |
 | `marmoset_keypoint_data` | Videos, 2D/3D keypoints, training data |
 | `3D_environmental_data` | 3D cage/environment model (Blender) |
-| `3D_digital_twin_data` | Integrated digital twin Blender scenes |
+| `3D_digital_twin_marmoset_data` | Integrated digital twin Blender scenes |
 
 See [docs/dataset_correspondence.md](docs/dataset_correspondence.md) for which script uses which dataset folder.
 
@@ -180,7 +180,7 @@ podman --cgroup-manager=cgroupfs --events-backend=file build --build-arg INSTALL
 | `vid` | `marmoset_keypoint_data/video_data/` |
 | `outputs/2d` | `marmoset_keypoint_data/2D_temporal_keypoint_data/` |
 | `outputs/3d` | `marmoset_keypoint_data/3D_temporal_keypoint_data/` |
-| `outputs/digitaltwin` | `3D_digital_twin_data/` |
+| `outputs/digitaltwin` | `3D_digital_twin_marmoset_data/` |
 
 Session names are `{animal}_{YYYYMMDD}_{HHMMSS}` (e.g. `cj611_20230227_100000`); the video of each
 camera is in `vid/{session}.{camera_id}/`.
@@ -349,7 +349,7 @@ See [docs/bone_mapping.md](docs/bone_mapping.md) for the full correspondence bet
 | `marmoset_keypoint_data/2D_temporal_keypoint` | 3D reconstruction input |
 | `marmoset_keypoint_data/3D_temporal_keypoint` | Blender animation input |
 | `3D_environmental_data/environment_model_blender` | Cage measurement scripts |
-| `3D_digital_twin_data/3D_digitaltwin_marmoset_blender` | Blender integrated scenes |
+| `3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender` | Blender integrated scenes |
 
 ---
 

@@ -34,9 +34,9 @@ PAD_FRAC = 0.10
 PAD_MIN_PX = 16
 
 # Published dataset layout (relative to the extracted dataset root)
-FIG8A_DIR = "3D_digital_twin_data/rendered_environmental_images"
-DETAILED_BLEND = "3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/{session}.blend"
-SIMPLIFIED_BLEND = "3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend"
+FIG8A_DIR = "3D_digital_twin_marmoset_data/rendered_environmental_images"
+DETAILED_BLEND = "3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/{session}.blend"
+SIMPLIFIED_BLEND = "3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend"
 NPZ = "marmoset_keypoint_data/3D_temporal_keypoint_data/{session}.npz"
 VIDEO_DIR = "marmoset_keypoint_data/video_data/{session}.{cam}"
 LABEL2D = "marmoset_keypoint_data/2D_temporal_keypoint_data/{session}/{session}_{cam}_{chunk:06d}.json"

@@ -9,7 +9,7 @@ metrics were computed with. `--frame-source npz` uses `npz_video_frame_index` in
 (README.md, "Real frames"), so only `published` reproduces the released values.
 
 Inputs (read only, --dataset-root = extracted Published dataset):
-  3D_digital_twin_data/rendered_environmental_images/frames.csv
+  3D_digital_twin_marmoset_data/rendered_environmental_images/frames.csv
   marmoset_keypoint_data/video_data/{session}.{camera_id}/   (imgstore: metadata.yaml, {chunk}.mp4, {chunk}.npz)
   marmoset_keypoint_data/3D_temporal_keypoint_data/{session}.npz   (frame_min)
 Outputs (--work-dir):

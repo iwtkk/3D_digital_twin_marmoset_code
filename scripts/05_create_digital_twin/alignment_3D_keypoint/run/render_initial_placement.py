@@ -29,7 +29,7 @@ Purpose:
 Inputs:
     kp3d pickle: outputs/3d/{session}/kp3d_fxdJointLen.pickle (path_registry.data.kp3d_3d_root)
     session blend (read only): {blend-dir}/{session}.blend
-        default: path_registry.data.dataset_work_npz / 3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files
+        default: path_registry.data.dataset_work_npz / 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files
 
 Outputs:
     {work-dir}/{session}/{session}_initial.csv        initial-placement CSV (same columns as aligned_csv)
@@ -83,7 +83,7 @@ cam.rotation_mode = "QUATERNION"
 cam.rotation_quaternion = (Vector(c["target"]) - Vector(c["loc"])).to_track_quat("-Z", "Y")
 bpy.ops.wm.save_mainfile()
 """
-DATASET_BLEND_DIR = Path("/data/iwata/3D_digital_twin_marmoset_data_work_npz/3D_digital_twin_data/"
+DATASET_BLEND_DIR = Path("/data/iwata/3D_digital_twin_marmoset_data_work_npz/3D_digital_twin_marmoset_data/"
                          "3D_digitaltwin_marmoset_blender_files")
 
 

@@ -15,7 +15,7 @@ This document maps dataset folders (Zenodo/AWS) to the scripts in this repositor
 │   └── 3D_temporal_keypoint/     # Reconstructed 3D keypoints (kp3d*.pickle)
 ├── 3D_environmental_data/
 │   └── environment_model_blender/ # Cage 3D model (.blend)
-└── 3D_digital_twin_data/
+└── 3D_digital_twin_marmoset_data/
     └── 3D_digitaltwin_marmoset_blender/ # Integrated scene (.blend)
 ```
 
@@ -31,7 +31,7 @@ This document maps dataset folders (Zenodo/AWS) to the scripts in this repositor
 | `marmoset_keypoint_data/3D_temporal_keypoint` | `animate/BlenderSync/blender_animation.py` | Blender animation input |
 | `marmoset_keypoint_data/3D_temporal_keypoint` | `repr_error/` | Reprojection error analysis |
 | `3D_environmental_data/environment_model_blender` | `scripts/06_measure_environment/` | Cage model measurement |
-| `3D_digital_twin_data/3D_digitaltwin_marmoset_blender` | `animate/BlenderSync/allcamrender.py` | Pseudo-view rendering |
+| `3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender` | `animate/BlenderSync/allcamrender.py` | Pseudo-view rendering |
 | `3D_marmoset_body_data/marmoset_body_blender` | `animate/BlenderSync/blender_animation.py` | Base rigged model |
 
 ## Minimal data for testing

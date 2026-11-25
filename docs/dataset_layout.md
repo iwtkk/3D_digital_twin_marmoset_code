@@ -1,18 +1,18 @@
 # Dataset layout
 
-`/data/iwata/3D_digital_twin_marmoset_data_work_npz` (30425 files, 1058.7 GB, scanned 2026-11-25T20:52:38)
+`/data/iwata/3D_digital_twin_marmoset_data_work_npz` (30425 files, 1058.7 GB, scanned 2026-11-25T21:25:14)
 
 Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 
 ## Tree
 
 ```
-├── 3D_digital_twin_data/  (17 patterns, 186.0 GB)
+├── 3D_digital_twin_marmoset_data/  (17 patterns, 186.0 GB)
 │   ├── 3D_digitaltwin_marmoset_blender.blend  ×1, 0.15 GB
 │   ├── 3D_digitaltwin_marmoset_blender_files/  (1 patterns, 69.7 GB)
 │   │   └── {session}.blend  ×222, 69.74 GB
 │   ├── 3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend  ×1, 0.29 GB
-│   ├── 3D_digitaltwin_simplified_marmoset/  (1 patterns, 104.5 GB)
+│   ├── 3D_digitaltwin_marmoset_blender_simplified_marmoset/  (1 patterns, 104.5 GB)
 │   │   └── {session}.blend  ×222, 104.46 GB
 │   ├── rendered_environmental_images/  (10 patterns, 8.7 GB)
 │   │   ├── README.md  ×1, 0.0 GB
@@ -34,11 +34,12 @@ Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 │       ├── README.md  ×1, 0.0 GB
 │       ├── {session}_Eqdst.mp4  ×1, 1.26 GB
 │       └── {session}_Pinhole.mp4  ×1, 1.45 GB
-├── 3D_environmental_body/  (1 patterns, 0.6 GB)
+├── 3D_environmental_data/  (1 patterns, 0.6 GB)
 │   └── environment_measurement.blend  ×1, 0.62 GB
-├── 3D_marmoset_body/  (8 patterns, 1.3 GB)
-│   ├── 3dmarmoset.blend  ×1, 0.18 GB
-│   ├── 3dmarmoset_simplified.blend  ×1, 0.21 GB
+├── 3D_marmoset_body_data/  (8 patterns, 1.3 GB)
+│   ├── 3D_marmoset_body_Blender/  (2 patterns, 0.4 GB)
+│   │   ├── 3dmarmoset.blend  ×1, 0.18 GB
+│   │   └── 3dmarmoset_simplified.blend  ×1, 0.21 GB
 │   └── CT_scan_data/  (6 patterns, 0.9 GB)
 │       ├── CT_scan_data.nii  ×1, 0.7 GB
 │       ├── Marmoset_surface.seg.nrrd  ×1, 0.0 GB
@@ -113,32 +114,32 @@ Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 
 | Path | Files | GB | Description |
 |---|---:|---:|---|
-| `3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend` | 1 | 0.15 | Base digital twin scene (environment + marmoset model) |
-| `3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files/{session}.blend` | 222 | 69.74 | Digital twin per session (Detailed model), posed with the Aligned keypoints; Blend frame = 3D frame + 1 |
-| `3D_digital_twin_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend` | 1 | 0.29 | Base scene with the simplified marmoset model |
-| `3D_digital_twin_data/3D_digitaltwin_simplified_marmoset/{session}.blend` | 222 | 104.46 | Digital twin per session (Simplified model), posed with the Aligned keypoints; Blend frame = 3D frame + 1 |
-| `3D_digital_twin_data/rendered_environmental_images/README.md` | 1 | 0.0 | Description of the Fig. 8a image-similarity files (regions, keys, real frames) |
-| `3D_digital_twin_data/rendered_environmental_images/camera_summary.csv` | 1 | 0.0 | Mean / std of pair_metrics.csv per Camera ID x body model |
-| `3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png` | 1 | 0.0 | Example full-image SSIM map of one pair (detailed_fur, ID A, Cam 1), grayscale 255 = SSIM 1 |
-| `3D_digital_twin_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png` | 1 | 0.0 | The example SSIM map with a colorbar and its mean |
-| `3D_digital_twin_data/rendered_environmental_images/frames.csv` | 1 | 0.0 | Fig. 8a pairs: Session, Camera ID, 3D frame, Blend frame, Video frame index of the real image |
-| `3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_fur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Detailed model with fur (Aligned pose, Fig. 8a) |
-| `3D_digital_twin_data/rendered_environmental_images/metrics_animal_detailed_nofur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Detailed model without fur (Aligned pose) |
-| `3D_digital_twin_data/rendered_environmental_images/metrics_animal_simplified_fur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Simplified model with fur (Aligned pose) |
-| `3D_digital_twin_data/rendered_environmental_images/pair_metrics.csv` | 1 | 0.0 | Full-image and Animal-region PSNR/SSIM and bbox IoU per pair x body model |
-| `3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png` | 2400 | 8.68 | Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536 RGB) |
-| `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md` | 1 | 0.0 | Description of the pseudo first-person videos (cameras, frame mapping, encoding) |
-| `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4` | 1 | 1.26 | Pseudo first-person video from the eyes, equidistant fisheye 140 deg (Camera_Eqdst_70), 1000x1000, 24 fps |
-| `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4` | 1 | 1.45 | Pseudo first-person video from the eyes, pinhole 82 deg (Camera_Pinhole_orig), 1000x1000, 24 fps |
-| `3D_environmental_body/environment_measurement.blend` | 1 | 0.62 | Home-cage environment model (with measured dimensions) |
-| `3D_marmoset_body/3dmarmoset.blend` | 1 | 0.18 | Rigged marmoset model |
-| `3D_marmoset_body/3dmarmoset_simplified.blend` | 1 | 0.21 | Simplified marmoset model |
-| `3D_marmoset_body/CT_scan_data/CT_scan_data.nii` | 1 | 0.7 | CT volume |
-| `3D_marmoset_body/CT_scan_data/Marmoset_surface.seg.nrrd` | 1 | 0.0 | Body surface segmentation (3D Slicer) |
-| `3D_marmoset_body/CT_scan_data/Marmoset_surface.stl` | 1 | 0.0 | Body surface mesh |
-| `3D_marmoset_body/CT_scan_data/Segmentation.nii.gz` | 1 | 0.0 | Segmentation (NIfTI) |
-| `3D_marmoset_body/CT_scan_data/Segmentation.seg.nrrd` | 1 | 0.0 | Segmentation (3D Slicer) |
-| `3D_marmoset_body/CT_scan_data/Segmentation.stl` | 1 | 0.17 | Segmentation mesh |
+| `3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend` | 1 | 0.15 | Base digital twin scene (environment + marmoset model) |
+| `3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_files/{session}.blend` | 222 | 69.74 | Digital twin per session (Detailed model), posed with the Aligned keypoints; Blend frame = 3D frame + 1 |
+| `3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend` | 1 | 0.29 | Base scene with the simplified marmoset model |
+| `3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/{session}.blend` | 222 | 104.46 | Digital twin per session (Simplified model), posed with the Aligned keypoints; Blend frame = 3D frame + 1 |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/README.md` | 1 | 0.0 | Description of the Fig. 8a image-similarity files (regions, keys, real frames) |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/camera_summary.csv` | 1 | 0.0 | Mean / std of pair_metrics.csv per Camera ID x body model |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}.png` | 1 | 0.0 | Example full-image SSIM map of one pair (detailed_fur, ID A, Cam 1), grayscale 255 = SSIM 1 |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/example/ssim_map_detailed_fur_full_Cam1_{session}_f{frame}_colorbar.png` | 1 | 0.0 | The example SSIM map with a colorbar and its mean |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/frames.csv` | 1 | 0.0 | Fig. 8a pairs: Session, Camera ID, 3D frame, Blend frame, Video frame index of the real image |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_fur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Detailed model with fur (Aligned pose, Fig. 8a) |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_detailed_nofur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Detailed model without fur (Aligned pose) |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/metrics_animal_simplified_fur.json` | 1 | 0.0 | Animal-region PSNR/SSIM per pair, Simplified model with fur (Aligned pose) |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/pair_metrics.csv` | 1 | 0.0 | Full-image and Animal-region PSNR/SSIM and bbox IoU per pair x body model |
+| `3D_digital_twin_marmoset_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png` | 2400 | 8.68 | Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536 RGB) |
+| `3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/README.md` | 1 | 0.0 | Description of the pseudo first-person videos (cameras, frame mapping, encoding) |
+| `3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4` | 1 | 1.26 | Pseudo first-person video from the eyes, equidistant fisheye 140 deg (Camera_Eqdst_70), 1000x1000, 24 fps |
+| `3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4` | 1 | 1.45 | Pseudo first-person video from the eyes, pinhole 82 deg (Camera_Pinhole_orig), 1000x1000, 24 fps |
+| `3D_environmental_data/environment_measurement.blend` | 1 | 0.62 | Home-cage environment model (with measured dimensions) |
+| `3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset.blend` | 1 | 0.18 | Rigged marmoset model |
+| `3D_marmoset_body_data/3D_marmoset_body_Blender/3dmarmoset_simplified.blend` | 1 | 0.21 | Simplified marmoset model |
+| `3D_marmoset_body_data/CT_scan_data/CT_scan_data.nii` | 1 | 0.7 | CT volume |
+| `3D_marmoset_body_data/CT_scan_data/Marmoset_surface.seg.nrrd` | 1 | 0.0 | Body surface segmentation (3D Slicer) |
+| `3D_marmoset_body_data/CT_scan_data/Marmoset_surface.stl` | 1 | 0.0 | Body surface mesh |
+| `3D_marmoset_body_data/CT_scan_data/Segmentation.nii.gz` | 1 | 0.0 | Segmentation (NIfTI) |
+| `3D_marmoset_body_data/CT_scan_data/Segmentation.seg.nrrd` | 1 | 0.0 | Segmentation (3D Slicer) |
+| `3D_marmoset_body_data/CT_scan_data/Segmentation.stl` | 1 | 0.17 | Segmentation mesh |
 | `marmoset_keypoint_data/2D_temporal_keypoint_data/{session}/{session}_{cam}_{chunk}.json` | 6512 | 76.44 | 2D detections (bbox + 20 keypoints), one per video chunk |
 | `marmoset_keypoint_data/3D_temporal_keypoint_data/{session}.npz` | 222 | 9.39 | 3D keypoints per session: Aligned keypoints (Blender world coordinates, m), Raw keypoints (mm), score, reprojection error, frame_num; see docs/data_format.md |
 | `marmoset_keypoint_data/trained_model/detection.pth` | 1 | 0.65 | Bounding box detector (YOLOX) |
