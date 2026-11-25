@@ -1,13 +1,13 @@
 # Dataset layout
 
-`/data/iwata/3D_digital_twin_marmoset_data_work_npz` (30425 files, 1058.8 GB, scanned 2026-11-25T10:13:05)
+`/data/iwata/3D_digital_twin_marmoset_data_work_npz` (30425 files, 1058.7 GB, scanned 2026-11-25T20:52:38)
 
 Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 
 ## Tree
 
 ```
-├── 3D_digital_twin_data/  (17 patterns, 186.2 GB)
+├── 3D_digital_twin_data/  (17 patterns, 186.0 GB)
 │   ├── 3D_digitaltwin_marmoset_blender.blend  ×1, 0.15 GB
 │   ├── 3D_digitaltwin_marmoset_blender_files/  (1 patterns, 69.7 GB)
 │   │   └── {session}.blend  ×222, 69.74 GB
@@ -30,10 +30,10 @@ Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 │   │           └── {session}/  (1 patterns, 8.7 GB)
 │   │               └── Camera.{cam}/  (1 patterns, 8.7 GB)
 │   │                   └── {frame}.png  ×2400, 8.68 GB
-│   └── rendered_pseudo_egocentric_video_data/  (3 patterns, 2.9 GB)
+│   └── rendered_pseudo_egocentric_video_data/  (3 patterns, 2.7 GB)
 │       ├── README.md  ×1, 0.0 GB
-│       ├── {session}_Eqdst.mp4  ×1, 1.38 GB
-│       └── {session}_Pinhole.mp4  ×1, 1.48 GB
+│       ├── {session}_Eqdst.mp4  ×1, 1.26 GB
+│       └── {session}_Pinhole.mp4  ×1, 1.45 GB
 ├── 3D_environmental_body/  (1 patterns, 0.6 GB)
 │   └── environment_measurement.blend  ×1, 0.62 GB
 ├── 3D_marmoset_body/  (8 patterns, 1.3 GB)
@@ -128,8 +128,8 @@ Generated from `docs/dataset_layout.yaml`. Edit the YAML, not this file.
 | `3D_digital_twin_data/rendered_environmental_images/pair_metrics.csv` | 1 | 0.0 | Full-image and Animal-region PSNR/SSIM and bbox IoU per pair x body model |
 | `3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/{session}/Camera.{cam}/{frame}.png` | 2400 | 8.68 | Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536 RGB) |
 | `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md` | 1 | 0.0 | Description of the pseudo first-person videos (cameras, frame mapping, encoding) |
-| `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4` | 1 | 1.38 | Pseudo first-person video from the eyes, equidistant fisheye 200 deg (Camera_Eqdst_100), 1000x1000, 24 fps |
-| `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4` | 1 | 1.48 | Pseudo first-person video from the eyes, pinhole 91 deg (Camera_Pinhole_x2), 1000x1000, 24 fps |
+| `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4` | 1 | 1.26 | Pseudo first-person video from the eyes, equidistant fisheye 140 deg (Camera_Eqdst_70), 1000x1000, 24 fps |
+| `3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4` | 1 | 1.45 | Pseudo first-person video from the eyes, pinhole 82 deg (Camera_Pinhole_orig), 1000x1000, 24 fps |
 | `3D_environmental_body/environment_measurement.blend` | 1 | 0.62 | Home-cage environment model (with measured dimensions) |
 | `3D_marmoset_body/3dmarmoset.blend` | 1 | 0.18 | Rigged marmoset model |
 | `3D_marmoset_body/3dmarmoset_simplified.blend` | 1 | 0.21 | Simplified marmoset model |

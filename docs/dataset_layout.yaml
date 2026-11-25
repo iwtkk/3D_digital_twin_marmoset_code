@@ -11,10 +11,10 @@
 
 dataset_root: /data/iwata/3D_digital_twin_marmoset_data_work_npz
 removed_backup: /data/iwata/3D_digital_twin_marmoset_data_work_npz_removed
-snapshot_at: '2026-11-25T10:13:05'
+snapshot_at: '2026-11-25T20:52:38'
 total:
   files: 30425
-  size_gb: 1058.8
+  size_gb: 1058.7
 entries:
 - current: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend
   path: 3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend
@@ -113,7 +113,8 @@ entries:
   count: 2400
   size_gb: 8.68
   example: 3D_digital_twin_data/rendered_environmental_images/render/detailed_fur/cj357_20221009_090000/Camera.23506214/0000074.png
-  description: Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536 RGB)
+  description: Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536
+    RGB)
 - current: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md
   path: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/README.md
   remove: false
@@ -125,16 +126,16 @@ entries:
   path: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4
   remove: false
   count: 1
-  size_gb: 1.38
+  size_gb: 1.26
   example: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/cj611_20230226_110000_Eqdst.mp4
-  description: Pseudo first-person video from the eyes, equidistant fisheye 200 deg (Camera_Eqdst_100), 1000x1000, 24 fps
+  description: Pseudo first-person video from the eyes, equidistant fisheye 140 deg (Camera_Eqdst_70), 1000x1000, 24 fps
 - current: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4
   path: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/{session}_Pinhole.mp4
   remove: false
   count: 1
-  size_gb: 1.48
+  size_gb: 1.45
   example: 3D_digital_twin_data/rendered_pseudo_egocentric_video_data/cj611_20230226_110000_Pinhole.mp4
-  description: Pseudo first-person video from the eyes, pinhole 91 deg (Camera_Pinhole_x2), 1000x1000, 24 fps
+  description: Pseudo first-person video from the eyes, pinhole 82 deg (Camera_Pinhole_orig), 1000x1000, 24 fps
 - current: 3D_environmental_body/environment_measurement.blend
   path: 3D_environmental_body/environment_measurement.blend
   remove: false

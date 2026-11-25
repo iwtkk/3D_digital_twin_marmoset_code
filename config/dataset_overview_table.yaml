@@ -1,0 +1,100 @@
+# Rows of the dataset overview table (docs/dataset_overview.tex), written by
+# scripts/07_package_dataset/make_dataset_overview_table.py. Sizes and file counts are measured from the Release tree;
+# everything else is text written here (LaTeX).
+#   paths:   files or folders relative to the dataset root that the row covers (size = their total)
+#   formats: extensions shown in the File format column; the script warns about extensions found under paths but not
+#            listed (ignore_ext are never reported)
+
+ignore_ext: [.md, .txt]
+
+caption: >-
+  Overview of the dataset. Each top-level folder is distributed as zip archives (each $<$2.5\,GB) with a manifest file;
+  the script \texttt{extract\_dataset.py} restores the folder layout shown here.
+label: tab:dataset_overview
+
+groups:
+  - folder: 3D_digital_twin_data
+    rows:
+      - subfolder: Base scenes (2 files)
+        paths: [3D_digital_twin_data/3D_digitaltwin_marmoset_blender.blend,
+                3D_digital_twin_data/3D_digitaltwin_marmoset_blender_simplified_3dmarmo.blend]
+        contents: Environment and marmoset model combined (full and simplified model)
+        formats: [.blend]
+        figure: Fig.~1b, Methods
+      - subfolder: \texttt{3D\_digitaltwin\_marmoset\_blender\_files}
+        paths: [3D_digital_twin_data/3D_digitaltwin_marmoset_blender_files]
+        contents: Digital twin per session, animated with the 3D keypoints
+        formats: [.blend]
+        figure: Fig.~1b, Methods
+      - subfolder: \texttt{3D\_digitaltwin\_simplified\_marmoset}
+        paths: [3D_digital_twin_data/3D_digitaltwin_simplified_marmoset]
+        contents: Digital twin per session with the simplified marmoset model
+        formats: [.blend]
+        figure: Fig.~1b, Methods
+      - subfolder: \texttt{rendered\_environmental\_images}
+        paths: [3D_digital_twin_data/rendered_environmental_images]
+        contents: >-
+          Renders from the 8 camera views (2,400 images, detailed model with fur), PSNR/SSIM and bounding-box IoU
+          against the real images for 3 body models, the frame list and an example SSIM map
+        formats: [.png, .csv, .json]
+        figure: Fig.~8, Technical Validation
+      - subfolder: \texttt{rendered\_pseudo\_egocentric\_video\_data}
+        paths: [3D_digital_twin_data/rendered_pseudo_egocentric_video_data]
+        contents: >-
+          Pseudo first-person videos from the eyes of the animal (one session; equidistant fisheye 140$^\circ$ and
+          pinhole 82$^\circ$)
+        formats: [.mp4]
+        figure: Technical Validation
+  - folder: 3D_marmoset_body
+    rows:
+      - subfolder: \texttt{3dmarmoset.blend}, \texttt{3dmarmoset\_simplified.blend}
+        paths: [3D_marmoset_body/3dmarmoset.blend, 3D_marmoset_body/3dmarmoset_simplified.blend]
+        contents: Rigged marmoset body model and its simplified version
+        formats: [.blend]
+        figure: Fig.~2, Methods
+      - subfolder: \texttt{CT\_scan\_data}
+        paths: [3D_marmoset_body/CT_scan_data]
+        contents: CT volume, body-surface and segmentation masks and meshes used to build the body model
+        formats: [.nii, .nii.gz, .seg.nrrd, .stl]
+        figure: Fig.~2, Methods
+  - folder: 3D_environmental_body
+    rows:
+      - subfolder: \texttt{environment\_measurement.blend}
+        paths: [3D_environmental_body/environment_measurement.blend]
+        contents: Home-cage environment model with measured dimensions
+        formats: [.blend]
+        figure: Table~5, Technical Validation
+  - folder: marmoset_keypoint_data
+    rows:
+      - subfolder: \texttt{video\_data}
+        paths: [marmoset_keypoint_data/video_data]
+        contents: >-
+          Synchronized videos from 8 cameras, 222 sessions (24\,fps, 2048$\times$1536\,px), with per-frame numbers and
+          timestamps
+        formats: [.mp4, .npz, .h5, .yaml]
+        figure: Fig.~3a, Methods
+      - subfolder: \texttt{training\_data}
+        paths: [marmoset_keypoint_data/training_data]
+        contents: >-
+          Training set for the detector and pose estimator (3,382 images, COCO annotations, pretrained weights); manually
+          labeled 3D ground truth (1--3 animals) with its 800 camera images
+        formats: [.png, .json, .pth, .h5, .npz, .mat, .csv, .yaml]
+        figure: Fig.~7, Technical Validation
+      - subfolder: \texttt{trained\_model}
+        paths: [marmoset_keypoint_data/trained_model]
+        contents: >-
+          Trained bounding-box detector (YOLOX), 20-keypoint pose estimator (HRNet-W48) and individual identification
+          model
+        formats: [.pth]
+        figure: Fig.~7, Technical Validation
+      - subfolder: \texttt{2D\_temporal\_keypoint\_data}
+        paths: [marmoset_keypoint_data/2D_temporal_keypoint_data]
+        contents: 2D detections per video chunk (bounding box, 20 keypoints with confidence, ID label)
+        formats: [.json]
+        figure: Fig.~7, Technical Validation
+      - subfolder: \texttt{3D\_temporal\_keypoint\_data}
+        paths: [marmoset_keypoint_data/3D_temporal_keypoint_data]
+        contents: >-
+          3D keypoints per session (Blender and metric coordinates, confidence, reprojection error, head orientation)
+        formats: [.npz]
+        figure: Fig.~7, Technical Validation

@@ -2,7 +2,7 @@
 
 Overview of the four top-level folders of the released dataset
 (Harvard Dataverse doi:10.7910/DVN/HZVBH1; restored layout = `/data/iwata/3D_digital_twin_marmoset_data_work_npz`).
-Counts and sizes are from `docs/dataset_layout.yaml` (scan 2026-11-25: 30,425 files, 1,058.8 GB; sizes in decimal GB).
+Counts and sizes are from `docs/dataset_layout.yaml` (scan 2026-11-25: 30,425 files, 1,058.7 GB; sizes in decimal GB).
 Figure / section numbers marked `[?]` still have to be filled in from the manuscript.
 
 ## Table
@@ -21,7 +21,7 @@ Figure / section numbers marked `[?]` still have to be filled in from the manusc
 | | `3D_digitaltwin_marmoset_blender_files/` | Digital twin per session (Detailed model), posed with the Aligned keypoints | `.blend` | [?] | 70 GB (222 files) |
 | | `3D_digitaltwin_simplified_marmoset/` | Digital twin per session (Simplified model), posed with the Aligned keypoints | `.blend` | [?] | 104 GB (222 files) |
 | | `rendered_environmental_images/` | PSNR/SSIM (Full image, Animal region) and bbox IoU between real and rendered images for 2,400 pairs and 3 body models, with the frame list, the 2,400 renders of the Detailed model with fur and an example full-image SSIM map; all renders are reproducible with the code repository | `.png`, `.json`, `.csv`, `.md` | Fig. 8a | 8.7 GB (2,409 files) |
-| | `rendered_pseudo_egocentric_video_data/` | Pseudo first-person videos from the eyes of the animal (session cj611_20230226_110000; equidistant fisheye 200 deg and pinhole 91 deg) | `.mp4`, `.md` | [?] | 2.9 GB (3 files) |
+| | `rendered_pseudo_egocentric_video_data/` | Pseudo first-person videos from the eyes of the animal (session cj611_20230226_110000; equidistant fisheye 140 deg and pinhole 82 deg) | `.mp4`, `.md` | [?] | 2.7 GB (3 files) |
 
 Distribution: every folder is split into zips under 2.5 GB with a manifest CSV per prefix; `extract_dataset.py`
 (at the top of the dataset) restores the layout above.

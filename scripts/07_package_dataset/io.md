@@ -239,4 +239,20 @@ Validation:
     - Means equal the values of metrics_pose_fur.csv (affine): IoU 0.413 / 0.362 / 0.419,
       SSIM_animal 0.488 / 0.487 / 0.487 (detailed_fur / detailed_nofur / simplified_fur).
     - frame_offset counts -2: 24, -1: 192, 0: 1584, +1: 600.
+
+================================================================================
+Tool: make_dataset_overview_table   (make_dataset_overview_table.py)
+================================================================================
+Purpose:
+    Write the dataset overview table of the paper (LaTeX tabularx) with sizes measured from the Release tree.
+Inputs:
+    --dataset-root  Release tree (path_registry.data.dataset_work_npz); only read
+    --config        config/dataset_overview_table.yaml: caption, label, ignore_ext, groups[{folder, rows[{subfolder,
+                    paths (relative to the root), contents, formats, figure}]}]
+Outputs:
+    --out (docs/dataset_overview.tex): table* with one row per YAML row; Size = total bytes of paths in decimal GB
+        (1 decimal below 10 GB, integer above); Total = every file under the root
+Side effects:
+    - Prints a WARNING when a row's files have extensions not in formats (or formats with no file), and when files of
+      the dataset are not covered by any row. Stops if a path does not exist.
 """
