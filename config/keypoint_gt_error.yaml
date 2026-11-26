@@ -1,0 +1,19 @@
+# 3D keypoint accuracy against the manually labeled ground truth (paper Fig. 2E)
+# Read by scripts/06_validation/keypoint_gt_error/{plot_error_violin,extract_labeled_images}.py
+# I/O ledger: scripts/06_validation/keypoint_gt_error/io.md
+
+# dataset root (the folder that holds marmoset_keypoint_data/ after extract_dataset.py)
+dataset_root: "/data/iwata/3D_digital_twin_marmoset_data_work_npz"   # path_registry.data.dataset_work_npz
+gt_dir: "marmoset_keypoint_data/training_data/3dkp_gt"               # relative to dataset_root (path_registry.data.dataset_3dkp_gt)
+output_dir: "outputs/validation/keypoint_gt_error"                   # path_registry.outputs.keypoint_gt_error
+
+# Fig. 2E: single animal, 20 keypoints (in the dataset: {gt_dir}/matched_keypoints/{stem}.npz / .mat)
+figure:
+  stem: SingleAnimal_20
+  n_kp: 20
+
+# Camera images of the labeled frames, re-extracted from the dataset videos (extract_labeled_images.py)
+labeled_images:
+  set: valbin1_nanim1_nfrm100                    # folder in {gt_dir}/labeled_frames
+  video_dir: "marmoset_keypoint_data/video_data" # relative to dataset_root; {session}.{camera_id}/metadata.yaml (imgstore)
+

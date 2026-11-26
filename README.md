@@ -111,18 +111,17 @@ Paths below are relative to the repository root unless a step says `cd`.
 
 ### Step 1 – Set up dataset and environment
 
-The dataset is distributed in two places with the same folder layout. They differ only in the
-format of the 3D keypoints (`marmoset_keypoint_data/3D_temporal_keypoint_data/`):
+The dataset is distributed in two places with the same content and folder layout:
 
-| Source | 3D keypoints | Use |
+| Source | Form | 3D keypoints |
 |---|---|---|
-| AWS S3 `s3://digitaltwin-marmoset/` | `{session}/kp3d_fxdJointLen.pickle` (raw triangulation) | videos, models, Step 2 |
-| Harvard Dataverse (doi:10.7910/DVN/HZVBH1) | `{session}.npz` (aligned to the digital twin, ready for Blender) | Step 3 directly |
+| AWS S3 `s3://digitaltwin-marmoset/` | plain files (download with `aws s3`) | `{session}.npz` (aligned to the digital twin, ready for Blender) |
+| Harvard Dataverse (doi:10.7910/DVN/HZVBH1) | zip archives (restore with `extract_dataset.py`) | same |
 
 ```bash
 # Download the dataset from AWS S3 (no sign-in required)
 # (no aws command: pip install awscli)
-aws s3 --no-sign-request cp --recursive s3://digitaltwin-marmoset/ ./3D_digital_twin_marmoset_data
+aws s3 --no-sign-request cp --recursive --exclude index.html s3://digitaltwin-marmoset/ ./3D_digital_twin_marmoset_data
 # (Harvard Dataverse: download the zip files and restore the layout with
 #  python extract_dataset.py --dst ./3D_digital_twin_marmoset_data --gunzip-blend)
 
@@ -233,7 +232,7 @@ Outputs (in `outputs/marmo3d/`):
 | Path | Content |
 |---|---|
 | `2d_v0p8_Dark_fix_20_all/{session}/{session}_{camera_id}_{chunk}.json` | 2D detections and keypoints per video chunk |
-| `3d_v0p8_dark_fix_20_all/{session}/kp3d_fxdJointLen.pickle` | 3D keypoints (same format as `outputs/3d` from S3) |
+| `3d_v0p8_dark_fix_20_all/{session}/kp3d_fxdJointLen.pickle` | 3D keypoints (raw triangulation) |
 | `3d_v0p8_dark_fix_20_all/{session}/{camera_id}/frame_num.npy` | video frame of each 3D frame |
 | `video/3d_v0p8_dark_fix_20_all/` | 3D keypoints drawn on camera 6 |
 
@@ -243,7 +242,7 @@ the real cameras and the Blender cameras, and the result is written as `{session
 (same content as the Dataverse NPZ; see `scripts/05_create_digital_twin/alignment_3D_keypoint/`).
 
 ```bash
-IN=outputs/marmo3d/3d_v0p8_dark_fix_20_all   # or outputs/3d for the pickle files from S3
+IN=outputs/marmo3d/3d_v0p8_dark_fix_20_all
 python scripts/05_create_digital_twin/alignment_3D_keypoint/run/affine_align.py \
   --all --input-dir $IN --output-dir outputs/alignment --jobs 8
 python scripts/05_create_digital_twin/alignment_3D_keypoint/run/export_aligned_npz.py \

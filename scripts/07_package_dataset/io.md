@@ -134,6 +134,13 @@ History:
       2 zips, 2.86 GB); the empty 3D_digital_twin_data/rendered_pseudo_video_data was removed. check: OK for every
       manifest except training_data_3dkp_gt, whose source folder was being extended by another task at the time.
       Uploaded to the Dataverse draft (--only 'rendered_pseudo_egocentric_video_data*'): 422 files, sizes match, new 3 MD5 match.
+    2026-11-26: only the single-animal 3D ground truth is released: labeled_frames/valbin{2,3}_* moved to removed_backup
+      (dataset_layout.py remove: true); 3dkp_gt/fig2e_matched_keypoints renamed to matched_keypoints; the READMEs inside
+      the dataset (rendered_environmental_images/README.md, rendered_pseudo_egocentric_video_data/README.md,
+      3dkp_gt/README.txt) removed. rendered_environmental_images, rendered_pseudo_egocentric_video_data and
+      training_data_3dkp_gt repacked from dataset_work_npz (2408 / 2 / 908 files); old zips in
+      dataset_upload_npz_removed/20261126_{readme,3dkp_single}. check: RESULT: OK (412 files). AWS S3 synced
+      (aws s3 sync --size-only --delete --exclude index.html): identical to dataset_work_npz, 30,325 files.
 
 ================================================================================
 Tool: upload_dataverse   (upload_dataverse.py)

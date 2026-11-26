@@ -14,8 +14,8 @@ pseudo-first-person-view videos.
 
 Blender-ready `{session}.npz` (keys `kp3d`, `kp_names`, `head_euler_xyz`; see the main README):
 
-- Harvard Dataverse: `marmoset_keypoint_data/3D_temporal_keypoint_data/{session}.npz` (`outputs/3d` after restoring)
-- From `kp3d_fxdJointLen.pickle` (Step 2 output or AWS S3): `alignment_3D_keypoint/run/affine_align.py`
+- Dataset (AWS S3 or Harvard Dataverse): `marmoset_keypoint_data/3D_temporal_keypoint_data/{session}.npz` (`outputs/3d` after restoring)
+- From `kp3d_fxdJointLen.pickle` (Step 2 output): `alignment_3D_keypoint/run/affine_align.py`
   then `alignment_3D_keypoint/run/export_aligned_npz.py` → `outputs/npz/{session}.npz`
 
 The older CSV route (`kp3d_to_blender_csv.py`, fixed transform without the per-session alignment) is still

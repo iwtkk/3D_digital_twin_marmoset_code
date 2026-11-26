@@ -1,0 +1,33 @@
+function [hplts, hplt_skpt] = plotMarmo3D(kpts, haxs)
+kp_names = {'nose', 'L eye', 'R eye', 'L ear', 'R ear',...
+            'L shoulder', 'R shoulder', 'L elbow', 'R elbow', 'L wrist', 'R wrist',...
+            'L hip', 'R hip', 'L knee', 'R knee', 'L ankle', 'R ankle', 'backbone'};
+
+kp_clrs = [128,128,128; 255,255,0; 255,255,0; 0,255,0; 0,255,0;
+    255,0,255; 255,0,0; 255,0,255; 255,0,0; 255,0,255; 255,0,0;...
+    0,255,255;  0,0,255; 0,255,255; 0,0,255; 0,255,255; 0,0,255;...
+    255, 127, 0; 255, 127, 0; 255, 127, 0]./255;
+skeleton=[16, 14; 14, 12;  17, 15;15, 13; 12, 13; 6, 12; 7, 13;  6, 7; 6, 8; 7, 9;
+    8, 10; 9, 11; 2, 3; 1, 2; 1, 3; 2, 4; 3, 5;
+    2,6;3,7;...
+    19,20; ...
+    7,18;6,18;
+    19,13;19,12;
+    18,13;18,12];
+mkrs=['*+-'];
+for ianim=1:1
+    for ik=1:18
+        hplts(ianim,ik)=plot3(haxs,kpts(ik,1),kpts(ik,3),kpts(ik,2).*-1,mkrs(ianim),'Color',kp_clrs(ik,:));
+    end
+    for iskt=1:19% 18 size(skeleton,1)
+        xx=kpts(skeleton(iskt,:),1);
+        yy=kpts(skeleton(iskt,:),3);
+        zz=kpts(skeleton(iskt,:),2).*-1;
+        hplt_skpt(ianim,iskt)=plot3(haxs,...
+            xx,...
+            yy,...
+            zz,...
+            '-','Color',[0.1 0.1 0.1]);
+    end
+end
+end

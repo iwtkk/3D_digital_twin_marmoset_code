@@ -11,9 +11,9 @@
 
 dataset_root: /data/iwata/3D_digital_twin_marmoset_data_work_npz
 removed_backup: /data/iwata/3D_digital_twin_marmoset_data_work_npz_removed
-snapshot_at: '2026-11-25T21:25:14'
+snapshot_at: '2026-11-26T21:43:03'
 total:
-  files: 30425
+  files: 30325
   size_gb: 1058.7
 entries:
 - current: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender.blend
@@ -44,13 +44,6 @@ entries:
   size_gb: 104.46
   example: 3D_digital_twin_marmoset_data/3D_digitaltwin_marmoset_blender_simplified_marmoset/cj357_20221009_090000.blend
   description: Digital twin per session (Simplified model), posed with the Aligned keypoints; Blend frame = 3D frame + 1
-- current: 3D_digital_twin_marmoset_data/rendered_environmental_images/README.md
-  path: 3D_digital_twin_marmoset_data/rendered_environmental_images/README.md
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: 3D_digital_twin_marmoset_data/rendered_environmental_images/README.md
-  description: Description of the Fig. 8a image-similarity files (regions, keys, real frames)
 - current: 3D_digital_twin_marmoset_data/rendered_environmental_images/camera_summary.csv
   path: 3D_digital_twin_marmoset_data/rendered_environmental_images/camera_summary.csv
   remove: false
@@ -115,13 +108,6 @@ entries:
   example: 3D_digital_twin_marmoset_data/rendered_environmental_images/render/detailed_fur/cj357_20221009_090000/Camera.23506214/0000074.png
   description: Render of every Fig. 8a pair, Detailed model with fur (Aligned pose, Blend frame = 3D frame + 1, 2048x1536
     RGB)
-- current: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/README.md
-  path: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/README.md
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/README.md
-  description: Description of the pseudo first-person videos (cameras, frame mapping, encoding)
 - current: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4
   path: 3D_digital_twin_marmoset_data/rendered_pseudo_egocentric_video_data/{session}_Eqdst.mp4
   remove: false
@@ -235,27 +221,6 @@ entries:
   size_gb: 0.76
   example: marmoset_keypoint_data/trained_model/pose_marmo20_best_epoch.pth
   description: 20-keypoint pose estimator (HRNet-W48 + DARK)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/README.txt
-  path: marmoset_keypoint_data/training_data/3dkp_gt/README.txt
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/README.txt
-  description: Description of 3dkp_gt (file formats, shapes, units)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/fig2e_matched_keypoints/SingleAnimal_20.mat
-  path: marmoset_keypoint_data/training_data/3dkp_gt/fig2e_matched_keypoints/SingleAnimal_20.mat
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/fig2e_matched_keypoints/SingleAnimal_20.mat
-  description: Fig. 2E matched GT/predicted 3D keypoints (1 animal, 100 frames, 20 keypoints), original output
-- current: marmoset_keypoint_data/training_data/3dkp_gt/fig2e_matched_keypoints/SingleAnimal_20.npz
-  path: marmoset_keypoint_data/training_data/3dkp_gt/fig2e_matched_keypoints/SingleAnimal_20.npz
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/fig2e_matched_keypoints/SingleAnimal_20.npz
-  description: Fig. 2E matched GT/predicted 3D keypoints (1 animal, 100 frames, 20 keypoints) with session and frame
 - current: marmoset_keypoint_data/training_data/3dkp_gt/images/{name}.png
   path: marmoset_keypoint_data/training_data/3dkp_gt/images/{name}.png
   remove: false
@@ -270,28 +235,28 @@ entries:
   count: 1
   size_gb: 0.0
   example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/cam_extrinsic.h5
-  description: Camera calibration used for labeling (1 animal set; identical in the three sets)
+  description: Camera calibration used for labeling (1 animal set)
 - current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/cam_extrinsic_optim.h5
   path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/cam_extrinsic_optim.h5
   remove: false
   count: 1
   size_gb: 0.0
   example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/cam_extrinsic_optim.h5
-  description: Camera calibration used for labeling (1 animal set; identical in the three sets)
+  description: Camera calibration used for labeling (1 animal set)
 - current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/cam_intrinsic.h5
   path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/cam_intrinsic.h5
   remove: false
   count: 1
   size_gb: 0.0
   example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/cam_intrinsic.h5
-  description: Camera calibration used for labeling (1 animal set; identical in the three sets)
+  description: Camera calibration used for labeling (1 animal set)
 - current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/config.yaml
   path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/config.yaml
   remove: false
   count: 1
   size_gb: 0.0
   example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/calib/config.yaml
-  description: Camera calibration used for labeling (1 animal set; identical in the three sets)
+  description: Camera calibration used for labeling (1 animal set)
 - current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/framedata.csv
   path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/framedata.csv
   remove: false
@@ -313,104 +278,20 @@ entries:
   size_gb: 0.0
   example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin1_nanim1_nfrm100/mov10_00018083.json
   description: Manually labeled 2D (8 cameras) and 3D keypoints, mm (1 animal)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_extrinsic.h5
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_extrinsic.h5
+- current: marmoset_keypoint_data/training_data/3dkp_gt/matched_keypoints/SingleAnimal_20.mat
+  path: marmoset_keypoint_data/training_data/3dkp_gt/matched_keypoints/SingleAnimal_20.mat
   remove: false
   count: 1
   size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_extrinsic.h5
-  description: Camera calibration used for labeling (2 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_extrinsic_optim.h5
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_extrinsic_optim.h5
+  example: marmoset_keypoint_data/training_data/3dkp_gt/matched_keypoints/SingleAnimal_20.mat
+  description: Fig. 2E matched GT/predicted 3D keypoints (1 animal, 100 frames, 20 keypoints), original output
+- current: marmoset_keypoint_data/training_data/3dkp_gt/matched_keypoints/SingleAnimal_20.npz
+  path: marmoset_keypoint_data/training_data/3dkp_gt/matched_keypoints/SingleAnimal_20.npz
   remove: false
   count: 1
   size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_extrinsic_optim.h5
-  description: Camera calibration used for labeling (2 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_intrinsic.h5
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_intrinsic.h5
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/cam_intrinsic.h5
-  description: Camera calibration used for labeling (2 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/config.yaml
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/config.yaml
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/calib/config.yaml
-  description: Camera calibration used for labeling (2 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/framedata.csv
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/framedata.csv
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/framedata.csv
-  description: Labeled frame -> session and video frame per camera (2 animals)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/metadata.yaml
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/metadata.yaml
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/metadata.yaml
-  description: Labeling-tool metadata (2 animals)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/{name}.json
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/{name}.json
-  remove: false
-  count: 50
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin2_nanim2_nfrm55/mov10_00235791.json
-  description: Manually labeled 2D (8 cameras) and 3D keypoints, mm (2 animals)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_extrinsic.h5
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_extrinsic.h5
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_extrinsic.h5
-  description: Camera calibration used for labeling (3 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_extrinsic_optim.h5
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_extrinsic_optim.h5
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_extrinsic_optim.h5
-  description: Camera calibration used for labeling (3 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_intrinsic.h5
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_intrinsic.h5
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/cam_intrinsic.h5
-  description: Camera calibration used for labeling (3 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/config.yaml
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/config.yaml
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/calib/config.yaml
-  description: Camera calibration used for labeling (3 animals set; identical in the three sets)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/framedata.csv
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/framedata.csv
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/framedata.csv
-  description: Labeled frame -> session and video frame per camera (3 animals)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/metadata.yaml
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/metadata.yaml
-  remove: false
-  count: 1
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/metadata.yaml
-  description: Labeling-tool metadata (3 animals)
-- current: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/{name}.json
-  path: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/{name}.json
-  remove: false
-  count: 35
-  size_gb: 0.0
-  example: marmoset_keypoint_data/training_data/3dkp_gt/labeled_frames/valbin3_nanim3_nfrm35/mov1_00033708.json
-  description: Manually labeled 2D (8 cameras) and 3D keypoints, mm (3 animals)
+  example: marmoset_keypoint_data/training_data/3dkp_gt/matched_keypoints/SingleAnimal_20.npz
+  description: Fig. 2E matched GT/predicted 3D keypoints (1 animal, 100 frames, 20 keypoints) with session and frame
 - current: marmoset_keypoint_data/training_data/annotations/single.json
   path: marmoset_keypoint_data/training_data/annotations/single.json
   remove: false
