@@ -27,8 +27,8 @@ The code accompanies the dataset and manuscript:
 
 The associated dataset is available at:
 
-- **Zenodo**: [link to be added upon publication]
-- **AWS**: [link to be added upon publication]
+- **Harvard Dataverse**: [doi:10.7910/DVN/HZVBH1](https://doi.org/10.7910/DVN/HZVBH1)
+- **AWS**: [s3://digitaltwin-marmoset/](https://digitaltwin-marmoset.s3.ap-northeast-1.amazonaws.com/index.html)
 
 The dataset consists of four parts:
 
@@ -186,8 +186,9 @@ camera is in `vid/{session}.{camera_id}/`.
 
 ### Step 2 – 2D + 3D pose estimation (marmo3Dpose)
 
-Steps 2-1 to 2-4 produce from the videos the same NPZ files as those on Harvard Dataverse.
-If you use the Dataverse NPZ files, go to Step 3.
+Steps 2-1 to 2-4 produce from the videos the same `{session}.npz` files as those in the dataset
+(`marmoset_keypoint_data/3D_temporal_keypoint_data/`, linked as `outputs/3d` in Step 1).
+If you use the dataset NPZ files, go to Step 3.
 
 **2-1. Link the trained models** (once). marmo3Dpose loads them from `weight/` under its own directory:
 
@@ -232,14 +233,14 @@ Outputs (in `outputs/marmo3d/`):
 | Path | Content |
 |---|---|
 | `2d_v0p8_Dark_fix_20_all/{session}/{session}_{camera_id}_{chunk}.json` | 2D detections and keypoints per video chunk |
-| `3d_v0p8_dark_fix_20_all/{session}/kp3d_fxdJointLen.pickle` | 3D keypoints (raw triangulation) |
+| `3d_v0p8_dark_fix_20_all/{session}/` | 3D keypoints (raw triangulation; input of 2-4) |
 | `3d_v0p8_dark_fix_20_all/{session}/{camera_id}/frame_num.npy` | video frame of each 3D frame |
 | `video/3d_v0p8_dark_fix_20_all/` | 3D keypoints drawn on camera 6 |
 
 **2-4. Align the 3D keypoints to the digital twin and write NPZ.** For each session an affine transform
 from the triangulation frame to the Blender scene is fitted by minimising the reprojection error between
 the real cameras and the Blender cameras, and the result is written as `{session}.npz`
-(same content as the Dataverse NPZ; see `scripts/05_create_digital_twin/alignment_3D_keypoint/`).
+(same content as the dataset NPZ; see `scripts/05_create_digital_twin/alignment_3D_keypoint/`).
 
 ```bash
 IN=outputs/marmo3d/3d_v0p8_dark_fix_20_all
@@ -264,20 +265,22 @@ Use `--session <name>` instead of `--all` for a single session. `outputs/npz/{se
 
 Blender (checked with 5.2.2; the released `.blend` files are saved by Blender 5.0) must be on `PATH`, or set
 `BLENDER=/path/to/blender`. The Docker image includes it when built with `--build-arg INSTALL_BLENDER=1`.
-The input is a directory of `{session}.npz`: `outputs/npz` from Step 2, or `outputs/3d` if the dataset
-was restored from Harvard Dataverse.
+The input is a directory of `{session}.npz`: `outputs/3d` (the dataset NPZ files, linked in Step 1) or
+`outputs/npz` from Step 2.
 
 ```bash
+NPZ=outputs/3d   # or outputs/npz from Step 2
+
 # Keyframe the pose on a copy of the digital twin: outputs/blender/work_{session}.blend
 bash scripts/05_create_digital_twin/run_animate_.sh \
   --blend outputs/digitaltwin/3D_digitaltwin_marmoset_blender.blend \
-  --npz-dir outputs/npz \
+  --npz-dir $NPZ \
   --output-dir outputs/blender \
   --all
 
 # Render (outputs/render/{session}/{camera}/{session}_{camera}_{frame:05d}.png)
 bash scripts/05_create_digital_twin/run_render.sh \
-  --npz-dir outputs/npz \
+  --npz-dir $NPZ \
   --blend-dir outputs/blender \
   --all-csv --frame-start 1 --frame-end 240 \
   --gpu 0
